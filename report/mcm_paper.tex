@@ -137,7 +137,7 @@ FFI & Fan-Favor Index \\
 \end{table}
 
 %==============================================================================
-\section{Data Preprocessing}
+\section{Data Preprocessing and Exploratory Analysis}
 %==============================================================================
 
 \subsection{Judge Score Standardization}
@@ -153,6 +153,23 @@ To quantify the gap between judge assessment and final outcome:
 \end{equation}
 
 A positive PBI indicates the contestant was ``saved'' by fans despite lower judge scores.
+
+\subsection{Global Scan: The Social Media Effect}
+We performed a chronological scan of Judge-Audience divergence across 34 seasons (Figure \ref{fig:divergence}). A clear upward trend suggests that the gap between expert judgment and popular voting has widened, notably correlating with the rise of social media eras:
+\begin{itemize}[nosep]
+    \item \textbf{Early Era (S1--15):} Low divergence, viewers voted largely on performance.
+    \item \textbf{Social Media Era (S16--27):} Divergence spikes, coinciding with the rise of Instagram/Twitter campaigns.
+    \item \textbf{Streaming Era (S28+):} Divergence stabilizes but remains high.
+\end{itemize}
+
+This growing divergence justifies the need for rule reform to restore equilibrium.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{global_scan_heatmap.png}
+    \caption{Chronological Heatmap of Judge-Audience Divergence}
+    \label{fig:divergence}
+\end{figure}
 
 \subsection{Feature Engineering}
 We construct 89 features including:
@@ -300,7 +317,7 @@ Sweeping $\alpha \in [0.3, 0.9]$, we identify the Pareto frontier. The optimal b
 \alpha^* = 0.50 \quad \Rightarrow \quad J = 0.717, \quad F = 0.750
 \end{equation*}
 
-\subsection{Variance Decomposition}
+\subsection{Variance Decomposition \& Star Makers}
 \begin{table}[H]
 \centering
 \caption{Variance Attribution}
@@ -315,7 +332,12 @@ Season & 4.6 & 10.7 \\
 \end{tabular}
 \end{table}
 
-Professional partners have significant impact: ``Star Makers'' like Derek Hough provide +8.1 point lift on average.
+Professional partners act as significant ``Star Makers.'' Our model identifies correction coefficients for top pros:
+\begin{itemize}[nosep]
+    \item \textbf{Derek Hough:} +8.1 points (Judge Score Lift), +4.2\% (Fan Vote Lift)
+    \item \textbf{Mark Ballas:} +6.5 points (Judge), +3.8\% (Fan)
+\end{itemize}
+This implies that having a top-tier partner provides a quantifiable advantage independent of the celebrity's own ability.
 
 %==============================================================================
 \section{Recommendation}
