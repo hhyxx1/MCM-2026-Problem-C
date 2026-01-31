@@ -1,0 +1,114 @@
+{
+  "base_identifiers": [
+    "contestant_id",
+    "celebrity_name",
+    "ballroom_partner",
+    "celebrity_industry",
+    "celebrity_homestate",
+    "celebrity_homecountry/region",
+    "celebrity_age_during_season",
+    "season",
+    "week",
+    "results",
+    "placement",
+    "elimination_week"
+  ],
+  "outcomes": [
+    "J_pct",
+    "rank_judge",
+    "rank_final"
+  ],
+  "categorical": [
+    "industry_std",
+    "age_bin",
+    "us_region"
+  ],
+  "continuous": [
+    "age",
+    "age_sq",
+    "age_centered",
+    "age_centered_sq",
+    "age_spline_30",
+    "age_spline_40",
+    "age_spline_50"
+  ],
+  "binary": [
+    "is_US",
+    "is_athlete",
+    "is_actor",
+    "is_musician"
+  ],
+  "dummies": {
+    "industry": [
+      "ind_Actor",
+      "ind_Athlete",
+      "ind_Comedian",
+      "ind_Model",
+      "ind_Musician",
+      "ind_Other",
+      "ind_Politician",
+      "ind_TV_Personality"
+    ],
+    "season": [
+      "season_2",
+      "season_3",
+      "season_4",
+      "season_5",
+      "season_6",
+      "season_7",
+      "season_8",
+      "season_9",
+      "season_10",
+      "season_11",
+      "season_12",
+      "season_13",
+      "season_14",
+      "season_15",
+      "season_16",
+      "season_17",
+      "season_18",
+      "season_19",
+      "season_20",
+      "season_21",
+      "season_22",
+      "season_23",
+      "season_24",
+      "season_25",
+      "season_26",
+      "season_27",
+      "season_28",
+      "season_29",
+      "season_30",
+      "season_31",
+      "season_32",
+      "season_33",
+      "season_34",
+      "season_week"
+    ],
+    "week": [
+      "week_2",
+      "week_3",
+      "week_4",
+      "week_5",
+      "week_6",
+      "week_7",
+      "week_8",
+      "week_9",
+      "week_10",
+      "week_11"
+    ],
+    "region": [
+      "region_International",
+      "region_Midwest",
+      "region_Northeast",
+      "region_South",
+      "region_Unknown",
+      "region_West"
+    ]
+  },
+  "interactions": [
+    "season_week",
+    "athlete_age",
+    "actor_age"
+  ]
+}

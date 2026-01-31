@@ -1,0 +1,35 @@
+season,top3_rank,top3_pct,overlap,jaccard,champion_changed
+1,[],[],0,0.0,False
+2,"['Stacy Keibler', 'Jerry Rice', 'Drew Lachey']","['Stacy Keibler', 'Jerry Rice', 'Drew Lachey']",3,1.0,False
+3,[],[],0,0.0,False
+4,"['Joey Fatone', 'Laila Ali', 'Apolo Anton Ohno']","['Joey Fatone', 'Laila Ali', 'Apolo Anton Ohno']",3,1.0,False
+5,"['Marie Osmond', 'Mel B', 'Helio Castroneves']","['Marie Osmond', 'Mel B', 'Helio Castroneves']",3,1.0,False
+6,"['Jason Taylor', 'Cristian de la Fuente', 'Kristi Yamaguchi']","['Jason Taylor', 'Cristian de la Fuente', 'Kristi Yamaguchi']",3,1.0,False
+7,"['Warren Sapp', 'Lance Bass', 'Brooke Burke']","['Warren Sapp', 'Lance Bass', 'Brooke Burke']",3,1.0,False
+8,"['Melissa Rycroft', 'Gilles Marini', 'Shawn Johnson']","['Melissa Rycroft', 'Gilles Marini', 'Shawn Johnson']",3,1.0,False
+9,"['Mya', 'Kelly Osbourne', 'Donny Osmond']","['Mya', 'Kelly Osbourne', 'Donny Osmond']",3,1.0,False
+10,"['Nicole Scherzinger', 'Evan Lysacek', 'Erin Andrews']","['Nicole Scherzinger', 'Evan Lysacek', 'Erin Andrews']",3,1.0,False
+11,"['Bristol Palin', 'Jennifer Grey', 'Kyle Massey']","['Kyle Massey', 'Bristol Palin', 'Jennifer Grey']",3,1.0,True
+12,"['Kirstie Alley', 'Hines Ward', 'Chelsea Kane']","['Kirstie Alley', 'Hines Ward', 'Chelsea Kane']",3,1.0,False
+13,"['Rob Kardashian', 'Ricki Lake', 'J.R. Martinez']","['Rob Kardashian', 'Ricki Lake', 'J.R. Martinez']",3,1.0,False
+14,"['William Levy', 'Donald Driver', 'Katherine Jenkins']","['William Levy', 'Donald Driver', 'Katherine Jenkins']",3,1.0,False
+15,"['Kelly Monaco', 'Shawn Johnson', 'Melissa Rycroft']","['Melissa Rycroft', 'Kelly Monaco', 'Shawn Johnson']",3,1.0,True
+16,"['Kellie Pickler', 'Zendaya', 'Alexandra Raisman']","['Kellie Pickler', 'Zendaya', 'Alexandra Raisman']",3,1.0,False
+17,"['Bill Engvall', 'Corbin Bleu', 'Jack Osbourne']","['Bill Engvall', 'Corbin Bleu', 'Jack Osbourne']",3,1.0,False
+18,"['Candace Cameron Bure', 'James Maslow', 'Amy Purdy']","['Meryl Davis', 'James Maslow', 'Amy Purdy']",2,0.5,True
+19,"['Bethany Mota', 'Alfonso Ribeiro', 'Sadie Robertson']","['Bethany Mota', 'Sadie Robertson', 'Alfonso Ribeiro']",3,1.0,False
+20,"['Rumer Willis', 'Riker Lynch', 'Noah Galloway']","['Rumer Willis', 'Riker Lynch', 'Noah Galloway']",3,1.0,False
+21,"['Bindi Irwin', 'Nick Carter', 'Alek Skarlatos']","['Bindi Irwin', 'Nick Carter', 'Alek Skarlatos']",3,1.0,False
+22,"['Nyle DiMarco', 'Paige VanZant', 'Ginger Zee']","['Nyle DiMarco', 'Paige VanZant', 'Ginger Zee']",3,1.0,False
+23,"['Laurie Hernandez', 'James Hinchcliffe', 'Calvin Johnson Jr.']","['Laurie Hernandez', 'James Hinchcliffe', 'Calvin Johnson Jr.']",3,1.0,False
+24,"['David Ross', 'Rashad Jennings', 'Normani']","['David Ross', 'Rashad Jennings', 'Normani']",3,1.0,False
+25,"['Jordan Fisher', 'Lindsey Stirling', 'Drew Scott']","['Jordan Fisher', 'Lindsey Stirling', 'Frankie Muniz']",2,0.5,False
+26,"['Adam Rippon', 'Josh Norman', 'Tonya Harding']","['Adam Rippon', 'Josh Norman', 'Tonya Harding']",3,1.0,False
+27,"['Evanna Lynch', 'Alexis Ren', 'Milo Manheim']","['Evanna Lynch', 'Alexis Ren', 'Milo Manheim']",3,1.0,False
+28,"['Kel Mitchell', 'Hannah Brown', 'Ally Brooke']","['Kel Mitchell', 'Hannah Brown', 'Ally Brooke']",3,1.0,False
+29,"['Kaitlyn Bristowe', 'Nelly', 'Justina Machado']","['Kaitlyn Bristowe', 'Nelly', 'Justina Machado']",3,1.0,False
+30,"['Iman Shumpert', 'JoJo Siwa', 'Amanda Kloots']","['Iman Shumpert', 'JoJo Siwa', 'Amanda Kloots']",3,1.0,False
+31,"[""Charli D'Amelio"", 'Gabby Windey', 'Shangela']","[""Charli D'Amelio"", 'Gabby Windey', 'Shangela']",3,1.0,False
+32,"['Jason Mraz', 'Ariana Madix', 'Xochitl Gomez']","['Jason Mraz', 'Ariana Madix', 'Xochitl Gomez']",3,1.0,False
+33,"['Stephen Nedoroscik', 'Joey Graziadei', 'Chandler Kinney']","['Stephen Nedoroscik', 'Joey Graziadei', 'Chandler Kinney']",3,1.0,False
+34,"['Dylan Efron', 'Robert Irwin', 'Alix Earle']","['Dylan Efron', 'Robert Irwin', 'Alix Earle']",3,1.0,False

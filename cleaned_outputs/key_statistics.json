@@ -1,0 +1,24 @@
+{
+  "total_seasons": 34,
+  "total_contestants": 421,
+  "total_observations": 2777,
+  "avg_pbi": -0.8795273741829561,
+  "max_pbi": 6.0,
+  "min_pbi": -8.5,
+  "prediction_accuracy": 0.95578231292517,
+  "rank_jfi": 0.7273957055933726,
+  "rank_ffi": 0.7670166577187844,
+  "pct_jfi": 0.3735132157545339,
+  "pct_ffi": 0.7882352941176469,
+  "extreme_events": 2,
+  "controversial_winners": 3,
+  "supplementary": {
+    "cv_mean": 0.6173479065285509,
+    "posterior_consistency_P_bar": 0.6493537414965987,
+    "kendall_tau_rank": -0.10471537376317101,
+    "kendall_tau_pct": -0.13333333333333333,
+    "top3_overlap_mean": 2.764705882352941,
+    "top3_jaccard_mean": 0.9117647058823529,
+    "new_strategy_avg_diff": 5.911764705882353
+  }
+}

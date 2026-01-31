@@ -1,0 +1,35 @@
+weekly_diff,weeks_different,final_diff,rank_final,pct_final,season,n_weeks
+0,[],False,[],[],1,6
+0,[],False,[],[],2,8
+0,[],False,['Sara Evans'],['Sara Evans'],3,10
+0,[],False,[],[],4,10
+0,[],False,[],[],5,10
+0,[],False,[],[],6,10
+0,[],False,['Misty May-Treanor'],['Misty May-Treanor'],7,10
+0,[],False,[],[],8,11
+2,"[{'week': np.int64(6), 'rank_eliminated': ['Donny Osmond', 'Melissa Joan Hart'], 'pct_eliminated': ['Louie Vito', 'Melissa Joan Hart'], 'actual_eliminated': ['Louie Vito', 'Melissa Joan Hart']}, {'week': np.int64(10), 'rank_eliminated': ['Mya', 'Kelly Osbourne'], 'pct_eliminated': ['Mya', 'Donny Osmond', 'Kelly Osbourne'], 'actual_eliminated': ['Donny Osmond', 'Kelly Osbourne', 'Mya']}]",True,"['Louie Vito', 'Tom DeLay']",['Tom DeLay'],9,10
+0,[],False,[],[],10,10
+0,[],False,[],[],11,10
+0,[],False,[],[],12,10
+0,[],False,[],[],13,10
+2,"[{'week': np.int64(9), 'rank_eliminated': ['Donald Driver'], 'pct_eliminated': ['Maria Menounos'], 'actual_eliminated': ['Maria Menounos']}, {'week': np.int64(10), 'rank_eliminated': ['Katherine Jenkins', 'William Levy'], 'pct_eliminated': ['Donald Driver', 'William Levy', 'Katherine Jenkins'], 'actual_eliminated': ['Donald Driver', 'Katherine Jenkins', 'William Levy']}]",True,['Maria Menounos'],[],14,10
+2,"[{'week': np.int64(6), 'rank_eliminated': ['Emmitt Smith'], 'pct_eliminated': ['Sabrina Bryan'], 'actual_eliminated': ['Sabrina Bryan']}, {'week': np.int64(9), 'rank_eliminated': ['Apolo Anton Ohno'], 'pct_eliminated': ['Emmitt Smith', 'Apolo Anton Ohno'], 'actual_eliminated': ['Apolo Anton Ohno', 'Emmitt Smith']}]",True,['Sabrina Bryan'],[],15,10
+0,[],False,['Dorothy Hamill'],['Dorothy Hamill'],16,10
+2,"[{'week': np.int64(5), 'rank_eliminated': ['Leah Remini'], 'pct_eliminated': ['Christina Milian'], 'actual_eliminated': ['Christina Milian']}, {'week': np.int64(10), 'rank_eliminated': [], 'pct_eliminated': ['Leah Remini'], 'actual_eliminated': ['Leah Remini']}]",True,['Christina Milian'],[],17,11
+0,[],False,['Billy Dee Williams'],['Billy Dee Williams'],18,10
+0,[],False,[],[],19,11
+0,[],False,[],[],20,10
+0,[],False,"['Kim Zolciak-Biermann', 'Tamar Braxton']","['Kim Zolciak-Biermann', 'Tamar Braxton']",21,11
+2,"[{'week': np.int64(9), 'rank_eliminated': ['Antonio Brown', 'Nyle DiMarco'], 'pct_eliminated': ['Wanya Morris', 'Paige VanZant'], 'actual_eliminated': ['Antonio Brown', 'Wanya Morris']}, {'week': np.int64(10), 'rank_eliminated': ['Paige VanZant', 'Ginger Zee'], 'pct_eliminated': ['Nyle DiMarco', 'Ginger Zee'], 'actual_eliminated': ['Ginger Zee', 'Nyle DiMarco', 'Paige VanZant']}]",True,['Wanya Morris'],['Antonio Brown'],22,10
+0,[],False,[],[],23,11
+4,"[{'week': np.int64(6), 'rank_eliminated': ['Nick Viall'], 'pct_eliminated': ['Heather Morris'], 'actual_eliminated': ['Heather Morris']}, {'week': np.int64(7), 'rank_eliminated': ['Rashad Jennings'], 'pct_eliminated': ['Nancy Kerrigan', 'Nick Viall'], 'actual_eliminated': ['Nancy Kerrigan', 'Nick Viall']}, {'week': np.int64(9), 'rank_eliminated': ['David Ross'], 'pct_eliminated': ['Simone Biles'], 'actual_eliminated': ['Simone Biles']}, {'week': np.int64(10), 'rank_eliminated': ['Normani'], 'pct_eliminated': ['Normani', 'Rashad Jennings', 'David Ross'], 'actual_eliminated': ['David Ross', 'Normani', 'Rashad Jennings']}]",True,"['Heather Morris', 'Nancy Kerrigan', 'Simone Biles']",[],24,10
+0,[],False,[],[],25,10
+0,[],False,[],[],26,4
+2,"[{'week': np.int64(4), 'rank_eliminated': ['Juan Pablo Di Pace'], 'pct_eliminated': ['Tinashe'], 'actual_eliminated': ['Tinashe']}, {'week': np.int64(8), 'rank_eliminated': ['Joe Amabile'], 'pct_eliminated': ['Juan Pablo Di Pace', 'Joe Amabile'], 'actual_eliminated': ['Joe Amabile', 'Juan Pablo Di Pace']}]",True,['Tinashe'],[],27,9
+2,"[{'week': np.int64(6), 'rank_eliminated': ['Sean Spicer'], 'pct_eliminated': ['Sailor Brinkley-Cook'], 'actual_eliminated': ['Sailor Brinkley-Cook']}, {'week': np.int64(9), 'rank_eliminated': [], 'pct_eliminated': ['Sean Spicer'], 'actual_eliminated': ['Sean Spicer']}]",True,"['Ray Lewis', 'Sailor Brinkley-Cook']",['Ray Lewis'],28,11
+0,[],False,['Jeannie Mai'],['Jeannie Mai'],29,11
+2,"[{'week': np.int64(8), 'rank_eliminated': ['Suni Lee', 'Jimmie Allen'], 'pct_eliminated': ['Jimmie Allen', 'Olivia Jade'], 'actual_eliminated': ['Jimmie Allen', 'Olivia Jade']}, {'week': np.int64(9), 'rank_eliminated': ['Melora Hardin'], 'pct_eliminated': ['Suni Lee', 'Melora Hardin'], 'actual_eliminated': ['Melora Hardin', 'Suni Lee']}]",True,['Olivia Jade'],[],30,10
+0,[],False,['Selma Blair'],['Selma Blair'],31,10
+0,[],False,[],[],32,11
+0,[],False,[],[],33,9
+0,[],False,[],[],34,11
