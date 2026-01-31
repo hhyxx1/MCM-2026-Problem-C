@@ -1,0 +1,87 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem}
+
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{center}
+{\LARGE \textbf{AI Use Disclosure}}\\[0.3cm]
+{\large MCM 2026 --- Team \#XXXXXX}\\[0.5cm]
+\end{center}
+
+\hrule
+\vspace{0.5cm}
+
+\section*{Declaration}
+
+This paper utilized Large Language Models (LLMs) for assistance during the research and writing process. We disclose the following uses in compliance with MCM/ICM requirements.
+
+\section*{Specific Uses of AI Tools}
+
+\subsection*{1. Ideation and Framework Design}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Tool Used:} ChatGPT / Claude
+    \item \textbf{Purpose:} Brainstorming the Pareto optimization framework for balancing fairness and engagement objectives
+    \item \textbf{Outcome:} AI suggested the dual-objective formulation; team refined metrics (JFI, FFI) based on literature
+\end{itemize}
+
+\subsection*{2. Coding Support}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Tool Used:} GitHub Copilot / Claude
+    \item \textbf{Purpose:} 
+    \begin{itemize}
+        \item Generating Python code snippets for MCMC sampling (Metropolis-Hastings algorithm)
+        \item Monte Carlo simulation for parallel universe analysis
+        \item Data preprocessing pipelines (age splines, one-hot encoding)
+    \end{itemize}
+    \item \textbf{Outcome:} AI-generated code was reviewed, tested, and debugged by team members; all final implementations verified against expected outputs
+\end{itemize}
+
+\subsection*{3. Writing and Refinement}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Tool Used:} Claude
+    \item \textbf{Purpose:}
+    \begin{itemize}
+        \item Checking for logical gaps in the methodology (e.g., adding Coefficient of Variation and Posterior Consistency metrics)
+        \item LaTeX formatting assistance
+        \item Grammar and clarity improvements
+    \end{itemize}
+    \item \textbf{Outcome:} All substantive content decisions made by human team members
+\end{itemize}
+
+\subsection*{4. Literature and Concept Clarification}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Tool Used:} ChatGPT
+    \item \textbf{Purpose:} Explaining Bayesian inference concepts and Kendall's tau interpretation
+    \item \textbf{Outcome:} Used for learning; all citations verified through original sources
+\end{itemize}
+
+\section*{Human Verification and Responsibility}
+
+We confirm that:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{All mathematical derivations} were verified by hand or through independent computation
+    \item \textbf{All code execution} was performed on our own machines with results manually inspected
+    \item \textbf{All statistical results} (accuracy rates, correlation coefficients, etc.) were computed from actual data, not AI-generated
+    \item \textbf{All final conclusions and recommendations} represent the judgment of human team members
+    \item \textbf{No AI-generated text} was used verbatim without review and modification
+\end{enumerate}
+
+\section*{Tools and Versions}
+
+\begin{itemize}
+    \item ChatGPT (GPT-4, January 2026)
+    \item Claude (Anthropic, January 2026)
+    \item GitHub Copilot (VS Code extension)
+    \item Python 3.11 with NumPy, Pandas, SciPy, Matplotlib
+\end{itemize}
+
+\vfill
+\hrule
+\vspace{0.2cm}
+\noindent\textit{This disclosure is submitted in accordance with MCM/ICM 2026 guidelines on AI tool usage.}
+
+\end{document}
