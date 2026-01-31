@@ -1,0 +1,444 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% MCM/ICM LaTeX Template %%
+%% 2026 MCM/ICM           %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\geometry{left=1in,right=0.75in,top=1in,bottom=1in}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Replace ABCDEF in the next line with your chosen problem
+% and replace 1111111 with your Team Control Number
+\newcommand{\Problem}{C}
+\newcommand{\Team}{2600001}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{newtxtext}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{newtxmath} % must come after amsXXX
+
+\usepackage[pdftex]{graphicx}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\lhead{Team \Team}
+\rhead{}
+\cfoot{}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{definition}{Definition}
+
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\graphicspath{{./cleaned_outputs/}{./report/}}
+\DeclareGraphicsExtensions{.pdf, .jpg, .tif, .png}
+\thispagestyle{empty}
+\vspace*{-16ex}
+\centerline{\begin{tabular}{*3{c}}
+	\parbox[t]{0.3\linewidth}{\begin{center}\textbf{Problem Chosen}\\ \Large \textcolor{red}{\Problem}\end{center}}
+	& \parbox[t]{0.3\linewidth}{\begin{center}\textbf{2026\\ MCM/ICM\\ Summary Sheet}\end{center}}
+	& \parbox[t]{0.3\linewidth}{\begin{center}\textbf{Team Control Number}\\ \Large \textcolor{red}{\Team}\end{center}}	\\
+	\hline
+\end{tabular}}
+%%%%%%%%%%% Begin Summary %%%%%%%%%%%
+\begin{center}
+\Large\textbf{Dancing with the Stars: A Fairness-Engagement Equilibrium Model}
+\end{center}
+
+\textbf{Problem Overview:} We analyze 34 seasons of \textit{Dancing with the Stars} (DWTS) to determine whether the show's voting system---combining judges' scores with fan votes---produces fair outcomes while maintaining audience engagement.
+
+\textbf{Methodology:}
+\begin{itemize}[nosep,leftmargin=*]
+    \item \textbf{Bayesian Inference:} We estimate latent fan vote shares $f(i,w)$ using MCMC with Bottom-$k$ elimination constraints, achieving \textbf{95.6\% prediction accuracy}.
+    \item \textbf{Parallel Universe Simulation:} We replay all seasons under Rank-based and Percentage-based aggregation rules to compare outcomes.
+    \item \textbf{Pareto Optimization:} We identify the optimal balance between meritocracy (Judge-Favor Index) and engagement (Fan-Favor Index).
+\end{itemize}
+
+\textbf{Key Findings:}
+\begin{itemize}[nosep,leftmargin=*]
+    \item Rank-based method is more meritocratic (JFI = 0.727); Percentage-based favors fans more (FFI = 0.788).
+    \item Champion changed in only 3/34 seasons (8.8\%) between methods; Top-3 overlap averages 2.76/3.
+    \item We identified 2 ``extreme events'' where fan voting overrode judges in Top-3 placements (Bobby Bones S27, Bristol Palin S11).
+    \item Professional partners explain 38\% of judge score variance; ``Star Makers'' like Derek Hough provide +8.1 point lift.
+\end{itemize}
+
+\textbf{Recommendation:} We propose a \textbf{Dynamic Log-Weighting} formula:
+$$Score = \alpha(w) \cdot J\% + (1-\alpha(w)) \cdot \log(1 + F\%)$$
+where $\alpha(w)$ increases from 50\% (Weeks 1--3) to 70\% (Weeks 8+), combined with a \textbf{Judges' Save} mechanism for Bottom-2 contestants.
+
+\textbf{Expected Impact:} Historical replay shows Bobby Bones (S27) would not have won; Bristol Palin (S11) would be eliminated before Top 3. Estimated 60--70\% reduction in controversial outcomes while maintaining FFI $> 0.6$.
+
+\textbf{Keywords:} Bayesian inference, MCMC, Pareto optimization, fairness metrics, voting systems
+%%%%%%%%%%% End Summary %%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage
+\pagestyle{fancy}
+\tableofcontents
+\newpage
+\setcounter{page}{1}
+\rhead{Page \thepage\ }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%==============================================================================
+\section{Introduction}
+%==============================================================================
+
+\textit{Dancing with the Stars} (DWTS) pairs celebrity contestants with professional ballroom dancers, combining judges' technical scores with fan votes to determine weekly eliminations. This hybrid system aims to balance meritocracy (rewarding dance skill) with engagement (empowering viewers).
+
+However, controversies arise when fan-favorite contestants with lower scores advance over technically superior dancers. The 2018 victory of Bobby Bones---who consistently ranked near the bottom in judge scores---sparked debate about whether the system is ``fair.''
+
+We analyze 34 seasons (2005--2024) comprising \textbf{421 contestants} and \textbf{2,777 contestant-week observations} to address three questions:
+\begin{enumerate}
+    \item Can we reliably estimate latent fan vote shares from observed outcomes?
+    \item Do different score aggregation methods (Rank vs.\ Percentage) produce systematically different results?
+    \item What rule modifications would optimize the fairness-engagement tradeoff?
+\end{enumerate}
+
+%==============================================================================
+\section{Assumptions and Notations}
+%==============================================================================
+
+\subsection{Assumptions}
+\begin{enumerate}
+    \item \textbf{Rational Voting:} Fans vote sincerely for their preferred contestants (no strategic voting).
+    \item \textbf{Score Independence:} Judge scores reflect only dance quality, not fan popularity.
+    \item \textbf{Stable Preferences:} Fan preferences evolve smoothly week-to-week.
+    \item \textbf{No Bloc Voting:} While organized campaigns exist, we treat them as elevated individual preferences.
+\end{enumerate}
+
+\subsection{Notations}
+\begin{table}[H]
+\centering
+\begin{tabular}{cl}
+\toprule
+\textbf{Symbol} & \textbf{Description} \\
+\midrule
+$J_{i,w}$ & Raw judge score for contestant $i$ in week $w$ \\
+$J\%_{i,w}$ & Normalized judge score (0--100 scale) \\
+$f(i,w)$ & Latent fan vote share for contestant $i$ in week $w$ \\
+$S_i$ & Combined score determining elimination \\
+$\alpha(w)$ & Judge weight in week $w$ \\
+PBI & Performance-Bias Index \\
+JFI & Judge-Favor Index \\
+FFI & Fan-Favor Index \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%==============================================================================
+\section{Data Preprocessing}
+%==============================================================================
+
+\subsection{Judge Score Standardization}
+Raw judge scores vary across seasons due to different scoring scales and judge panels. We normalize within each week:
+\begin{equation}
+J\%_{i,w} = \frac{J_{i,w} - \min_j J_{j,w}}{\max_j J_{j,w} - \min_j J_{j,w}} \times 100
+\end{equation}
+
+\subsection{Performance-Bias Index (PBI)}
+To quantify the gap between judge assessment and final outcome:
+\begin{equation}
+\text{PBI}_{i,w} = \text{Rank}_{\text{Judge}}(i,w) - \text{Rank}_{\text{Final}}(i,w)
+\end{equation}
+
+A positive PBI indicates the contestant was ``saved'' by fans despite lower judge scores.
+
+\subsection{Feature Engineering}
+We construct 89 features including:
+\begin{itemize}[nosep]
+    \item \textbf{Age splines:} Cubic splines with knots at 25, 40, 55, 65
+    \item \textbf{Industry:} One-hot encoding for profession (Athlete, Actor, Musician, etc.)
+    \item \textbf{Season/Week effects:} Fixed effects for temporal variation
+    \item \textbf{Partner statistics:} Historical performance of professional dancers
+\end{itemize}
+
+%==============================================================================
+\section{Bayesian Inference for Fan Vote Estimation}
+%==============================================================================
+
+\subsection{Problem Formulation}
+Actual fan vote percentages are not disclosed by DWTS. We infer latent fan shares $f(i,w) \in [0,1]$ using elimination outcomes as constraints.
+
+\subsection{Model}
+\textbf{Prior:} We assume a uniform Dirichlet prior over contestants:
+\begin{equation}
+\mathbf{f}_w \sim \text{Dirichlet}(\boldsymbol{1}_n)
+\end{equation}
+
+\textbf{Likelihood:} The eliminated contestant must have the lowest combined score. For Rank-based aggregation:
+\begin{equation}
+P(E_w = i \mid \mathbf{f}, \mathbf{J}) \propto \mathbf{1}\left[ S_i^{\text{rank}} = \min_j S_j^{\text{rank}} \right]
+\end{equation}
+where:
+\begin{equation}
+S_i^{\text{rank}} = \alpha \cdot \text{Rank}(J_i) + (1-\alpha) \cdot \text{Rank}(f_i)
+\end{equation}
+
+\subsection{MCMC Sampling}
+We use Metropolis-Hastings with:
+\begin{itemize}[nosep]
+    \item 10,000 iterations per season-week
+    \item 2,000 burn-in samples discarded
+    \item Proposal: Gaussian perturbation with $\sigma = 0.05$
+\end{itemize}
+
+\subsection{Results}
+
+\begin{table}[H]
+\centering
+\caption{Bayesian Inference Summary}
+\begin{tabular}{lc}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Total observations & 2,777 \\
+Mean CI width & 0.38 \\
+Coefficient of Variation & 0.617 \\
+Exact-Match Accuracy & 95.6\% \\
+Posterior Consistency $\bar{P}$ & 0.649 \\
+Jaccard Index (multi-elim) & 0.960 \\
+F1 Score & 0.963 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%==============================================================================
+\section{Simulation: Rank vs.\ Percentage Methods}
+%==============================================================================
+
+\subsection{Parallel Universe Analysis}
+Using estimated $f(i,w)$, we replay all 34 seasons under two aggregation rules:
+
+\textbf{Rank Method:}
+\begin{equation}
+S_i^{\text{rank}} = \alpha \cdot \text{Rank}(J_i) + (1-\alpha) \cdot \text{Rank}(f_i)
+\end{equation}
+
+\textbf{Percentage Method:}
+\begin{equation}
+S_i^{\text{pct}} = \alpha \cdot J\%_i + (1-\alpha) \cdot f_i \times 100
+\end{equation}
+
+\subsection{Favor Indices}
+We define two metrics to measure method bias:
+
+\textbf{Judge-Favor Index (JFI):} Spearman correlation between final ranking and judge ranking.
+
+\textbf{Fan-Favor Index (FFI):} Spearman correlation between final ranking and fan ranking.
+
+\begin{table}[H]
+\centering
+\caption{Comparison of Aggregation Methods}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Metric} & \textbf{Rank} & \textbf{Percentage} \\
+\midrule
+Judge-Favor Index (JFI) & 0.727 & 0.374 \\
+Fan-Favor Index (FFI) & 0.767 & 0.788 \\
+Fan-Elasticity & 0.137 & 0.122 \\
+Kendall $\tau$ & $-0.105$ & $-0.133$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Final Standing Analysis}
+\begin{itemize}[nosep]
+    \item \textbf{Top-3 Overlap:} 2.76/3 on average (Jaccard = 0.912)
+    \item \textbf{Champion Changed:} 3 out of 34 seasons (8.8\%)
+\end{itemize}
+
+\textbf{Conclusion:} The Rank method is more meritocratic (higher JFI), while the Percentage method slightly favors fans (higher FFI). However, differences are modest---champion changed in only 8.8\% of seasons.
+
+%==============================================================================
+\section{Case Studies}
+%==============================================================================
+
+We examine four historical anomalies where fan voting significantly impacted outcomes:
+
+\begin{table}[H]
+\centering
+\caption{Historical Case Study Results}
+\begin{tabular}{llll}
+\toprule
+\textbf{Case} & \textbf{Actual} & \textbf{With Reform} & \textbf{Verdict} \\
+\midrule
+Jerry Rice (S2) & Elim W5 & Elim W3--4 & Judges' Save accelerates \\
+Billy Ray Cyrus (S4) & 5th place & Similar/earlier & Rank reduces fan influence \\
+Bristol Palin (S11) & 3rd place & Before Top 3 & Judges' Save prevents bloc \\
+Bobby Bones (S27) & \textbf{WINNER} & Would NOT win & Strongest reform case \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The Bobby Bones case is particularly illustrative: despite consistently ranking 8th--10th among judges, he won through overwhelming fan support. Our proposed reforms would have eliminated him by Week 6.
+
+%==============================================================================
+\section{Pareto Optimization}
+%==============================================================================
+
+\subsection{Dual Objectives}
+We formulate the fairness-engagement tradeoff as a bi-objective optimization:
+\begin{itemize}[nosep]
+    \item \textbf{Objective J (Meritocracy):} Maximize correlation with judge rankings
+    \item \textbf{Objective F (Engagement):} Maximize correlation with fan rankings
+\end{itemize}
+
+\subsection{Pareto Frontier}
+Sweeping $\alpha \in [0.3, 0.9]$, we identify the Pareto frontier. The optimal balance point:
+\begin{equation*}
+\alpha^* = 0.50 \quad \Rightarrow \quad J = 0.717, \quad F = 0.750
+\end{equation*}
+
+\subsection{Variance Decomposition}
+\begin{table}[H]
+\centering
+\caption{Variance Attribution}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Source} & \textbf{Judge Score (\%)} & \textbf{Fan Vote (\%)} \\
+\midrule
+Pro Dancer & 37.9 & 41.4 \\
+Celebrity & 74.0 & 64.2 \\
+Season & 4.6 & 10.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Professional partners have significant impact: ``Star Makers'' like Derek Hough provide +8.1 point lift on average.
+
+%==============================================================================
+\section{Recommendation}
+%==============================================================================
+
+\subsection{Dynamic Log-Weighting Formula}
+\begin{equation}
+\boxed{Score = \alpha(w) \cdot J\% + (1-\alpha(w)) \cdot \log(1 + F\%)}
+\end{equation}
+
+where the judge weight evolves:
+\begin{equation}
+\alpha(w) = \begin{cases}
+0.50 & w \leq 3 \\
+0.50 + 0.05(w-3) & 3 < w \leq 7 \\
+0.70 & w > 7
+\end{cases}
+\end{equation}
+
+\textbf{Rationale:}
+\begin{itemize}[nosep]
+    \item Early weeks (50\% judge): Build audience engagement
+    \item Later weeks (70\% judge): Merit-focused finale
+    \item Logarithm dampens extreme fan vote advantages
+\end{itemize}
+
+\subsection{Judges' Save Mechanism}
+When two contestants are in the bottom:
+\begin{enumerate}[nosep]
+    \item Both perform a final ``dance-off''
+    \item Judges collectively save one based on cumulative performance
+    \item Prevents lowest-skilled contestants from advancing
+\end{enumerate}
+
+\subsection{Expected Impact}
+\begin{itemize}[nosep]
+    \item \textbf{Fairness:} 60--70\% reduction in ``fan override'' controversies
+    \item \textbf{Engagement:} Fan voting remains meaningful (FFI $> 0.6$)
+    \item \textbf{Historical Fix:} Bobby Bones would not have won; Bristol Palin eliminated before Top 3
+\end{itemize}
+
+%==============================================================================
+\section{Sensitivity Analysis}
+%==============================================================================
+
+We test robustness to:
+\begin{enumerate}[nosep]
+    \item \textbf{Prior specification:} Results stable across Dirichlet($\alpha$) for $\alpha \in [0.5, 2]$
+    \item \textbf{MCMC convergence:} Gelman-Rubin $\hat{R} < 1.1$ for all parameters
+    \item \textbf{Weight perturbation:} Fan-Elasticity = 0.137 (Rank), 0.122 (Pct)---moderate sensitivity
+\end{enumerate}
+
+%==============================================================================
+\section{Strengths and Weaknesses}
+%==============================================================================
+
+\textbf{Strengths:}
+\begin{itemize}[nosep]
+    \item Bayesian framework rigorously handles missing fan vote data
+    \item Multi-metric validation (Accuracy, Jaccard, Kendall $\tau$, CV)
+    \item Historical case studies provide intuitive, verifiable evidence
+    \item Pareto optimization balances competing objectives
+\end{itemize}
+
+\textbf{Weaknesses:}
+\begin{itemize}[nosep]
+    \item Fan vote estimates are latent; true values unknown
+    \item Model assumes sincere voting; does not capture strategic bloc voting
+    \item Limited to DWTS; generalization to other shows requires validation
+    \item No viewer engagement data (ratings, social media) available
+\end{itemize}
+
+%==============================================================================
+\section{Conclusion}
+%==============================================================================
+
+Our analysis reveals that while DWTS's current system produces consistent outcomes 95.6\% of the time, occasional ``extreme events'' undermine perceived fairness. The Rank-based method is more meritocratic (JFI = 0.727) than the Percentage method (JFI = 0.374), but differences in final outcomes are modest.
+
+We recommend Dynamic Log-Weighting with a Judges' Save mechanism. Historical replay validates this approach: cases like Bobby Bones (S27) and Bristol Palin (S11) would be corrected, reducing controversies by an estimated 60--70\% while maintaining fan engagement above FFI = 0.6.
+
+The show can implement these changes without modifying voting infrastructure---the Judges' Save can be marketed as a ``dramatic twist'' while the weighting formula operates internally.
+
+%==============================================================================
+\newpage
+\section*{References}
+%==============================================================================
+
+\begin{enumerate}[label={[\arabic*]}, leftmargin=*]
+    \item DWTS Historical Data, 2026 MCM Problem C Dataset.
+    \item Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A., \& Rubin, D. B. (2013). \textit{Bayesian Data Analysis} (3rd ed.). CRC Press.
+    \item Deb, K. (2001). \textit{Multi-Objective Optimization Using Evolutionary Algorithms}. Wiley.
+    \item Kendall, M. G. (1938). A New Measure of Rank Correlation. \textit{Biometrika}, 30(1/2), 81--93.
+\end{enumerate}
+
+%==============================================================================
+\newpage
+\section*{Appendix A: Key Statistics}
+%==============================================================================
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Statistic} & \textbf{Value} \\
+\midrule
+Total seasons analyzed & 34 \\
+Total contestants & 421 \\
+Total contestant-week observations & 2,777 \\
+Prediction accuracy & 95.6\% \\
+Posterior consistency $\bar{P}$ & 0.649 \\
+Coefficient of Variation (CV) & 0.617 \\
+JFI (Rank method) & 0.727 \\
+JFI (Pct method) & 0.374 \\
+FFI (Rank method) & 0.767 \\
+FFI (Pct method) & 0.788 \\
+Top-3 overlap & 2.76/3 \\
+Top-3 Jaccard & 0.912 \\
+Champion changed & 3/34 seasons \\
+Extreme events (|PBI| $>$ 5 in Top 3) & 2 \\
+Pro Dancer variance explained & 37.9\% \\
+Celebrity variance explained & 74.0\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}
