@@ -153,12 +153,16 @@ def calculate_kendall_tau(season_data, method='rank'):
     max_week = season_data['week'].max()
     final_week = season_data[season_data['week'] == max_week].copy()
     
+    # 需要至少3个选手才能计算有意义的tau
     if len(final_week) < 3:
-        return np.nan, np.nan
+        return np.nan, np.nan, len(final_week)
     
-    # 实际最终排名 (基于elimination order的逆序)
-    # 假设最后一周留下的人并列第一
-    final_week['actual_rank'] = range(1, len(final_week) + 1)  # 简化假设
+    # 检查是否有足够的变异
+    if final_week['J_pct'].std() < 0.001 or final_week['f_mean'].std() < 0.001:
+        return np.nan, np.nan, len(final_week)
+    
+    # 实际最终排名 (基于J_pct作为参考)
+    final_week['actual_rank'] = final_week['J_pct'].rank(ascending=False)
     
     if method == 'rank':
         final_week['J_rank'] = final_week['J_pct'].rank(ascending=False)
@@ -167,36 +171,53 @@ def calculate_kendall_tau(season_data, method='rank'):
         final_week['method_rank'] = final_week['combined'].rank()
     else:
         max_f = final_week['f_mean'].max()
-        final_week['F_pct'] = final_week['f_mean'] / max_f * 100 if max_f > 0 else 0
+        if max_f > 0:
+            final_week['F_pct'] = final_week['f_mean'] / max_f * 100
+        else:
+            final_week['F_pct'] = 100 / len(final_week)
         final_week['combined'] = 0.5 * final_week['J_pct'] + 0.5 * final_week['F_pct']
         final_week['method_rank'] = final_week['combined'].rank(ascending=False)
     
     # Kendall tau
-    tau, p_value = stats.kendalltau(final_week['actual_rank'], final_week['method_rank'])
-    return tau, p_value
+    try:
+        tau, p_value = stats.kendalltau(final_week['actual_rank'], final_week['method_rank'])
+        return tau, p_value, len(final_week)
+    except:
+        return np.nan, np.nan, len(final_week)
 
 kendall_results = []
 
 for season in sorted(estimates['season'].unique()):
     season_data = estimates[estimates['season'] == season]
     
-    tau_rank, p_rank = calculate_kendall_tau(season_data, 'rank')
-    tau_pct, p_pct = calculate_kendall_tau(season_data, 'pct')
+    tau_rank, p_rank, n_fin = calculate_kendall_tau(season_data, 'rank')
+    tau_pct, p_pct, _ = calculate_kendall_tau(season_data, 'pct')
     
     kendall_results.append({
         'season': season,
         'kendall_tau_rank': tau_rank,
         'kendall_tau_pct': tau_pct,
-        'tau_diff': tau_pct - tau_rank if not (np.isnan(tau_rank) or np.isnan(tau_pct)) else np.nan
+        'tau_diff': tau_pct - tau_rank if not (np.isnan(tau_rank) or np.isnan(tau_pct)) else np.nan,
+        'n_finalists': n_fin
     })
 
 kendall_df = pd.DataFrame(kendall_results)
 
+# 填充缺失值
+mean_rank = kendall_df['kendall_tau_rank'].mean()
+mean_pct = kendall_df['kendall_tau_pct'].mean()
+kendall_df['kendall_tau_rank_filled'] = kendall_df['kendall_tau_rank'].fillna(mean_rank)
+kendall_df['kendall_tau_pct_filled'] = kendall_df['kendall_tau_pct'].fillna(mean_pct)
+
+missing_rank = kendall_df['kendall_tau_rank'].isna().sum()
+missing_pct = kendall_df['kendall_tau_pct'].isna().sum()
+
 print(f"    Average Kendall tau (Rank method): {kendall_df['kendall_tau_rank'].mean():.4f}")
 print(f"    Average Kendall tau (Pct method):  {kendall_df['kendall_tau_pct'].mean():.4f}")
+print(f"    Missing values: Rank={missing_rank}, Pct={missing_pct} (filled with means)")
 
 # =============================================================================
-# PART 4: TOP-3 OVERLAP ANALYSIS
+# PART 4: TOP-3 OVERLAP ANALYSIS (with Judges' Save analysis)
 # =============================================================================
 print("\n[4] Computing Top-3 Overlap...")
 
@@ -206,20 +227,73 @@ def get_top3(season_data, method='rank'):
     final_week = season_data[season_data['week'] == max_week].copy()
     
     if len(final_week) < 3:
-        return set()
+        return []
     
     if method == 'rank':
         final_week['J_rank'] = final_week['J_pct'].rank(ascending=False)
         final_week['F_rank'] = final_week['f_mean'].rank(ascending=False)
         final_week['combined'] = 0.5 * final_week['J_rank'] + 0.5 * final_week['F_rank']
-        top3 = set(final_week.nsmallest(3, 'combined')['celebrity_name'])
+        top3 = final_week.nsmallest(3, 'combined')['celebrity_name'].tolist()
     else:
         max_f = final_week['f_mean'].max()
         final_week['F_pct'] = final_week['f_mean'] / max_f * 100 if max_f > 0 else 0
         final_week['combined'] = 0.5 * final_week['J_pct'] + 0.5 * final_week['F_pct']
-        top3 = set(final_week.nlargest(3, 'combined')['celebrity_name'])
+        top3 = final_week.nlargest(3, 'combined')['celebrity_name'].tolist()
     
     return top3
+
+def count_potential_saves(season_data, method='rank'):
+    """
+    统计整个赛季中 Judges' Save 可能发生的次数
+    即 Bottom 1 的评委分高于 Bottom 2 的情况
+    """
+    remaining = season_data['celebrity_name'].unique().tolist()
+    potential_saves = []
+    
+    for week in sorted(season_data['week'].unique()):
+        week_data = season_data[(season_data['week'] == week) & 
+                                 (season_data['celebrity_name'].isin(remaining))]
+        
+        if len(week_data) < 2:
+            continue
+        
+        n_eliminated = int(week_data['was_eliminated'].sum())
+        if n_eliminated == 0:
+            continue
+        
+        df = week_data.copy()
+        
+        if method == 'rank':
+            df['J_rank'] = df['J_pct'].rank(ascending=False)
+            df['F_rank'] = df['f_mean'].rank(ascending=False)
+            df['combined'] = 0.5 * df['J_rank'] + 0.5 * df['F_rank']
+            df_sorted = df.sort_values('combined', ascending=False)
+        else:
+            max_f = df['f_mean'].max()
+            df['F_pct'] = df['f_mean'] / max_f * 100 if max_f > 0 else 0
+            df['combined'] = 0.5 * df['J_pct'] + 0.5 * df['F_pct']
+            df_sorted = df.sort_values('combined', ascending=True)
+        
+        # 检查是否会触发 Judges' Save
+        if n_eliminated == 1 and len(df) >= 2:
+            bottom_2 = df_sorted.head(2)
+            j_scores = bottom_2['J_pct'].values
+            names = bottom_2['celebrity_name'].values
+            
+            # 如果 Bottom 1 的评委分高于 Bottom 2，则可能被救
+            if j_scores[0] > j_scores[1]:
+                potential_saves.append({
+                    'week': week,
+                    'would_be_saved': names[0],
+                    'would_be_eliminated': names[1],
+                    'j_diff': j_scores[0] - j_scores[1]
+                })
+        
+        # 实际淘汰（按原逻辑走）
+        actual_elim = list(week_data[week_data['was_eliminated']]['celebrity_name'])
+        remaining = [c for c in remaining if c not in actual_elim]
+    
+    return len(potential_saves), potential_saves
 
 top3_results = []
 
@@ -229,23 +303,45 @@ for season in sorted(estimates['season'].unique()):
     top3_rank = get_top3(season_data, 'rank')
     top3_pct = get_top3(season_data, 'pct')
     
-    overlap = len(top3_rank & top3_pct)
-    jaccard = overlap / len(top3_rank | top3_pct) if len(top3_rank | top3_pct) > 0 else 0
+    # Judges' Save 分析
+    n_saves, saves_details = count_potential_saves(season_data, 'rank')
+    
+    # 检查 save 是否会影响 Top-3
+    set_rank = set(top3_rank)
+    top3_affected = False
+    for save in saves_details:
+        if save['would_be_saved'] in set_rank or save['would_be_eliminated'] in set_rank:
+            top3_affected = True
+            break
+    
+    set_pct = set(top3_pct)
+    overlap = len(set_rank & set_pct)
+    jaccard = overlap / len(set_rank | set_pct) if len(set_rank | set_pct) > 0 else 0
+    
+    champion_rank = top3_rank[0] if len(top3_rank) > 0 else None
+    champion_pct = top3_pct[0] if len(top3_pct) > 0 else None
     
     top3_results.append({
         'season': season,
-        'top3_rank': list(top3_rank),
-        'top3_pct': list(top3_pct),
+        'top3_rank': top3_rank,
+        'top3_pct': top3_pct,
         'overlap': overlap,
         'jaccard': jaccard,
-        'champion_changed': len(top3_rank) > 0 and len(top3_pct) > 0 and list(top3_rank)[0] != list(top3_pct)[0]
+        'champion_changed': champion_rank != champion_pct,
+        'n_potential_saves': n_saves,
+        'save_could_affect_top3': top3_affected
     })
 
 top3_df = pd.DataFrame(top3_results)
 
+seasons_with_saves = (top3_df['n_potential_saves'] > 0).sum()
+save_affects_top3 = top3_df['save_could_affect_top3'].sum()
+
 print(f"    Average Top-3 overlap: {top3_df['overlap'].mean():.2f}/3")
 print(f"    Average Top-3 Jaccard: {top3_df['jaccard'].mean():.4f}")
 print(f"    Seasons with champion change: {top3_df['champion_changed'].sum()}/{len(top3_df)}")
+print(f"    Seasons with potential Judges' Save: {seasons_with_saves}/{len(top3_df)}")
+print(f"    Seasons where save could affect Top-3: {save_affects_top3}/{len(top3_df)}")
 
 # =============================================================================
 # PART 5: NEW_STRATEGY SIMULATION
@@ -360,8 +456,13 @@ stats_dict['supplementary'] = {
     'posterior_consistency_P_bar': float(overall_P_bar),
     'kendall_tau_rank': float(kendall_df['kendall_tau_rank'].mean()),
     'kendall_tau_pct': float(kendall_df['kendall_tau_pct'].mean()),
+    'kendall_tau_rank_filled': float(kendall_df['kendall_tau_rank_filled'].mean()),
+    'kendall_tau_pct_filled': float(kendall_df['kendall_tau_pct_filled'].mean()),
     'top3_overlap_mean': float(top3_df['overlap'].mean()),
     'top3_jaccard_mean': float(top3_df['jaccard'].mean()),
+    'seasons_with_potential_saves': int((top3_df['n_potential_saves'] > 0).sum()),
+    'seasons_save_affects_top3': int(top3_df['save_could_affect_top3'].sum()),
+    'total_potential_saves': int(top3_df['n_potential_saves'].sum()),
     'new_strategy_avg_diff': float(ns_df['weekly_diff'].mean())
 }
 

@@ -105,9 +105,9 @@ Extract and standardize the following features from the dataset to explain "Judg
 
 ### 2. Draw Pareto Frontier
 In the $(J, F)$ coordinate system, mark:
-* 🔴 **Current Rule** (Usually in the non-optimal zone).
-* 🔵 **Rule with "Judges' Save"** ($J$ increases, $F$ decreases slightly).
-* ⭐ **New Recommended Rule** (Located at the "Knee Point" of the frontier).
+*  **Current Rule** (Usually in the non-optimal zone).
+*  **Rule with "Judges' Save"** ($J$ increases, $F$ decreases slightly).
+*  **New Recommended Rule** (Located at the "Knee Point" of the frontier).
 
 ### Supplement: Pro Dancer & Celebrity Effects Model
 **Requirement:** Use data (including estimated fan votes) to quantify the impact of "Pro Dancers" and "Celebrity Features" (Age, Industry, Region, etc.) on results, and answer whether they influence Judge Scores and Fan Votes in the same direction.
