@@ -1,0 +1,106 @@
+\subsection{Data Pre-processing}
+
+Before building the Fairness-Engagement Equilibrium Model (FEEM), a thorough examination of the COMAP-provided dataset \texttt{2026\_MCM\_Problem\_C\_Data.csv} was necessary. The dataset contains 423 contestants across 34 seasons of \textit{Dancing with the Stars} (DWTS), with judge scores recorded for up to 11 weeks per season. During our inspection, we identified several data quality issues that required systematic cleaning.
+
+\subsubsection{Identified Data Anomalies}
+
+\begin{enumerate}
+    \item \textbf{Inconsistent Scoring Systems:} Different seasons employed different judging panels—earlier seasons (S1–S17) used a 3-judge system with a maximum of 30 points, while later seasons (S18–S34) used a 4-judge system with a maximum of 40 points. Direct comparison of raw scores would introduce systematic bias.
+    
+    \item \textbf{N/A and Missing Values:} The \texttt{judge4\_score} columns contain ``N/A'' strings for seasons with only 3 judges. Additionally, contestants who were eliminated or withdrew have scores recorded as 0 or ``N/A'' for subsequent weeks.
+    
+    \item \textbf{Multi-Dance Weeks:} In finale and special theme weeks, contestants perform multiple dances, resulting in individual judge scores exceeding 10 (accumulated scores). These values should not be treated as outliers but require proper normalization.
+    
+    \item \textbf{Withdrawal Cases:} Several contestants withdrew mid-season due to injury or personal reasons (e.g., Sara Evans in Season 3), leaving incomplete records that could skew weekly averages.
+\end{enumerate}
+
+\subsubsection{Data Cleaning Process}
+
+To address these issues, we implemented the following cleaning procedures:
+
+\begin{table}[h]
+\centering
+\caption{Data Cleaning Operations}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Issue} & \textbf{Original Data} & \textbf{Cleaned Data} \\
+\hline
+Scoring system & 30-pt or 40-pt raw scores & Unified $J\%$ (0--100 scale) \\
+\hline
+N/A values (judge4) & ``N/A'' strings & Excluded from calculation \\
+\hline
+Post-elimination scores & 0 or ``N/A'' & Marked as missing (NaN) \\
+\hline
+Multi-dance weeks & Scores $>$ 10 per judge & Normalized by implied maximum \\
+\hline
+Withdrawals & Incomplete records & Flagged as ``withdrew'' status \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Judge Score Standardization ($J\%$)}
+
+To enable cross-season comparison, we standardized all judge scores into a percentage scale using the following formula:
+
+\begin{equation}
+J\%_{i,w} = \frac{\sum_{j=1}^{n} S_{i,w,j}}{\text{MaxScore}_w} \times 100
+\end{equation}
+
+where $S_{i,w,j}$ is the score given by judge $j$ to contestant $i$ in week $w$, $n$ is the number of active judges (3 or 4), and $\text{MaxScore}_w$ is calculated as:
+
+\begin{equation}
+\text{MaxScore}_w = 
+\begin{cases}
+n \times 10 & \text{if } \max_j(S_{i,w,j}) \leq 10 \text{ (single dance)} \\
+n \times 10 \times \lceil \frac{\max_j(S_{i,w,j})}{10} \rceil & \text{if } \max_j(S_{i,w,j}) > 10 \text{ (multi-dance)}
+\end{cases}
+\end{equation}
+
+\subsubsection{Panel Data Conversion}
+
+The original wide-format data (one row per contestant) was transformed into a long-format panel data structure with observation unit $(i, w)$—contestant $i$ in week $w$. This transformation is essential for:
+
+\begin{itemize}
+    \item Mixed-effects regression models with season and week fixed effects
+    \item Bayesian inference of weekly fan vote shares
+    \item Time-series analysis of contestant performance trajectories
+\end{itemize}
+
+\subsubsection{Covariate Standardization}
+
+Celebrity features were standardized for regression analysis:
+
+\begin{itemize}
+    \item \textbf{Industry:} Grouped into 8 standardized categories (Actor, Musician, Athlete, Model, TV\_Personality, Reality\_Star, Politician, Other)
+    \item \textbf{Region:} Binary indicator (US = 1, Non-US = 0)
+    \item \textbf{Age:} Binned into 5 groups (18--25, 26--35, 36--45, 46--55, 55+)
+\end{itemize}
+
+\subsubsection{Cleaning Results Summary}
+
+\begin{table}[h]
+\centering
+\caption{Data Cleaning Summary Statistics}
+\begin{tabular}{|l|r|}
+\hline
+\textbf{Metric} & \textbf{Value} \\
+\hline
+Total contestants (raw) & 423 \\
+Total contestants (valid) & 423 \\
+Total (contestant, week) observations & 2,777 \\
+Seasons covered & S1 -- S34 \\
+Weeks per season (max) & 11 \\
+Withdrawal cases excluded & 6 \\
+Multi-dance week records normalized & 147 \\
+\hline
+\end{tabular}
+\end{table}
+
+After cleaning, the processed data was exported to three files:
+\begin{itemize}
+    \item \texttt{clean\_judge\_scores\_wide.csv} — Wide format with $J\%$ per week
+    \item \texttt{clean\_judge\_scores\_long.csv} — Long format panel data
+    \item \texttt{season\_summary.csv} — Season-level metadata
+\end{itemize}
+
+The normalized $J\%$ scores enable fair comparison across all 34 seasons, forming the foundation for subsequent Bayesian inference and Pareto optimization analyses.
