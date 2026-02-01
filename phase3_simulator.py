@@ -502,10 +502,13 @@ print(f"    Average JFI (Pct method):  {ffi_df['JFI_pct'].mean():.4f}")
 # =============================================================================
 print("\n[6] Generating visualizations...")
 
-fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+import os
+img_dir = 'cleaned_outputs/phase3_simulator'
+os.makedirs(img_dir, exist_ok=True)
 
-# 6.1 Weekly Differences by Season
-ax1 = axes[0, 0]
+# --- Individual Plots ---
+# 6.1 Weekly Differences by Season (Individual)
+fig1, ax1 = plt.subplots(figsize=(8, 5))
 seasons = comparison_df['season']
 diffs = comparison_df['weekly_diff']
 colors = ['red' if d > 0 else 'green' for d in diffs]
@@ -514,11 +517,120 @@ ax1.set_xlabel('Season')
 ax1.set_ylabel('Number of Different Weeks')
 ax1.set_title('Weekly Elimination Differences\n(Rank vs Percentage)')
 ax1.axhline(y=0, color='black', linestyle='-', linewidth=0.5)
+plt.tight_layout()
+plt.savefig(f'{img_dir}/weekly_differences.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/weekly_differences.png")
+
+# 6.2 FFI Comparison (Individual)
+fig2, ax2 = plt.subplots(figsize=(8, 5))
+x = ffi_df['season']
+width = 0.35
+ax2.bar(x - width/2, ffi_df['FFI_rank'], width, label='Rank Method', color='steelblue', alpha=0.7)
+ax2.bar(x + width/2, ffi_df['FFI_pct'], width, label='Pct Method', color='coral', alpha=0.7)
+ax2.set_xlabel('Season')
+ax2.set_ylabel('Fan Favor Index (FFI)')
+ax2.set_title('FFI Comparison by Season')
+ax2.legend()
+ax2.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
+plt.tight_layout()
+plt.savefig(f'{img_dir}/ffi_comparison.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/ffi_comparison.png")
+
+# 6.3 JFI Comparison (Individual)
+fig3, ax3 = plt.subplots(figsize=(8, 5))
+ax3.bar(x - width/2, ffi_df['JFI_rank'], width, label='Rank Method', color='steelblue', alpha=0.7)
+ax3.bar(x + width/2, ffi_df['JFI_pct'], width, label='Pct Method', color='coral', alpha=0.7)
+ax3.set_xlabel('Season')
+ax3.set_ylabel('Judge Favor Index (JFI)')
+ax3.set_title('JFI Comparison by Season')
+ax3.legend()
+ax3.axhline(y=0, color='black', linestyle='--', linewidth=0.5)
+plt.tight_layout()
+plt.savefig(f'{img_dir}/jfi_comparison.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/jfi_comparison.png")
+
+# 6.4 FFI vs JFI Trade-off (Individual)
+fig4, ax4 = plt.subplots(figsize=(8, 6))
+ax4.scatter(ffi_df['JFI_rank'], ffi_df['FFI_rank'], c='steelblue', 
+            label='Rank Method', alpha=0.6, s=60)
+ax4.scatter(ffi_df['JFI_pct'], ffi_df['FFI_pct'], c='coral',
+            label='Pct Method', alpha=0.6, s=60, marker='s')
+ax4.scatter(ffi_df['JFI_rank'].mean(), ffi_df['FFI_rank'].mean(), 
+            c='darkblue', s=200, marker='*', label='Rank Mean', zorder=5)
+ax4.scatter(ffi_df['JFI_pct'].mean(), ffi_df['FFI_pct'].mean(),
+            c='darkred', s=200, marker='*', label='Pct Mean', zorder=5)
+ax4.set_xlabel('Judge Favor Index (JFI)')
+ax4.set_ylabel('Fan Favor Index (FFI)')
+ax4.set_title('Trade-off: JFI vs FFI')
+ax4.legend(loc='lower left')
+ax4.axhline(y=0, color='gray', linestyle='--', alpha=0.5)
+ax4.axvline(x=0, color='gray', linestyle='--', alpha=0.5)
+plt.tight_layout()
+plt.savefig(f'{img_dir}/ffi_jfi_tradeoff.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/ffi_jfi_tradeoff.png")
+
+# 6.5 Difference Distribution (Individual)
+fig5, ax5 = plt.subplots(figsize=(8, 5))
+ax5.hist(ffi_df['FFI_diff'].dropna(), bins=15, color='mediumpurple', alpha=0.7, 
+         edgecolor='black', label='FFI Diff (Pct - Rank)')
+ax5.axvline(x=0, color='red', linestyle='--', linewidth=2)
+ax5.axvline(x=ffi_df['FFI_diff'].mean(), color='green', linestyle='--', linewidth=2,
+            label=f'Mean = {ffi_df["FFI_diff"].mean():.3f}')
+ax5.set_xlabel('FFI Difference (Pct - Rank)')
+ax5.set_ylabel('Frequency')
+ax5.set_title('Distribution of FFI Difference')
+ax5.legend()
+plt.tight_layout()
+plt.savefig(f'{img_dir}/ffi_diff_distribution.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/ffi_diff_distribution.png")
+
+# 6.6 Era Analysis (Individual)
+fig6, ax6 = plt.subplots(figsize=(8, 6))
+ffi_df['era'] = ffi_df['season'].apply(
+    lambda s: 'Early\n(S1-10)' if s <= 10 else ('Middle\n(S11-20)' if s <= 20 else 
+              ('Late\n(S21-27)' if s <= 27 else 'TikTok\n(S28+)'))
+)
+era_ffi = ffi_df.groupby('era').agg({
+    'FFI_rank': 'mean',
+    'FFI_pct': 'mean',
+    'JFI_rank': 'mean',
+    'JFI_pct': 'mean'
+}).round(4)
+era_order = ['Early\n(S1-10)', 'Middle\n(S11-20)', 'Late\n(S21-27)', 'TikTok\n(S28+)']
+era_ffi = era_ffi.reindex(era_order)
+x_era = np.arange(len(era_order))
+ax6.bar(x_era - 0.2, era_ffi['FFI_rank'], 0.2, label='FFI Rank', color='steelblue')
+ax6.bar(x_era, era_ffi['FFI_pct'], 0.2, label='FFI Pct', color='coral')
+ax6.bar(x_era + 0.2, era_ffi['JFI_rank'], 0.2, label='JFI Rank', color='lightblue', hatch='//')
+ax6.bar(x_era + 0.4, era_ffi['JFI_pct'], 0.2, label='JFI Pct', color='lightsalmon', hatch='//')
+ax6.set_xticks(x_era + 0.1)
+ax6.set_xticklabels(era_order)
+ax6.set_ylabel('Index Value')
+ax6.set_title('FFI & JFI by Era')
+ax6.legend(loc='lower right')
+plt.tight_layout()
+plt.savefig(f'{img_dir}/era_analysis.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/era_analysis.png")
+
+# --- Panel Plot (Combined) ---
+fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+
+# 6.1 Weekly Differences by Season
+ax1 = axes[0, 0]
+ax1.bar(seasons, diffs, color=colors, alpha=0.7)
+ax1.set_xlabel('Season')
+ax1.set_ylabel('Number of Different Weeks')
+ax1.set_title('Weekly Elimination Differences\n(Rank vs Percentage)')
+ax1.axhline(y=0, color='black', linestyle='-', linewidth=0.5)
 
 # 6.2 FFI Comparison
 ax2 = axes[0, 1]
-x = ffi_df['season']
-width = 0.35
 ax2.bar(x - width/2, ffi_df['FFI_rank'], width, label='Rank Method', color='steelblue', alpha=0.7)
 ax2.bar(x + width/2, ffi_df['FFI_pct'], width, label='Pct Method', color='coral', alpha=0.7)
 ax2.set_xlabel('Season')

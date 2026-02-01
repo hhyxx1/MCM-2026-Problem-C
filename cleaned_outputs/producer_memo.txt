@@ -28,12 +28,12 @@ KEY FINDINGS
    • Bristol Palin (S11) reached Top 3 despite consistently low dance scores
 
 2. METHOD COMPARISON:
-   • Rank-based method: More meritocratic (JFI = 0.7274)
-   • Percentage method: More fan-favoring (FFI = 0.7882)
+   • Rank-based method: More meritocratic (JFI = 0.7417)
+   • Percentage method: More fan-favoring (FFI = 0.7676)
    • Recommended: Rank-based with dynamic weighting
 
 3. MODEL ACCURACY:
-   • Our elimination prediction model achieves 95.6% accuracy
+   • Our elimination prediction model achieves 95.2% accuracy
    • Fan vote estimates have average confidence interval width of 0.28
 
 --------------------------------------------------------------------------------

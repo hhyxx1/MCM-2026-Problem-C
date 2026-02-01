@@ -320,6 +320,103 @@ print(f"    Saved: covariate_analysis.json")
 # ============================================================================
 print("\n[15] Generating visualizations...")
 
+import os
+img_dir = f'{output_dir}/feature_engineering'
+os.makedirs(img_dir, exist_ok=True)
+
+# Prepare data
+industry_order = industry_pbi.sort_values('avg_PBI')['industry'].tolist()
+industry_colors = ['#e74c3c' if x < 0 else '#2ecc71' for x in industry_pbi.sort_values('avg_PBI')['avg_PBI']]
+z_trend = np.polyfit(season_pbi['season'], season_pbi['avg_PBI'], 1)
+p_trend = np.poly1d(z_trend)
+top_n = 15
+top_star_makers = partner_stats_filtered.nlargest(top_n, 'avg_PBI')
+star_colors = ['#2ecc71' if x > 0 else '#e74c3c' for x in top_star_makers['avg_PBI']]
+
+# --- Individual Plots ---
+
+# Plot 1: PBI Distribution (Individual)
+fig1, ax1_ind = plt.subplots(figsize=(8, 6))
+ax1_ind.hist(contestant_avg_judge_rank['PBI'], bins=30, edgecolor='black', alpha=0.7, color='steelblue')
+ax1_ind.axvline(x=0, color='red', linestyle='--', linewidth=2, label='PBI=0 (Judge=Fan)')
+ax1_ind.axvline(x=contestant_avg_judge_rank['PBI'].mean(), color='green', linestyle='-', linewidth=2, label=f'Mean={contestant_avg_judge_rank["PBI"].mean():.2f}')
+ax1_ind.set_xlabel('Popularity Bias Index (PBI)')
+ax1_ind.set_ylabel('Frequency')
+ax1_ind.set_title('Distribution of PBI\n(Positive = Fan Favorite, Negative = Judge Favorite)')
+ax1_ind.legend()
+plt.tight_layout()
+plt.savefig(f'{img_dir}/pbi_distribution.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/pbi_distribution.png")
+
+# Plot 2: PBI by Industry (Individual)
+fig2, ax2_ind = plt.subplots(figsize=(8, 6))
+ax2_ind.barh(industry_order, industry_pbi.sort_values('avg_PBI')['avg_PBI'], color=industry_colors, edgecolor='black')
+ax2_ind.axvline(x=0, color='black', linestyle='-', linewidth=1)
+ax2_ind.set_xlabel('Average PBI')
+ax2_ind.set_title('PBI by Industry\n(Green = Fan Boost, Red = Judge Aligned)')
+plt.tight_layout()
+plt.savefig(f'{img_dir}/pbi_by_industry.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/pbi_by_industry.png")
+
+# Plot 3: PBI Trend over Seasons (Individual)
+fig3, ax3_ind = plt.subplots(figsize=(8, 6))
+ax3_ind.plot(season_pbi['season'], season_pbi['avg_PBI'], 'o-', color='steelblue', linewidth=2, markersize=6)
+ax3_ind.fill_between(season_pbi['season'], 
+                  season_pbi['avg_PBI'] - season_pbi['std_PBI'],
+                  season_pbi['avg_PBI'] + season_pbi['std_PBI'],
+                  alpha=0.3)
+ax3_ind.axhline(y=0, color='red', linestyle='--', linewidth=1)
+ax3_ind.set_xlabel('Season')
+ax3_ind.set_ylabel('Average PBI')
+ax3_ind.set_title('PBI Trend Over Seasons\n(Positive trend = increasing fan influence)')
+ax3_ind.plot(season_pbi['season'], p_trend(season_pbi['season']), 'r--', alpha=0.8, label=f'Trend: slope={z_trend[0]:.3f}')
+ax3_ind.legend()
+plt.tight_layout()
+plt.savefig(f'{img_dir}/pbi_trend.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/pbi_trend.png")
+
+# Plot 4: Top Star Makers (Individual)
+fig4, ax4_ind = plt.subplots(figsize=(8, 6))
+ax4_ind.barh(range(top_n), top_star_makers['avg_PBI'], color=star_colors, edgecolor='black')
+ax4_ind.set_yticks(range(top_n))
+ax4_ind.set_yticklabels(top_star_makers['ballroom_partner'])
+ax4_ind.axvline(x=0, color='black', linestyle='-', linewidth=1)
+ax4_ind.set_xlabel('Average PBI')
+ax4_ind.set_title(f'Top {top_n} "Star Makers"\n(Partners who boost celebrity fan votes)')
+for i, (idx, row) in enumerate(top_star_makers.iterrows()):
+    ax4_ind.annotate(f'n={int(row["num_seasons"])}', 
+                 xy=(row['avg_PBI'] + 0.1, i),
+                 va='center', fontsize=9, color='gray')
+plt.tight_layout()
+plt.savefig(f'{img_dir}/star_makers.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/star_makers.png")
+
+# Plot 5: PBI vs Judge Score scatter (Individual)
+fig5, ax5_ind = plt.subplots(figsize=(10, 8))
+scatter = ax5_ind.scatter(contestant_avg_judge_rank['avg_J_pct'], 
+                     contestant_avg_judge_rank['PBI'],
+                     c=contestant_avg_judge_rank['season'],
+                     cmap='viridis', alpha=0.6, edgecolors='white', linewidth=0.5)
+ax5_ind.axhline(y=0, color='red', linestyle='--', linewidth=1, alpha=0.7)
+z_score = np.polyfit(contestant_avg_judge_rank['avg_J_pct'], contestant_avg_judge_rank['PBI'], 1)
+p_score = np.poly1d(z_score)
+x_line = np.linspace(contestant_avg_judge_rank['avg_J_pct'].min(), contestant_avg_judge_rank['avg_J_pct'].max(), 100)
+ax5_ind.plot(x_line, p_score(x_line), 'r-', linewidth=2, label=f'Trend: r={corr:.3f}')
+plt.colorbar(scatter, label='Season')
+ax5_ind.set_xlabel('Average Judge Score (%)')
+ax5_ind.set_ylabel('Popularity Bias Index (PBI)')
+ax5_ind.set_title('PBI vs Judge Score\nNegative correlation: Lower-scoring contestants get more fan boost')
+ax5_ind.legend()
+plt.tight_layout()
+plt.savefig(f'{img_dir}/pbi_vs_score.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/pbi_vs_score.png")
+
+# --- Panel Plot (Combined) ---
 fig, axes = plt.subplots(2, 2, figsize=(14, 12))
 
 # Plot 1: PBI Distribution
@@ -334,9 +431,7 @@ ax1.legend()
 
 # Plot 2: PBI by Industry
 ax2 = axes[0, 1]
-industry_order = industry_pbi.sort_values('avg_PBI')['industry'].tolist()
-colors = ['#e74c3c' if x < 0 else '#2ecc71' for x in industry_pbi.sort_values('avg_PBI')['avg_PBI']]
-bars = ax2.barh(industry_order, industry_pbi.sort_values('avg_PBI')['avg_PBI'], color=colors, edgecolor='black')
+bars = ax2.barh(industry_order, industry_pbi.sort_values('avg_PBI')['avg_PBI'], color=industry_colors, edgecolor='black')
 ax2.axvline(x=0, color='black', linestyle='-', linewidth=1)
 ax2.set_xlabel('Average PBI')
 ax2.set_title('PBI by Industry\n(Green = Fan Boost, Red = Judge Aligned)')
@@ -352,26 +447,17 @@ ax3.axhline(y=0, color='red', linestyle='--', linewidth=1)
 ax3.set_xlabel('Season')
 ax3.set_ylabel('Average PBI')
 ax3.set_title('PBI Trend Over Seasons\n(Positive trend = increasing fan influence)')
-
-# Add trend line
-z = np.polyfit(season_pbi['season'], season_pbi['avg_PBI'], 1)
-p = np.poly1d(z)
-ax3.plot(season_pbi['season'], p(season_pbi['season']), 'r--', alpha=0.8, label=f'Trend: slope={z[0]:.3f}')
+ax3.plot(season_pbi['season'], p_trend(season_pbi['season']), 'r--', alpha=0.8, label=f'Trend: slope={z_trend[0]:.3f}')
 ax3.legend()
 
 # Plot 4: Top Star Makers
 ax4 = axes[1, 1]
-top_n = 15
-top_star_makers = partner_stats_filtered.nlargest(top_n, 'avg_PBI')
-colors = ['#2ecc71' if x > 0 else '#e74c3c' for x in top_star_makers['avg_PBI']]
-bars = ax4.barh(range(top_n), top_star_makers['avg_PBI'], color=colors, edgecolor='black')
+bars = ax4.barh(range(top_n), top_star_makers['avg_PBI'], color=star_colors, edgecolor='black')
 ax4.set_yticks(range(top_n))
 ax4.set_yticklabels(top_star_makers['ballroom_partner'])
 ax4.axvline(x=0, color='black', linestyle='-', linewidth=1)
 ax4.set_xlabel('Average PBI')
 ax4.set_title(f'Top {top_n} "Star Makers"\n(Partners who boost celebrity fan votes)')
-
-# Add count annotations
 for i, (idx, row) in enumerate(top_star_makers.iterrows()):
     ax4.annotate(f'n={int(row["num_seasons"])}', 
                  xy=(row['avg_PBI'] + 0.1, i),
@@ -379,22 +465,19 @@ for i, (idx, row) in enumerate(top_star_makers.iterrows()):
 
 plt.tight_layout()
 plt.savefig(f'{output_dir}/pbi_analysis.png', dpi=150, bbox_inches='tight')
+plt.savefig(f'{img_dir}/panel_all.png', dpi=150, bbox_inches='tight')
+plt.close()
 print(f"    Saved: pbi_analysis.png")
+print(f"    Saved: {img_dir}/panel_all.png")
 
-# Plot 5: PBI vs Judge Score scatter
+# Plot 5: PBI vs Judge Score scatter (Original location)
 fig2, ax = plt.subplots(figsize=(10, 8))
 scatter = ax.scatter(contestant_avg_judge_rank['avg_J_pct'], 
                      contestant_avg_judge_rank['PBI'],
                      c=contestant_avg_judge_rank['season'],
                      cmap='viridis', alpha=0.6, edgecolors='white', linewidth=0.5)
 ax.axhline(y=0, color='red', linestyle='--', linewidth=1, alpha=0.7)
-
-# Add trend line
-z = np.polyfit(contestant_avg_judge_rank['avg_J_pct'], contestant_avg_judge_rank['PBI'], 1)
-p = np.poly1d(z)
-x_line = np.linspace(contestant_avg_judge_rank['avg_J_pct'].min(), contestant_avg_judge_rank['avg_J_pct'].max(), 100)
-ax.plot(x_line, p(x_line), 'r-', linewidth=2, label=f'Trend: r={corr:.3f}')
-
+ax.plot(x_line, p_score(x_line), 'r-', linewidth=2, label=f'Trend: r={corr:.3f}')
 plt.colorbar(scatter, label='Season')
 ax.set_xlabel('Average Judge Score (%)')
 ax.set_ylabel('Popularity Bias Index (PBI)')

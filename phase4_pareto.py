@@ -300,23 +300,118 @@ for _, row in comparison_table.iterrows():
 # =============================================================================
 print("\n[7] Generating visualizations...")
 
+import os
+img_dir = 'cleaned_outputs/phase4_pareto'
+os.makedirs(img_dir, exist_ok=True)
+
+# Prepare data for plots
+rank_plot = pareto_df[pareto_df['method'] == 'rank']
+pct_plot = pareto_df[pareto_df['method'] == 'pct']
+rank_frontier = rank_df[rank_df['is_optimal']].sort_values('J_mean')
+pct_frontier = pct_df[pct_df['is_optimal']].sort_values('J_mean')
+
+# --- Individual Plots ---
+
+# 6.1 Pareto Frontier (Individual)
+fig1, ax1_ind = plt.subplots(figsize=(8, 7))
+ax1_ind.scatter(rank_plot['J_mean'], rank_plot['F_mean'], c='steelblue', alpha=0.3, s=40, label='Rank Method')
+ax1_ind.scatter(pct_plot['J_mean'], pct_plot['F_mean'], c='coral', alpha=0.3, s=40, label='Pct Method')
+ax1_ind.plot(rank_frontier['J_mean'], rank_frontier['F_mean'], 'b-', linewidth=2, label='Rank Frontier')
+ax1_ind.plot(pct_frontier['J_mean'], pct_frontier['F_mean'], 'r--', linewidth=2, label='Pct Frontier')
+ax1_ind.scatter(current_rank['J_mean'], current_rank['F_mean'], c='red', s=200, marker='o', 
+            zorder=5, edgecolors='black', linewidth=2, label='Current Rule')
+if judges_save_50:
+    ax1_ind.scatter(judges_save_50['J_mean'], judges_save_50['F_mean'], c='blue', s=200, marker='s',
+                zorder=5, edgecolors='black', linewidth=2, label="Judges' Save")
+ax1_ind.scatter(knee_point['J_mean'], knee_point['F_mean'], c='gold', s=300, marker='*',
+            zorder=5, edgecolors='black', linewidth=2, label='Recommended')
+ax1_ind.set_xlabel('J (Meritocracy) - Correlation with Judge Ranking', fontsize=11)
+ax1_ind.set_ylabel('F (Engagement) - Correlation with Fan Ranking', fontsize=11)
+ax1_ind.set_title('Pareto Frontier: Fairness vs Engagement Trade-off', fontsize=12, fontweight='bold')
+ax1_ind.legend(loc='lower left', fontsize=9)
+ax1_ind.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig(f'{img_dir}/pareto_frontier.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/pareto_frontier.png")
+
+# 6.2 Judge Weight vs Objectives (Individual)
+fig2, ax2_ind = plt.subplots(figsize=(8, 6))
+ax2_ind.plot(rank_plot['judge_weight'], rank_plot['J_mean'], 'b-o', label='J (Rank)', markersize=4)
+ax2_ind.plot(rank_plot['judge_weight'], rank_plot['F_mean'], 'b--s', label='F (Rank)', markersize=4)
+ax2_ind.plot(pct_plot['judge_weight'], pct_plot['J_mean'], 'r-o', label='J (Pct)', markersize=4)
+ax2_ind.plot(pct_plot['judge_weight'], pct_plot['F_mean'], 'r--s', label='F (Pct)', markersize=4)
+ax2_ind.axvline(x=0.5, color='gray', linestyle=':', label='Current (50%)')
+ax2_ind.axvline(x=knee_point['judge_weight'], color='gold', linestyle='-', linewidth=2, 
+            label=f"Recommended ({knee_point['judge_weight']:.0%})")
+ax2_ind.set_xlabel('Judge Weight', fontsize=11)
+ax2_ind.set_ylabel('Correlation', fontsize=11)
+ax2_ind.set_title('Objectives vs Judge Weight', fontsize=12, fontweight='bold')
+ax2_ind.legend(loc='center right', fontsize=8)
+ax2_ind.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig(f'{img_dir}/weight_vs_objectives.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/weight_vs_objectives.png")
+
+# 6.3 Trade-off Ratio (Individual)
+fig3, ax3_ind = plt.subplots(figsize=(8, 6))
+rank_plot_copy = rank_plot.copy()
+rank_plot_copy['JF_ratio'] = rank_plot_copy['J_mean'] / (rank_plot_copy['F_mean'] + 0.01)
+pct_plot_copy = pct_plot.copy()
+pct_plot_copy['JF_ratio'] = pct_plot_copy['J_mean'] / (pct_plot_copy['F_mean'] + 0.01)
+ax3_ind.plot(rank_plot_copy['judge_weight'], rank_plot_copy['JF_ratio'], 'b-o', label='Rank Method', markersize=4)
+ax3_ind.plot(pct_plot_copy['judge_weight'], pct_plot_copy['JF_ratio'], 'r-o', label='Pct Method', markersize=4)
+ax3_ind.axhline(y=1.0, color='gray', linestyle='--', label='Equal Weight')
+ax3_ind.axvline(x=knee_point['judge_weight'], color='gold', linestyle='-', linewidth=2)
+ax3_ind.set_xlabel('Judge Weight', fontsize=11)
+ax3_ind.set_ylabel('J/F Ratio (Merit/Engagement)', fontsize=11)
+ax3_ind.set_title('Merit vs Engagement Balance', fontsize=12, fontweight='bold')
+ax3_ind.legend(fontsize=9)
+ax3_ind.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig(f'{img_dir}/tradeoff_ratio.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/tradeoff_ratio.png")
+
+# 6.4 Summary Bar Chart (Individual)
+fig4, ax4_ind = plt.subplots(figsize=(8, 6))
+rules = ['Current\n(50-50)', "Judges'\nSave", f'Recommended\n({knee_point["judge_weight"]:.0%})']
+j_values = [current_rank['J_mean'], 
+            judges_save_50['J_mean'] if judges_save_50 else 0,
+            knee_point['J_mean']]
+f_values = [current_rank['F_mean'],
+            judges_save_50['F_mean'] if judges_save_50 else 0,
+            knee_point['F_mean']]
+x_bar = np.arange(len(rules))
+width = 0.35
+bars1 = ax4_ind.bar(x_bar - width/2, j_values, width, label='J (Meritocracy)', color='steelblue')
+bars2 = ax4_ind.bar(x_bar + width/2, f_values, width, label='F (Engagement)', color='coral')
+ax4_ind.set_ylabel('Correlation', fontsize=11)
+ax4_ind.set_title('Key Rules Comparison', fontsize=12, fontweight='bold')
+ax4_ind.set_xticks(x_bar)
+ax4_ind.set_xticklabels(rules)
+ax4_ind.legend()
+ax4_ind.set_ylim(0, 1)
+for bar, val in zip(bars1, j_values):
+    ax4_ind.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02, 
+             f'{val:.3f}', ha='center', va='bottom', fontsize=9)
+for bar, val in zip(bars2, f_values):
+    ax4_ind.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02,
+             f'{val:.3f}', ha='center', va='bottom', fontsize=9)
+plt.tight_layout()
+plt.savefig(f'{img_dir}/rules_comparison.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/rules_comparison.png")
+
+# --- Panel Plot (Combined) ---
 fig, axes = plt.subplots(2, 2, figsize=(14, 12))
 
 # 6.1 Pareto Frontier (Main Plot)
 ax1 = axes[0, 0]
-
-# Plot all points
-rank_plot = pareto_df[pareto_df['method'] == 'rank']
-pct_plot = pareto_df[pareto_df['method'] == 'pct']
-
 ax1.scatter(rank_plot['J_mean'], rank_plot['F_mean'], c='steelblue', alpha=0.3, s=40, label='Rank Method')
 ax1.scatter(pct_plot['J_mean'], pct_plot['F_mean'], c='coral', alpha=0.3, s=40, label='Pct Method')
-
-# Pareto frontier
-rank_frontier = rank_df[rank_df['is_optimal']].sort_values('J_mean')
 ax1.plot(rank_frontier['J_mean'], rank_frontier['F_mean'], 'b-', linewidth=2, label='Rank Frontier')
-
-pct_frontier = pct_df[pct_df['is_optimal']].sort_values('J_mean')
 ax1.plot(pct_frontier['J_mean'], pct_frontier['F_mean'], 'r--', linewidth=2, label='Pct Frontier')
 
 # Key points

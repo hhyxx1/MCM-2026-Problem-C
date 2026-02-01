@@ -193,12 +193,100 @@ print(f"    ANOVA p-value: {anova_p:.4f}")
 # ============================================================================
 print("\n[7] Generating Chronological Heatmap...")
 
+import os
+img_dir = '/home/hyx/文档/MCM/cleaned_outputs/global_scan'
+os.makedirs(img_dir, exist_ok=True)
+
 # Create pivot table for heatmap
 pivot_data = df_divergence.pivot(index='week', columns='season', values='divergence_score')
 
+# 准备 era 相关数据
+era_order = ['Pre-Social (S1-3)', 'Early Social (S4-9)', 'Peak Facebook (S10-15)', 
+             'Multi-Platform (S16-23)', 'Instagram Era (S24-28)', 'TikTok Era (S29-34)']
+era_data = [season_divergence[season_divergence['social_era'] == era]['divergence_score'].values 
+            for era in era_order]
+era_means = [np.mean(d) for d in era_data]
+era_colors = {'Pre-Social (S1-3)': '#e8f5e9', 'Early Social (S4-9)': '#fff3e0',
+              'Peak Facebook (S10-15)': '#fce4ec', 'Multi-Platform (S16-23)': '#e3f2fd',
+              'Instagram Era (S24-28)': '#f3e5f5', 'TikTok Era (S29-34)': '#ffebee'}
+era_ranges = [(1, 3), (4, 9), (10, 15), (16, 23), (24, 28), (29, 34)]
+era_names = list(era_colors.keys())
+era_boundaries = [3, 9, 15, 23, 28]
+
+slope2, intercept2, r2, p2, _ = stats.linregress(
+    season_divergence['season'], season_divergence['mean_rank_diff'])
+
+# --- Plot 1: Divergence Heatmap (单独图) ---
+fig1, ax1 = plt.subplots(figsize=(12, 8))
+im = ax1.imshow(pivot_data.values, aspect='auto', cmap='RdYlBu_r', 
+                vmin=0, vmax=1.5)
+ax1.set_xlabel('Season')
+ax1.set_ylabel('Week')
+ax1.set_title('Judge-Audience Divergence Heatmap\n(Red = High Divergence, Blue = Low)')
+ax1.set_xticks(range(0, 34, 5))
+ax1.set_xticklabels(range(1, 35, 5))
+ax1.set_yticks(range(len(pivot_data.index)))
+ax1.set_yticklabels(pivot_data.index)
+plt.colorbar(im, ax=ax1, label='Divergence Score (1 - Spearman r)')
+for boundary in era_boundaries:
+    ax1.axvline(x=boundary-0.5, color='white', linestyle='--', linewidth=2, alpha=0.7)
+plt.tight_layout()
+plt.savefig(f'{img_dir}/divergence_heatmap.png', dpi=150, bbox_inches='tight')
+plt.close()
+
+# --- Plot 2: Season Trend Line (单独图) ---
+fig2, ax2 = plt.subplots(figsize=(12, 6))
+ax2.scatter(season_divergence['season'], season_divergence['divergence_score'], 
+            c=season_divergence['season'], cmap='viridis', s=80, edgecolors='black', zorder=3)
+ax2.plot(season_divergence['season'], intercept + slope * season_divergence['season'], 
+         'r--', linewidth=2, label=f'Trend: slope={slope:.4f}, R²={r_value**2:.3f}')
+for (start, end), color, name in zip(era_ranges, era_colors.values(), era_names):
+    ax2.axvspan(start-0.5, end+0.5, alpha=0.3, color=color, label=name)
+ax2.set_xlabel('Season')
+ax2.set_ylabel('Divergence Score')
+ax2.set_title('Judge-Audience Divergence Trend Over Seasons\n(Higher = More Fan-Judge Disagreement)')
+ax2.legend(loc='upper left', fontsize=8)
+ax2.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig(f'{img_dir}/divergence_trend.png', dpi=150, bbox_inches='tight')
+plt.close()
+
+# --- Plot 3: Era Comparison Box Plot (单独图) ---
+fig3, ax3 = plt.subplots(figsize=(10, 6))
+bp = ax3.boxplot(era_data, labels=[e.split('(')[0].strip() for e in era_order], patch_artist=True)
+colors = ['#4caf50', '#ff9800', '#e91e63', '#2196f3', '#9c27b0', '#f44336']
+for patch, color in zip(bp['boxes'], colors):
+    patch.set_facecolor(color)
+    patch.set_alpha(0.6)
+ax3.set_xlabel('Social Media Era')
+ax3.set_ylabel('Divergence Score')
+ax3.set_title('Divergence by Social Media Era\n(ANOVA p={:.4f})'.format(anova_p))
+ax3.tick_params(axis='x', rotation=30)
+ax3.plot(range(1, 7), era_means, 'ko-', markersize=8, label='Mean')
+plt.tight_layout()
+plt.savefig(f'{img_dir}/era_boxplot.png', dpi=150, bbox_inches='tight')
+plt.close()
+
+# --- Plot 4: Mean Rank Difference (单独图) ---
+fig4, ax4 = plt.subplots(figsize=(12, 6))
+ax4.bar(season_divergence['season'], season_divergence['mean_rank_diff'], 
+        color=plt.cm.RdYlBu_r(season_divergence['divergence_score'] / season_divergence['divergence_score'].max()),
+        edgecolor='black', alpha=0.8)
+ax4.plot(season_divergence['season'], intercept2 + slope2 * season_divergence['season'],
+         'r--', linewidth=2, label=f'Trend: slope={slope2:.4f}')
+ax4.set_xlabel('Season')
+ax4.set_ylabel('Mean |Judge Rank - Final Rank|')
+ax4.set_title('Average Rank Disagreement by Season')
+ax4.legend()
+plt.tight_layout()
+plt.savefig(f'{img_dir}/rank_difference.png', dpi=150, bbox_inches='tight')
+plt.close()
+
+print(f"    Saved 4 individual plots to {img_dir}/")
+
+# --- 生成面板图 (保留原有功能) ---
 fig, axes = plt.subplots(2, 2, figsize=(16, 12))
 
-# Plot 1: Divergence Heatmap (Season × Week)
 ax1 = axes[0, 0]
 im = ax1.imshow(pivot_data.values, aspect='auto', cmap='RdYlBu_r', 
                 vmin=0, vmax=1.5)
@@ -210,68 +298,39 @@ ax1.set_xticklabels(range(1, 35, 5))
 ax1.set_yticks(range(len(pivot_data.index)))
 ax1.set_yticklabels(pivot_data.index)
 plt.colorbar(im, ax=ax1, label='Divergence Score (1 - Spearman r)')
-
-# Add era boundaries
-era_boundaries = [3, 9, 15, 23, 28]
 for boundary in era_boundaries:
     ax1.axvline(x=boundary-0.5, color='white', linestyle='--', linewidth=2, alpha=0.7)
 
-# Plot 2: Season Trend Line
 ax2 = axes[0, 1]
 ax2.scatter(season_divergence['season'], season_divergence['divergence_score'], 
             c=season_divergence['season'], cmap='viridis', s=80, edgecolors='black', zorder=3)
 ax2.plot(season_divergence['season'], intercept + slope * season_divergence['season'], 
          'r--', linewidth=2, label=f'Trend: slope={slope:.4f}, R²={r_value**2:.3f}')
-
-# Add era shading
-era_colors = {'Pre-Social (S1-3)': '#e8f5e9', 'Early Social (S4-9)': '#fff3e0',
-              'Peak Facebook (S10-15)': '#fce4ec', 'Multi-Platform (S16-23)': '#e3f2fd',
-              'Instagram Era (S24-28)': '#f3e5f5', 'TikTok Era (S29-34)': '#ffebee'}
-era_ranges = [(1, 3), (4, 9), (10, 15), (16, 23), (24, 28), (29, 34)]
-era_names = list(era_colors.keys())
 for (start, end), color, name in zip(era_ranges, era_colors.values(), era_names):
     ax2.axvspan(start-0.5, end+0.5, alpha=0.3, color=color, label=name)
-
 ax2.set_xlabel('Season')
 ax2.set_ylabel('Divergence Score')
 ax2.set_title('Judge-Audience Divergence Trend Over Seasons\n(Higher = More Fan-Judge Disagreement)')
 ax2.legend(loc='upper left', fontsize=8)
 ax2.grid(True, alpha=0.3)
 
-# Plot 3: Era Comparison (Box Plot)
 ax3 = axes[1, 0]
-era_order = ['Pre-Social (S1-3)', 'Early Social (S4-9)', 'Peak Facebook (S10-15)', 
-             'Multi-Platform (S16-23)', 'Instagram Era (S24-28)', 'TikTok Era (S29-34)']
-era_data = [season_divergence[season_divergence['social_era'] == era]['divergence_score'].values 
-            for era in era_order]
-
 bp = ax3.boxplot(era_data, labels=[e.split('(')[0].strip() for e in era_order], patch_artist=True)
-colors = ['#4caf50', '#ff9800', '#e91e63', '#2196f3', '#9c27b0', '#f44336']
 for patch, color in zip(bp['boxes'], colors):
     patch.set_facecolor(color)
     patch.set_alpha(0.6)
-
 ax3.set_xlabel('Social Media Era')
 ax3.set_ylabel('Divergence Score')
 ax3.set_title('Divergence by Social Media Era\n(ANOVA p={:.4f})'.format(anova_p))
 ax3.tick_params(axis='x', rotation=30)
-
-# Add mean line
-era_means = [np.mean(d) for d in era_data]
 ax3.plot(range(1, 7), era_means, 'ko-', markersize=8, label='Mean')
 
-# Plot 4: Mean Rank Difference Over Time
 ax4 = axes[1, 1]
 ax4.bar(season_divergence['season'], season_divergence['mean_rank_diff'], 
         color=plt.cm.RdYlBu_r(season_divergence['divergence_score'] / season_divergence['divergence_score'].max()),
         edgecolor='black', alpha=0.8)
-
-# Trend line
-slope2, intercept2, r2, p2, _ = stats.linregress(
-    season_divergence['season'], season_divergence['mean_rank_diff'])
 ax4.plot(season_divergence['season'], intercept2 + slope2 * season_divergence['season'],
          'r--', linewidth=2, label=f'Trend: slope={slope2:.4f}')
-
 ax4.set_xlabel('Season')
 ax4.set_ylabel('Mean |Judge Rank - Final Rank|')
 ax4.set_title('Average Rank Disagreement by Season')
@@ -279,7 +338,9 @@ ax4.legend()
 
 plt.tight_layout()
 plt.savefig('/home/hyx/文档/MCM/cleaned_outputs/global_scan_heatmap.png', dpi=150, bbox_inches='tight')
-print(f"    Saved: global_scan_heatmap.png")
+plt.savefig(f'{img_dir}/panel_all.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: global_scan_heatmap.png (panel)")
 
 # ============================================================================
 # DETAILED WEEKLY HEATMAP

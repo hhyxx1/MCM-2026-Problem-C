@@ -2,7 +2,7 @@
   "method": "rank",
   "judge_weight": 0.5,
   "fan_weight": 0.5,
-  "J_meritocracy": 0.717299250244979,
-  "F_engagement": 0.7497586323646201,
+  "J_meritocracy": 0.7324839543585732,
+  "F_engagement": 0.6988611360163137,
   "mechanism": "Judges Save for Bottom 2"
 }

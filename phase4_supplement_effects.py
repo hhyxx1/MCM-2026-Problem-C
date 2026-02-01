@@ -339,13 +339,103 @@ for feat, j_coef, f_coef, same in comparison:
 # =============================================================================
 print("\n[7] Generating visualizations...")
 
+import os
+img_dir = 'cleaned_outputs/phase4_supplement'
+os.makedirs(img_dir, exist_ok=True)
+
+# Prepare data
+sample = df_valid.sample(min(500, len(df_valid)), random_state=42)
+z = np.polyfit(df_valid['J_pct'], df_valid['f_mean'] * 100, 1)
+p = np.poly1d(z)
+x_line = np.linspace(df_valid['J_pct'].min(), df_valid['J_pct'].max(), 100)
+sources = ['Pro\nDancer', 'Season', 'Residual']
+j_vars = [pct_J_pro, pct_J_season, pct_J_residual]
+f_vars = [pct_F_pro, pct_F_season, pct_F_residual]
+season_means = df_valid.groupby('season').agg({
+    'J_pct': 'mean',
+    'f_mean': lambda x: x.mean() * 100
+}).reset_index()
+
+# --- Individual Plots ---
+
+# 7.1 Pro Dancer J_lift vs F_lift (Individual)
+fig1, ax1_ind = plt.subplots(figsize=(8, 6))
+ax1_ind.scatter(pro_stats['J_lift'], pro_stats['F_lift'], 
+            s=pro_stats['n_obs']/2, alpha=0.6, c='steelblue')
+for _, row in pro_stats.nlargest(5, 'n_obs').iterrows():
+    ax1_ind.annotate(row['ballroom_partner'].split()[0], 
+                 (row['J_lift'], row['F_lift']), fontsize=8)
+ax1_ind.axhline(y=0, color='gray', linestyle='--', alpha=0.5)
+ax1_ind.axvline(x=0, color='gray', linestyle='--', alpha=0.5)
+ax1_ind.set_xlabel('J% Lift (vs average)')
+ax1_ind.set_ylabel('Fan Vote Lift (vs average)')
+ax1_ind.set_title(f'Pro Dancer Effects (Correlation: {pro_corr:.3f})')
+plt.tight_layout()
+plt.savefig(f'{img_dir}/pro_dancer_effects.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/pro_dancer_effects.png")
+
+# 7.2 J% vs Fan Vote scatter (Individual)
+fig2, ax2_ind = plt.subplots(figsize=(8, 6))
+ax2_ind.scatter(sample['J_pct'], sample['f_mean'] * 100, alpha=0.3, s=15)
+ax2_ind.plot(x_line, p(x_line), 'r-', linewidth=2, label=f'η={eta:.4f}')
+ax2_ind.set_xlabel('Judge Score (J%)')
+ax2_ind.set_ylabel('Fan Vote Share (%)')
+ax2_ind.set_title('J% → Fan Vote Relationship')
+ax2_ind.legend()
+plt.tight_layout()
+plt.savefig(f'{img_dir}/jpct_vs_fan_vote.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/jpct_vs_fan_vote.png")
+
+# 7.3 Variance Decomposition (Individual)
+fig3, ax3_ind = plt.subplots(figsize=(8, 6))
+x_var = np.arange(len(sources))
+width = 0.35
+bars1 = ax3_ind.bar(x_var - width/2, j_vars, width, label='Judge Score', color='steelblue')
+bars2 = ax3_ind.bar(x_var + width/2, f_vars, width, label='Fan Vote', color='coral')
+ax3_ind.set_ylabel('Variance Explained (%)')
+ax3_ind.set_title('Variance Decomposition (ICC/Random Effects)')
+ax3_ind.set_xticks(x_var)
+ax3_ind.set_xticklabels(sources)
+ax3_ind.legend()
+ax3_ind.set_ylim(0, 100)
+for bar, val in zip(bars1, j_vars):
+    if val > 2:
+        ax3_ind.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
+                 f'{val:.1f}%', ha='center', va='bottom', fontsize=8)
+for bar, val in zip(bars2, f_vars):
+    if val > 2:
+        ax3_ind.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
+                 f'{val:.1f}%', ha='center', va='bottom', fontsize=8)
+plt.tight_layout()
+plt.savefig(f'{img_dir}/variance_decomposition.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/variance_decomposition.png")
+
+# 7.4 Season trends (Individual)
+fig4, ax4_ind = plt.subplots(figsize=(8, 6))
+ax4_ind.plot(season_means['season'], season_means['J_pct'], 'b-o', label='J%', markersize=4)
+ax4_twin_ind = ax4_ind.twinx()
+ax4_twin_ind.plot(season_means['season'], season_means['f_mean'], 'r-s', label='F%', markersize=4)
+ax4_ind.set_xlabel('Season')
+ax4_ind.set_ylabel('Judge Score (%)', color='blue')
+ax4_twin_ind.set_ylabel('Fan Vote Share (%)', color='red')
+ax4_ind.set_title('Season Trends')
+ax4_ind.legend(loc='upper left')
+ax4_twin_ind.legend(loc='upper right')
+plt.tight_layout()
+plt.savefig(f'{img_dir}/season_trends.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/season_trends.png")
+
+# --- Panel Plot (Combined) ---
 fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
 # 7.1 Pro Dancer J_lift vs F_lift
 ax1 = axes[0, 0]
 ax1.scatter(pro_stats['J_lift'], pro_stats['F_lift'], 
             s=pro_stats['n_obs']/2, alpha=0.6, c='steelblue')
-# Label top pros
 for _, row in pro_stats.nlargest(5, 'n_obs').iterrows():
     ax1.annotate(row['ballroom_partner'].split()[0], 
                  (row['J_lift'], row['F_lift']), fontsize=8)
@@ -357,12 +447,7 @@ ax1.set_title(f'Pro Dancer Effects (Correlation: {pro_corr:.3f})')
 
 # 7.2 J% vs Fan Vote scatter
 ax2 = axes[0, 1]
-sample = df_valid.sample(min(500, len(df_valid)))
 ax2.scatter(sample['J_pct'], sample['f_mean'] * 100, alpha=0.3, s=15)
-# Trend line
-z = np.polyfit(df_valid['J_pct'], df_valid['f_mean'] * 100, 1)
-p = np.poly1d(z)
-x_line = np.linspace(df_valid['J_pct'].min(), df_valid['J_pct'].max(), 100)
 ax2.plot(x_line, p(x_line), 'r-', linewidth=2, label=f'η={eta:.4f}')
 ax2.set_xlabel('Judge Score (J%)')
 ax2.set_ylabel('Fan Vote Share (%)')
@@ -371,13 +456,8 @@ ax2.legend()
 
 # 7.3 Variance Decomposition
 ax3 = axes[1, 0]
-sources = ['Pro\nDancer', 'Season', 'Residual']
-j_vars = [pct_J_pro, pct_J_season, pct_J_residual]
-f_vars = [pct_F_pro, pct_F_season, pct_F_residual]
-
 x = np.arange(len(sources))
 width = 0.35
-
 bars1 = ax3.bar(x - width/2, j_vars, width, label='Judge Score', color='steelblue')
 bars2 = ax3.bar(x + width/2, f_vars, width, label='Fan Vote', color='coral')
 ax3.set_ylabel('Variance Explained (%)')
@@ -385,8 +465,7 @@ ax3.set_title('Variance Decomposition (ICC/Random Effects)')
 ax3.set_xticks(x)
 ax3.set_xticklabels(sources)
 ax3.legend()
-ax3.set_ylim(0, 100)  # Ensure proper range
-
+ax3.set_ylim(0, 100)
 for bar, val in zip(bars1, j_vars):
     if val > 2:
         ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
@@ -398,11 +477,6 @@ for bar, val in zip(bars2, f_vars):
 
 # 7.4 Season trends
 ax4 = axes[1, 1]
-season_means = df_valid.groupby('season').agg({
-    'J_pct': 'mean',
-    'f_mean': lambda x: x.mean() * 100
-}).reset_index()
-
 ax4.plot(season_means['season'], season_means['J_pct'], 'b-o', label='J%', markersize=4)
 ax4_twin = ax4.twinx()
 ax4_twin.plot(season_means['season'], season_means['f_mean'], 'r-s', label='F%', markersize=4)
@@ -415,7 +489,10 @@ ax4_twin.legend(loc='upper right')
 
 plt.tight_layout()
 plt.savefig('cleaned_outputs/celebrity_effects_model.png', dpi=150, bbox_inches='tight')
+plt.savefig(f'{img_dir}/panel_all.png', dpi=150, bbox_inches='tight')
+plt.close()
 print("    Saved: celebrity_effects_model.png")
+print(f"    Saved: {img_dir}/panel_all.png")
 
 # =============================================================================
 # PART 8: SAVE RESULTS

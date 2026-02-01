@@ -169,11 +169,65 @@ print(f"    Saved: favor_indices_complete.csv")
 # =============================================================================
 print("\n[5] Generating visualization...")
 
+import os
+img_dir = 'cleaned_outputs/patch4_elasticity'
+os.makedirs(img_dir, exist_ok=True)
+
+# Prepare data
+seasons = elasticity_df['season']
+methods = ['Rank', 'Percentage']
+means = [elasticity_df['elasticity_rank'].mean(), elasticity_df['elasticity_pct'].mean()]
+stds = [elasticity_df['elasticity_rank'].std(), elasticity_df['elasticity_pct'].std()]
+
+# --- Individual Plots ---
+
+# 5.1 Elasticity by season (Individual)
+fig1, ax1_ind = plt.subplots(figsize=(8, 5))
+ax1_ind.plot(seasons, elasticity_df['elasticity_rank'], 'b-o', label='Rank', markersize=3, alpha=0.7)
+ax1_ind.plot(seasons, elasticity_df['elasticity_pct'], 'r-s', label='Percentage', markersize=3, alpha=0.7)
+ax1_ind.set_xlabel('Season')
+ax1_ind.set_ylabel('Fan-Elasticity (Reversal Rate)')
+ax1_ind.set_title('Fan-Elasticity by Season')
+ax1_ind.legend()
+ax1_ind.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig(f'{img_dir}/elasticity_by_season.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/elasticity_by_season.png")
+
+# 5.2 Elasticity comparison (Individual)
+fig2, ax2_ind = plt.subplots(figsize=(6, 5))
+bars = ax2_ind.bar(methods, means, yerr=stds, capsize=5, color=['steelblue', 'coral'])
+ax2_ind.set_ylabel('Average Fan-Elasticity')
+ax2_ind.set_title(f'Fan-Elasticity Comparison\n(p={p_value:.4f})')
+for bar, mean in zip(bars, means):
+    ax2_ind.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01, 
+             f'{mean:.3f}', ha='center', va='bottom')
+plt.tight_layout()
+plt.savefig(f'{img_dir}/elasticity_comparison.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/elasticity_comparison.png")
+
+# 5.3 Difference distribution (Individual)
+fig3, ax3_ind = plt.subplots(figsize=(8, 5))
+ax3_ind.hist(elasticity_df['elasticity_diff'], bins=15, color='gray', alpha=0.7, edgecolor='black')
+ax3_ind.axvline(x=0, color='red', linestyle='--', linewidth=2, label='No difference')
+ax3_ind.axvline(x=elasticity_df['elasticity_diff'].mean(), color='blue', linestyle='-', 
+            linewidth=2, label=f'Mean={elasticity_df["elasticity_diff"].mean():.3f}')
+ax3_ind.set_xlabel('Elasticity Difference (Pct - Rank)')
+ax3_ind.set_ylabel('Frequency')
+ax3_ind.set_title('Distribution of Elasticity Differences')
+ax3_ind.legend()
+plt.tight_layout()
+plt.savefig(f'{img_dir}/elasticity_diff_distribution.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/elasticity_diff_distribution.png")
+
+# --- Panel Plot (Combined) ---
 fig, axes = plt.subplots(1, 3, figsize=(14, 4))
 
 # 5.1 Elasticity by season
 ax1 = axes[0]
-seasons = elasticity_df['season']
 ax1.plot(seasons, elasticity_df['elasticity_rank'], 'b-o', label='Rank', markersize=3, alpha=0.7)
 ax1.plot(seasons, elasticity_df['elasticity_pct'], 'r-s', label='Percentage', markersize=3, alpha=0.7)
 ax1.set_xlabel('Season')
@@ -184,9 +238,6 @@ ax1.grid(True, alpha=0.3)
 
 # 5.2 Elasticity comparison
 ax2 = axes[1]
-methods = ['Rank', 'Percentage']
-means = [elasticity_df['elasticity_rank'].mean(), elasticity_df['elasticity_pct'].mean()]
-stds = [elasticity_df['elasticity_rank'].std(), elasticity_df['elasticity_pct'].std()]
 bars = ax2.bar(methods, means, yerr=stds, capsize=5, color=['steelblue', 'coral'])
 ax2.set_ylabel('Average Fan-Elasticity')
 ax2.set_title(f'Fan-Elasticity Comparison\n(p={p_value:.4f})')
@@ -207,7 +258,10 @@ ax3.legend()
 
 plt.tight_layout()
 plt.savefig('cleaned_outputs/fan_elasticity_analysis.png', dpi=150, bbox_inches='tight')
+plt.savefig(f'{img_dir}/panel_all.png', dpi=150, bbox_inches='tight')
+plt.close()
 print("    Saved: fan_elasticity_analysis.png")
+print(f"    Saved: {img_dir}/panel_all.png")
 
 # =============================================================================
 # SUMMARY

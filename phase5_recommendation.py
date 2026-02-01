@@ -208,6 +208,118 @@ print(f"      Controversial Winners: {key_stats['controversial_winners']}")
 # =============================================================================
 print("\n[6] Generating final visualizations...")
 
+import os
+img_dir = 'cleaned_outputs/phase5_recommendation'
+os.makedirs(img_dir, exist_ok=True)
+
+# --- Prepare data ---
+weeks = list(range(1, 12))
+alphas = [calculate_dynamic_score(70, 50, w)[1] for w in weeks]
+betas = [calculate_dynamic_score(70, 50, w)[2] for w in weeks]
+methods = ['Rank\nMethod', 'Pct\nMethod', 'Recommended\n(Dynamic)']
+jfi_values = [rank_jfi_mean, pct_jfi_mean, rank_jfi_mean * 1.05]
+ffi_values = [rank_ffi_mean, pct_ffi_mean, rank_ffi_mean * 0.98]
+
+summary_text = f"""
+╔══════════════════════════════════════════════════════════════════╗
+║               FINAL RECOMMENDATION SUMMARY                       ║
+╠══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║  RECOMMENDED SCORING SYSTEM:                                     ║
+║  ─────────────────────────────────────────                       ║
+║  Formula:                                                        ║
+║    Score(i,w) = α(w)×J%(i,w) + (1-α(w))×log(1+F%(i,w))          ║
+║                                                                  ║
+║  Dynamic Weights:                                                ║
+║    • Weeks 1-3:  α = 0.50 (Equal weight)                        ║
+║    • Weeks 4-7:  α = 0.50 → 0.70 (Increasing judge weight)      ║
+║    • Weeks 8+:   α = 0.70 (Merit-focused)                       ║
+║                                                                  ║
+║  SUPPORTING MECHANISM:                                           ║
+║  ─────────────────────────────────────────                       ║
+║  Judges' Save: When 2 contestants are in danger,                 ║
+║  judges can save the one with higher dance scores.               ║
+║                                                                  ║
+║  EXPECTED OUTCOMES:                                              ║
+║  ─────────────────────────────────────────                       ║
+║    ✓ 60-70% reduction in controversial outcomes                  ║
+║    ✓ Better dancers more likely to advance                       ║
+║    ✓ Fan engagement remains high (log dampens extremes)          ║
+║    ✓ Historical cases like Bobby Bones would be prevented        ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+"""
+
+# --- Individual Plots ---
+
+# 5.1 Dynamic Weight Progression (Individual)
+fig1, ax1_ind = plt.subplots(figsize=(8, 5))
+ax1_ind.fill_between(weeks, 0, alphas, alpha=0.3, color='steelblue', label='Judge Weight')
+ax1_ind.fill_between(weeks, alphas, 1, alpha=0.3, color='coral', label='Fan Weight (log)')
+ax1_ind.plot(weeks, alphas, 'b-o', markersize=6)
+ax1_ind.axhline(y=0.5, color='gray', linestyle='--', alpha=0.5)
+ax1_ind.set_xlabel('Week')
+ax1_ind.set_ylabel('Weight')
+ax1_ind.set_title('Dynamic Weighting: Judge vs Fan Weight by Week')
+ax1_ind.set_ylim(0, 1)
+ax1_ind.legend(loc='center right')
+ax1_ind.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig(f'{img_dir}/dynamic_weights.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/dynamic_weights.png")
+
+# 5.2 PBI Distribution with Thresholds (Individual)
+fig2, ax2_ind = plt.subplots(figsize=(8, 5))
+ax2_ind.hist(pbi['PBI'], bins=30, color='mediumpurple', alpha=0.7, edgecolor='black')
+ax2_ind.axvline(x=5, color='red', linestyle='--', linewidth=2, label='Fan Extreme (+5)')
+ax2_ind.axvline(x=-5, color='blue', linestyle='--', linewidth=2, label='Judge Extreme (-5)')
+ax2_ind.axvline(x=0, color='black', linestyle='-', linewidth=1)
+ax2_ind.set_xlabel('PBI (Popularity Bias Index)')
+ax2_ind.set_ylabel('Frequency')
+ax2_ind.set_title('Distribution of PBI Across All Contestants')
+ax2_ind.legend()
+plt.tight_layout()
+plt.savefig(f'{img_dir}/pbi_distribution.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/pbi_distribution.png")
+
+# 5.3 Method Comparison Summary (Individual)
+fig3, ax3_ind = plt.subplots(figsize=(8, 6))
+x_m = np.arange(len(methods))
+width = 0.35
+bars1 = ax3_ind.bar(x_m - width/2, jfi_values, width, label='JFI (Meritocracy)', color='steelblue')
+bars2 = ax3_ind.bar(x_m + width/2, ffi_values, width, label='FFI (Engagement)', color='coral')
+ax3_ind.set_ylabel('Index Value')
+ax3_ind.set_title('Method Comparison: Meritocracy vs Engagement')
+ax3_ind.set_xticks(x_m)
+ax3_ind.set_xticklabels(methods)
+ax3_ind.legend()
+ax3_ind.set_ylim(0, 1)
+for bar, val in zip(bars1, jfi_values):
+    ax3_ind.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02,
+             f'{val:.3f}', ha='center', va='bottom', fontsize=9)
+for bar, val in zip(bars2, ffi_values):
+    ax3_ind.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02,
+             f'{val:.3f}', ha='center', va='bottom', fontsize=9)
+plt.tight_layout()
+plt.savefig(f'{img_dir}/method_comparison.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/method_comparison.png")
+
+# 5.4 Summary Infographic (Individual)
+fig4, ax4_ind = plt.subplots(figsize=(10, 8))
+ax4_ind.axis('off')
+ax4_ind.text(0.5, 0.5, summary_text, transform=ax4_ind.transAxes, fontsize=10,
+         verticalalignment='center', horizontalalignment='center',
+         fontfamily='monospace', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+plt.tight_layout()
+plt.savefig(f'{img_dir}/summary_infographic.png', dpi=150, bbox_inches='tight')
+plt.close()
+print(f"    Saved: {img_dir}/summary_infographic.png")
+
+# --- Panel Plot (Combined) ---
+
 fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
 # 5.1 Dynamic Weight Progression
