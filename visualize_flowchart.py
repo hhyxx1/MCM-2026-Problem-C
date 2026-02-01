@@ -115,13 +115,25 @@ dot.attr(
     pad='0.02',
     margin='0',
     dpi='280',
-    size='7,7!',
-    ratio='fill',
+    ratio='compress',
+    newrank='true',
     pack='true',
     packmode='clust',
 )
 dot.attr('node', fontname='DejaVu Sans', fontsize='9', margin='0.10,0.08')
 dot.attr('edge', fontname='DejaVu Sans', fontsize='8', arrowsize='0.65', color='#455A64')
+
+
+def _anchor(dot_: Digraph, name: str) -> None:
+    dot_.node(
+        name,
+        label='',
+        shape='point',
+        style='invis',
+        width='0.01',
+        height='0.01',
+        fixedsize='true',
+    )
 
 
 # ----------------------------- Phase 1 -----------------------------
@@ -136,6 +148,8 @@ with dot.subgraph(name='cluster_phase1') as c:
         fontsize='10.5',
     )
 
+    _anchor(c, 'a_p1')
+
     _node(
         c,
         'raw',
@@ -147,6 +161,8 @@ with dot.subgraph(name='cluster_phase1') as c:
     _node(c, 'feat', 'Features\nPBI + covariates', 'process')
     _node(c, 'panel', f'Panel (i,w)\n{total_obs:,} obs', 'output', shape='note')
     _node(c, 'div', 'Global Scan\nDivergence trend', 'insight')
+
+    c.edge('a_p1', 'raw', style='invis')
 
     c.edge('raw', 'clean')
     c.edge('clean', 'feat')
@@ -167,6 +183,8 @@ with dot.subgraph(name='cluster_phase2') as c:
         fontsize='10.5',
     )
 
+    _anchor(c, 'a_p2')
+
     _node(c, 'constraints', 'Constraints\nBottom-k • Σf=1', 'process')
     _node(c, 'mcmc', f'MCMC (Hit-and-Run)\nAvg CI: {avg_ci_width:.3f}', 'core')
     _node(c, 'post', f'Posterior f(i,w)\n{total_obs:,} + 95% CI', 'output', shape='note')
@@ -176,6 +194,8 @@ with dot.subgraph(name='cluster_phase2') as c:
         f'Validation\nCI {avg_ci_width:.3f} • CV {cv_mean:.3f} • Exact {exact_match*100:.1f}% • P̄ {p_bar:.3f}',
         'insight',
     )
+
+    c.edge('a_p2', 'constraints', style='invis')
 
     c.edge('constraints', 'mcmc', style='dashed', color='#6D4C41')
     c.edge('mcmc', 'post')
@@ -194,12 +214,16 @@ with dot.subgraph(name='cluster_phase3') as c:
         fontsize='10.5',
     )
 
+    _anchor(c, 'a_p3')
+
     _node(c, 'sim', f'Simulator\nreplay {total_seasons} seasons', 'core')
     _node(c, 'rank', f'Rank\nFFI {rank_ffi:.3f}', 'process')
     _node(c, 'pct', f'Pct\nFFI {pct_ffi:.3f}', 'process')
     _node(c, 'bias', f'Bias\nΔFFI {ffi_delta:+.3f}', 'insight')
     _node(c, 'cases', '4 Cases\nRice • Cyrus • Palin • Bones', 'process')
     _node(c, 'supp', 'Effects\nPro + covariates', 'process')
+
+    c.edge('a_p3', 'sim', style='invis')
 
     c.edge('sim', 'rank')
     c.edge('sim', 'pct')
@@ -219,10 +243,14 @@ with dot.subgraph(name='cluster_phase4') as c:
         fontsize='10.5',
     )
 
+    _anchor(c, 'a_p4')
+
     _node(c, 'obj', f'Objectives\nJ {J_star:.3f} • F {F_star:.3f}', 'process')
     _node(c, 'pareto', 'Frontier\n51 weights', 'core')
     _node(c, 'knee', f'Knee\nR {rank_knee:.3f} • P {pct_knee:.3f}', 'decision', shape='diamond', style='filled', penwidth='2.6')
     _node(c, 'save', "Save\n+J at modest F cost", 'insight')
+
+    c.edge('a_p4', 'obj', style='invis')
 
     c.edge('obj', 'pareto')
     c.edge('pareto', 'knee', penwidth='2.2', color='#C62828')
@@ -241,6 +269,8 @@ with dot.subgraph(name='cluster_phase5') as c:
         fontsize='10.5',
     )
 
+    _anchor(c, 'a_p5')
+
     _node(
         c,
         'rec',
@@ -256,6 +286,8 @@ with dot.subgraph(name='cluster_phase5') as c:
         'insight',
     )
     _node(c, 'memo', 'Memo\nimplementation + risks', 'output', shape='note')
+
+    c.edge('a_p5', 'rec', style='invis')
 
     c.edge('rec', 'compare')
     c.edge('compare', 'memo', penwidth='2.2', color='#6A1B9A')
@@ -285,6 +317,38 @@ _node(
     fontsize='8',
     penwidth='1.6',
 )
+
+_anchor(dot, 'a_leg')
+dot.edge('a_leg', 'legend', style='invis')
+
+
+# ----------------------------- Macro layout (2 columns x 3 rows) -----------------------------
+# Row alignment
+with dot.subgraph() as r1:
+    r1.attr(rank='same')
+    r1.node('a_p1')
+    r1.node('a_p4')
+
+with dot.subgraph() as r2:
+    r2.attr(rank='same')
+    r2.node('a_p2')
+    r2.node('a_p5')
+
+with dot.subgraph() as r3:
+    r3.attr(rank='same')
+    r3.node('a_p3')
+    r3.node('a_leg')
+
+# Column ordering (left -> right within a row)
+dot.edge('a_p1', 'a_p4', style='invis', weight='50')
+dot.edge('a_p2', 'a_p5', style='invis', weight='50')
+dot.edge('a_p3', 'a_leg', style='invis', weight='50')
+
+# Vertical ordering (top -> bottom within a column)
+dot.edge('a_p1', 'a_p2', style='invis', weight='50')
+dot.edge('a_p2', 'a_p3', style='invis', weight='50')
+dot.edge('a_p4', 'a_p5', style='invis', weight='50')
+dot.edge('a_p5', 'a_leg', style='invis', weight='50')
 
 
 out_base = ROOT / 'cleaned_outputs' / 'workflow_flowchart_v2'
