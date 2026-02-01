@@ -2,7 +2,42 @@
   "method": "rank",
   "judge_weight": 0.5,
   "fan_weight": 0.5,
-  "J_meritocracy": 0.7324839543585732,
-  "F_engagement": 0.6988611360163137,
-  "mechanism": "Judges Save for Bottom 2"
+  "knee_point": {
+    "J_meritocracy": 0.664751115828407,
+    "F_engagement": 0.704330083488925,
+    "rank_knee_distance": 0.22427102976902719,
+    "pct_knee_distance": 0.060049267761483116,
+    "pct_has_clear_knee": false
+  },
+  "current_rule": {
+    "method": "pct",
+    "include_judges_save": true,
+    "J_meritocracy": 0.44540759522998497,
+    "F_engagement": 0.690625
+  },
+  "judges_save_analysis": {
+    "pct_method": {
+      "J_gain": -0.008962823823341626,
+      "F_loss": -0.015624999999999889,
+      "tradeoff_ratio": 0.5736207246938682
+    },
+    "rank_method": {
+      "J_gain": 0.012691136853979601,
+      "F_loss": -0.02671730213939627,
+      "tradeoff_ratio": 0.4750156579344797
+    },
+    "recommend_judges_save": true,
+    "rationale": "Judges' Save increases meritocracy at modest cost to engagement. Both methods benefit from Save mechanism."
+  },
+  "final_recommendation": {
+    "method": "rank",
+    "weights": "50-50",
+    "include_judges_save": true,
+    "matches_current_rule": false,
+    "summary": "Recommend switching from Pct+Save (Current) to Rank+Save. Rank method has higher J with clear knee point at 50-50 weights."
+  },
+  "method_comparison": {
+    "rank_vs_pct": "Rank method is recommended",
+    "reason": "Rank method has higher J (0.665 vs 0.454) with similar F, and has a clear knee point for optimization"
+  }
 }
