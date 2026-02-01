@@ -1,0 +1,908 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[UTF8]{ctex}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+\geometry{left=2cm,right=2cm,top=2.5cm,bottom=2.5cm}
+
+% 页眉页脚
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{MCM 2026 Problem C - 符号、公式与图表文档}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% 标题格式
+\titleformat{\section}{\Large\bfseries\color{blue!70!black}}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries\color{blue!50!black}}{\thesubsection}{1em}{}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!70!black,
+    urlcolor=blue
+}
+
+\title{\textbf{\Huge MCM 2026 Problem C}\\[0.5em]
+\Large DWTS 公平性-参与度均衡模型\\[0.3em]
+\large 符号定义、公式推导与图表说明完整文档}
+\author{数据分析团队}
+\date{2026年2月}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+%==============================================================================
+\section{项目概述}
+%==============================================================================
+
+本项目针对《与星共舞》(Dancing with the Stars, DWTS)节目的评分规则进行分析，建立\textbf{公平性-参与度均衡模型}(Fairness-Engagement Equilibrium Model, FEEM)，主要包含：
+
+\begin{itemize}
+    \item \textbf{数据规模}：34个赛季，421名参赛者，2,777个观测
+    \item \textbf{核心问题}：如何平衡评委专业判断与观众投票参与
+    \item \textbf{主要方法}：贝叶斯逆向推断、Pareto优化、蒙特卡洛模拟
+    \item \textbf{最终成果}：推荐动态权重规则 + Judges' Save机制
+\end{itemize}
+
+%==============================================================================
+\section{符号定义表}
+%==============================================================================
+
+\subsection{基础数据符号}
+
+\begin{longtable}{|c|p{6cm}|c|p{4cm}|}
+\hline
+\textbf{符号} & \textbf{含义} & \textbf{取值范围} & \textbf{备注} \\
+\hline
+\endfirsthead
+\hline
+\textbf{符号} & \textbf{含义} & \textbf{取值范围} & \textbf{备注} \\
+\hline
+\endhead
+$i$ & 选手索引 & 整数 & 每季选手编号 \\
+\hline
+$w$ & 周次 & $1, 2, \ldots, W$ & $W$为该季总周数 \\
+\hline
+$season$ & 赛季编号 & 1-34 & 共34季数据 \\
+\hline
+$J\%$ 或 $J_{pct}(i,w)$ & 评委评分百分比 & 0-100 & 统一标准化后的评委分 \\
+\hline
+$f(i,w)$ & 粉丝投票份额估计 & $[0,1]$ & 满足 $\sum_i f(i,w) = 1$ \\
+\hline
+$E_w$ & 第$w$周被淘汰选手集合 & 选手集合 & 大小为$k$ \\
+\hline
+$k$ & 每周淘汰人数 & 1或2 & 通常为1 \\
+\hline
+\end{longtable}
+
+\subsection{排名与偏差指标符号}
+
+\begin{longtable}{|c|p{5cm}|p{4.5cm}|p{3cm}|}
+\hline
+\textbf{符号} & \textbf{含义} & \textbf{公式/定义} & \textbf{正/负解读} \\
+\hline
+\endfirsthead
+\hline
+\textbf{符号} & \textbf{含义} & \textbf{公式/定义} & \textbf{正/负解读} \\
+\hline
+\endhead
+$Rank_{Judge}(i)$ & 选手$i$的评委排名 & 按$J\%$降序排名，1为最好 & - \\
+\hline
+$Rank_{Final}(i)$ & 选手$i$的最终名次 & 节目结束时的实际名次 & - \\
+\hline
+$PBI_i$ & 人气偏差指数 & $Rank_{Judge}(i) - Rank_{Final}(i)$ & 正值=粉丝宠儿 \\
+\hline
+$J\_rank(i,w)$ & 周内评委排名 & 按该周$J\%$排名 & - \\
+\hline
+$F\_rank(i,w)$ & 周内粉丝排名 & 按$f(i,w)$排名 & - \\
+\hline
+\end{longtable}
+
+\subsection{综合得分与方法符号}
+
+\begin{longtable}{|c|p{4cm}|p{5.5cm}|c|}
+\hline
+\textbf{符号} & \textbf{含义} & \textbf{公式} & \textbf{方法类型} \\
+\hline
+\endfirsthead
+\hline
+\textbf{符号} & \textbf{含义} & \textbf{公式} & \textbf{方法类型} \\
+\hline
+\endhead
+$Score_{rank}$ & Rank方法综合分 & $\alpha \cdot J\_rank + (1-\alpha) \cdot F\_rank$ & 排名组合法 \\
+\hline
+$Score_{pct}$ & Percentage方法综合分 & $\alpha \cdot J\% + (1-\alpha) \cdot F\%$ & 百分比加权法 \\
+\hline
+$\alpha$ & 评委权重 & $0.3 \sim 0.9$ & 通常取0.5 \\
+\hline
+$\beta$ & 粉丝权重 & $\beta = 1 - \alpha$ & - \\
+\hline
+\end{longtable}
+
+\subsection{贝叶斯推断符号}
+
+\begin{longtable}{|c|p{4.5cm}|p{4.5cm}|c|}
+\hline
+\textbf{符号} & \textbf{含义} & \textbf{公式/定义} & \textbf{取值范围} \\
+\hline
+\endfirsthead
+\hline
+\textbf{符号} & \textbf{含义} & \textbf{公式/定义} & \textbf{取值范围} \\
+\hline
+\endhead
+$f_{mean}(i,w)$ & 粉丝投票后验均值 & MCMC采样均值 & $[0,1]$ \\
+\hline
+$f_{median}(i,w)$ & 粉丝投票后验中位数 & MCMC采样中位数 & $[0,1]$ \\
+\hline
+$CI_{low}, CI_{high}$ & 95\%可信区间边界 & $q_{2.5\%}, q_{97.5\%}$ & $[0,1]$ \\
+\hline
+$CIW(i,w)$ & 可信区间宽度 & $CI_{high} - CI_{low}$ & $[0,1]$ \\
+\hline
+$CV(i,w)$ & 变异系数 & $\sigma / \mu$ & $\geq 0$ \\
+\hline
+$P_w$ & 后验一致性概率 & $Prob(E_w \in Bottom\text{-}k \mid post.)$ & $[0,1]$ \\
+\hline
+\end{longtable}
+
+\subsection{公平性与参与度指标符号}
+
+\begin{longtable}{|c|p{4cm}|p{5cm}|c|}
+\hline
+\textbf{符号} & \textbf{含义} & \textbf{公式} & \textbf{理想值} \\
+\hline
+\endfirsthead
+\hline
+\textbf{符号} & \textbf{含义} & \textbf{公式} & \textbf{理想值} \\
+\hline
+\endhead
+$J$ (Objective J) & 精英主义指标 & $\rho(Rank_{final}, Rank_{judge})$ & 越高越公平 \\
+\hline
+$F$ (Objective F) & 参与度指标 & $\rho(Rank_{final}, Rank_{fan})$ & 越高越互动 \\
+\hline
+$FFI$ & 粉丝偏好指数 & Spearman: 最终 vs 粉丝排名 & $[0,1]$ \\
+\hline
+$JFI$ & 评委偏好指数 & Spearman: 最终 vs 评委排名 & $[0,1]$ \\
+\hline
+\end{longtable}
+
+\subsection{回归模型系数符号}
+
+\begin{longtable}{|c|p{5cm}|c|p{4cm}|}
+\hline
+\textbf{符号} & \textbf{含义} & \textbf{模型} & \textbf{解读} \\
+\hline
+\endfirsthead
+\hline
+\textbf{符号} & \textbf{含义} & \textbf{模型} & \textbf{解读} \\
+\hline
+\endhead
+$\beta_{age}^J$ & 年龄对评委分的影响系数 & Judge Score & 正=年长者得分高 \\
+\hline
+$\beta_{age}^F$ & 年龄对粉丝投票的影响系数 & Fan Vote & 正=年长者得票高 \\
+\hline
+$\beta_{ind}^J, \beta_{ind}^F$ & 行业影响系数 & 两个模型 & One-hot编码 \\
+\hline
+$b_{pro}^J, b_{pro}^F$ & 专业舞伴随机效应 & 混合效应模型 & Star Maker效应 \\
+\hline
+$b_{celebrity}^J, b_{celebrity}^F$ & 明星个体随机效应 & 混合效应模型 & 个体异质性 \\
+\hline
+$\eta$ & 技能溢出效应 & $\partial f_{logit} / \partial J\%$ & 正=跳得好得票多 \\
+\hline
+$\tau_w$ & 周次固定效应 & 控制变量 & 周内难度变化 \\
+\hline
+\end{longtable}
+
+\subsection{弹性与敏感性分析符号}
+
+\begin{longtable}{|c|p{4.5cm}|p{5cm}|p{3cm}|}
+\hline
+\textbf{符号} & \textbf{含义} & \textbf{公式} & \textbf{解读} \\
+\hline
+\endfirsthead
+\hline
+\textbf{符号} & \textbf{含义} & \textbf{公式} & \textbf{解读} \\
+\hline
+\endhead
+$Fan\text{-}Elasticity$ & 粉丝弹性 & 扰动$f$后的淘汰翻转率 & 越高=越受粉丝影响 \\
+\hline
+$D_{season}$ & 赛季差异数 & $\#\{w: E_w^{rank} \neq E_w^{pct}\}$ & 不同淘汰的周数 \\
+\hline
+$Kendall\ \tau$ & Kendall秩相关 & 衡量排名相似度 & 越高=越一致 \\
+\hline
+\end{longtable}
+
+%==============================================================================
+\section{核心公式详解}
+%==============================================================================
+
+\subsection{公式1：评委评分标准化}
+
+\begin{equation}
+\boxed{J\%(i,w) = \frac{Score_{raw}(i,w)}{Score_{max}(w)} \times 100}
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{公式含义}：将不同评分制度（30分制/40分制）的评委分统一到0-100\%的百分比
+    \item \textbf{解决问题}：不同赛季评分标准不同（3评委vs4评委），无法直接比较
+    \item \textbf{结果特征}：所有赛季的评委分都可以横向比较
+    \item \textbf{对解决问题的帮助}：是所有后续分析的基础，确保跨赛季数据可比性
+\end{itemize}
+
+\subsection{公式2：人气偏差指数（PBI）}
+
+\begin{equation}
+\boxed{PBI_i = Rank_{Judge}(i) - Rank_{Final}(i)}
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{公式含义}：衡量选手最终名次相对于评委评分的偏差程度
+    \item \textbf{解决问题}：量化"粉丝投票是否推翻评委判断"的程度
+    \item \textbf{结果特征}：$PBI > 0$为粉丝宠儿；$PBI < 0$为评委宠儿
+    \item \textbf{对应图表}：PBI分布图、极端案例识别图
+    \item \textbf{图表体现}：正值越大代表粉丝影响越强，如Bobby Bones ($PBI \approx +6$)
+\end{itemize}
+
+\subsection{公式3：Rank方法综合得分}
+
+\begin{equation}
+\boxed{Score_{rank}(i,w) = \alpha \cdot J\_rank(i,w) + (1-\alpha) \cdot F\_rank(i,w)}
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{公式含义}：基于排名的综合得分（较高值=较差排名=更易被淘汰）
+    \item \textbf{解决问题}：提供一种公平的评委-粉丝结合方式
+    \item \textbf{结果特征}：$JFI = 0.7417$（更精英主义），$FFI = 0.7670$
+    \item \textbf{对应图表}：Pareto前沿图中的蓝色曲线
+    \item \textbf{图表体现}：有明显的膝点（最优平衡点），距离对角线$d = 0.224$
+\end{itemize}
+
+\subsection{公式4：Percentage方法综合得分}
+
+\begin{equation}
+\boxed{Score_{pct}(i,w) = \alpha \cdot J\%(i,w) + (1-\alpha) \cdot F\%(i,w)}
+\end{equation}
+
+其中 $F\%(i,w) = \frac{f(i,w)}{\max_j f(j,w)} \times 100$
+
+\begin{itemize}
+    \item \textbf{公式含义}：基于百分比的加权平均（较高值=更好=更安全）
+    \item \textbf{解决问题}：当前节目使用的方法，作为对比基准
+    \item \textbf{结果特征}：$JFI = 0.3735$（精英主义较低），$FFI = 0.7882$
+    \item \textbf{对应图表}：Pareto前沿图中的红色虚线
+    \item \textbf{图表体现}：几乎线性，膝点距离仅$d = 0.060$（无明确最优点）
+\end{itemize}
+
+\subsection{公式5：贝叶斯逆向推断约束}
+
+\begin{equation}
+\boxed{
+\begin{aligned}
+&\sum_i f(i,w) = 1, \quad f(i,w) \geq 0 \\
+&\forall e \in E_w, s \notin E_w: Score(s,w) > Score(e,w)
+\end{aligned}
+}
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{公式含义}：粉丝投票份额必须满足概率分布约束，且被淘汰者必须是Bottom-$k$
+    \item \textbf{解决问题}：在粉丝投票数据不公开的情况下，逆向估计每个选手的真实粉丝支持率
+    \item \textbf{结果特征}：生成2,777个观测的后验分布，95\%可信区间平均宽度0.288
+    \item \textbf{对应图表}：贝叶斯推断汇总图、确定性热力图
+\end{itemize}
+
+\subsection{公式6：后验一致性概率}
+
+\begin{equation}
+\boxed{P_w = \frac{1}{N_{samples}} \sum_{s=1}^{N_{samples}} \mathbb{I}\left(E_w = \text{Bottom-}k \text{ under sample } s\right)}
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{公式含义}：后验样本中实际淘汰者确实处于Bottom-$k$的比例
+    \item \textbf{解决问题}：验证贝叶斯模型的可信度
+    \item \textbf{结果特征}：$\bar{P} = 0.651$（整体一致性），精确匹配率95.6\%
+    \item \textbf{对应图表}：一致性分析图、按赛季的匹配率柱状图
+\end{itemize}
+
+\subsection{公式7：可信区间宽度（确定性度量）}
+
+\begin{equation}
+\boxed{CIW(i,w) = q_{97.5\%}(f(i,w)) - q_{2.5\%}(f(i,w))}
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{公式含义}：后验分布的95\%分位数跨度
+    \item \textbf{解决问题}：识别哪些估计最不确定
+    \item \textbf{结果特征}：平均0.288，早期周次不确定性更高
+    \item \textbf{对应图表}：确定性热力图、CI宽度随周次变化图
+\end{itemize}
+
+\subsection{公式8：精英主义目标函数}
+
+\begin{equation}
+\boxed{J = \rho_{Spearman}(Rank_{final}, Rank_{judge})}
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{公式含义}：最终排名与评委排名的Spearman秩相关系数
+    \item \textbf{解决问题}：量化规则的"公平性"
+    \item \textbf{结果特征}：Rank方法$J = 0.665$；Percentage方法$J = 0.454$
+    \item \textbf{对应图表}：Pareto前沿图的X轴
+\end{itemize}
+
+\subsection{公式9：参与度目标函数}
+
+\begin{equation}
+\boxed{F = \rho_{Spearman}(Rank_{final}, Rank_{fan})}
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{公式含义}：最终排名与粉丝排名的Spearman秩相关系数
+    \item \textbf{解决问题}：量化规则的"参与度"
+    \item \textbf{结果特征}：Rank方法$F = 0.704$；Percentage方法$F = 0.691$
+    \item \textbf{对应图表}：Pareto前沿图的Y轴
+\end{itemize}
+
+\subsection{公式10：膝点识别}
+
+\begin{equation}
+\boxed{
+\begin{aligned}
+d_i &= \frac{|J_{norm}(i) + F_{norm}(i) - 1|}{\sqrt{2}} \\
+knee &= \arg\max_i d_i
+\end{aligned}
+}
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{公式含义}：Pareto点到对角线的归一化距离
+    \item \textbf{解决问题}：在Pareto前沿上找到最优权衡点
+    \item \textbf{结果特征}：Rank方法膝点距离$d = 0.224$；Pct方法$d = 0.060$
+    \item \textbf{对应图表}：Pareto前沿图中的紫色星星（$\star$）
+\end{itemize}
+
+\subsection{公式11：评委评分回归模型}
+
+\begin{equation}
+\boxed{J\%(i,w) = \alpha + \beta_{week} \cdot w + \beta_{week^2} \cdot w^2 + \beta_{season} \cdot season + b_{pro}[partner_i] + b_{celebrity}[i] + \tau_w + \epsilon}
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{公式含义}：混合效应模型，分解影响评委分的各因素
+    \item \textbf{解决问题}：量化Pro Dancer (Star Maker)效应
+    \item \textbf{结果特征}：$R^2 = 0.352$，Pro Dancer解释28.6\%方差
+    \item \textbf{对应图表}：方差分解饼图、Pro Dancer效应散点图
+\end{itemize}
+
+\subsection{公式12：粉丝投票回归模型}
+
+\begin{equation}
+\boxed{logit(f(i,w)) = \alpha' + \beta_{week}' \cdot w + \eta \cdot J\%(i,w) + b_{pro}^F[partner_i] + b_{celebrity}^F[i] + u(i,w)}
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{公式含义}：用logit变换处理粉丝投票份额
+    \item \textbf{解决问题}：检验"跳得好是否能赢得更多粉丝支持"
+    \item \textbf{结果特征}：$\eta = 0.0007 > 0$，说明技能正向溢出
+    \item \textbf{对应图表}：J\% vs Fan Vote散点图
+\end{itemize}
+
+\subsection{公式13：方差分解（ICC方法）}
+
+\begin{equation}
+\boxed{ICC = \frac{\sigma^2_{between}}{\sigma^2_{between} + \sigma^2_{within}}}
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{公式含义}：组间方差占总方差的比例
+    \item \textbf{解决问题}：量化各随机效应解释的变异
+    \item \textbf{结果特征}：Pro对评委分解释28.6\%，对粉丝投票解释30.6\%
+    \item \textbf{对应图表}：方差分解柱状图
+\end{itemize}
+
+\subsection{公式14：粉丝弹性}
+
+\begin{equation}
+\boxed{Fan\text{-}Elasticity = \frac{1}{N} \sum_{sim=1}^{N} \mathbb{I}(\hat{E}_w^{perturbed} \neq E_w^{original})}
+\end{equation}
+
+其中扰动为：$f_{perturbed}(i,w) = f(i,w) + \mathcal{N}(0, 0.03^2)$
+
+\begin{itemize}
+    \item \textbf{公式含义}：对粉丝投票添加小扰动后淘汰结果翻转的比例
+    \item \textbf{解决问题}：检验哪种方法更易被粉丝投票波动影响
+    \item \textbf{结果特征}：Rank方法弹性0.1374；Pct方法弹性0.1216
+    \item \textbf{对应图表}：弹性分析折线图
+\end{itemize}
+
+\subsection{公式15：动态对数权重推荐公式}
+
+\begin{equation}
+\boxed{Score(i,w) = \alpha(w) \cdot J\%(i,w) + (1-\alpha(w)) \cdot \log(1 + F\%(i,w))}
+\end{equation}
+
+其中：
+\begin{equation}
+\alpha(w) = \begin{cases} 
+0.50 & w \leq 3 \\ 
+0.50 + 0.05(w-3) & 4 \leq w \leq 7 \\ 
+0.70 & w \geq 8 
+\end{cases}
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{公式含义}：早期重视粉丝参与（50-50），后期转向精英评判（70-30）
+    \item \textbf{解决问题}：平衡早期观众粘性和后期竞技公平性
+    \item \textbf{结果特征}：预期减少60-70\%的争议性结果
+    \item \textbf{对应图表}：推荐规则示意图、动态权重变化图
+\end{itemize}
+
+\subsection{公式16：分歧趋势指标}
+
+\begin{equation}
+\boxed{Divergence\ Score = 1 - \rho_{Spearman}(Rank_{judge}, Rank_{final})}
+\end{equation}
+
+\begin{itemize}
+    \item \textbf{公式含义}：评委排名与最终名次的分歧程度
+    \item \textbf{解决问题}：验证"社交媒体时代分歧是否加剧"
+    \item \textbf{结果特征}：早期（S1-10）分歧低，TikTok时代（S28+）分歧上升
+    \item \textbf{对应图表}：分歧热力图（按赛季$\times$周次）
+\end{itemize}
+
+%==============================================================================
+\section{图表详细说明}
+%==============================================================================
+
+\subsection{图1：全局扫描热力图}
+
+\begin{center}
+\texttt{global\_scan\_heatmap.png}
+\end{center}
+
+\begin{longtable}{|p{3cm}|p{11cm}|}
+\hline
+\textbf{项目} & \textbf{说明} \\
+\hline
+图表类型 & 热力图（Heatmap） \\
+\hline
+对应公式 & 公式16：$Divergence\ Score = 1 - \rho$ \\
+\hline
+X轴 & 周次（Week 1 $\rightarrow$ Week 10+） \\
+\hline
+Y轴 & 赛季（Season 1 $\rightarrow$ Season 34） \\
+\hline
+颜色含义 & 颜色越深=分歧越大（评委判断与最终结果差异越大） \\
+\hline
+主要发现 & 1) 早期赛季（S1-10）颜色浅，分歧小；2) S28后（TikTok时代）颜色显著加深；3) 每季后期周次分歧往往更大 \\
+\hline
+解决问题 & 证明社交媒体发展导致"粉丝压倒评委"现象加剧，为改革提供历史依据 \\
+\hline
+结论支撑 & 改革具有紧迫性，现行规则在新媒体环境下失效 \\
+\hline
+\end{longtable}
+
+\subsection{图2：PBI分析图}
+
+\begin{center}
+\texttt{pbi\_analysis.png}
+\end{center}
+
+\begin{longtable}{|p{3cm}|p{11cm}|}
+\hline
+\textbf{项目} & \textbf{说明} \\
+\hline
+图表类型 & 直方图 + 极端案例标注 \\
+\hline
+对应公式 & 公式2：$PBI_i = Rank_{Judge} - Rank_{Final}$ \\
+\hline
+X轴 & PBI值（负值到正值） \\
+\hline
+Y轴 & 选手数量 \\
+\hline
+分布特征 & 近似正态，均值$\approx 0$，但存在显著的正/负极端值 \\
+\hline
+极端案例标注 & 正极端（粉丝宠儿）：Bobby Bones, Bristol Palin；负极端（评委宠儿）：专业舞者背景选手 \\
+\hline
+解决问题 & 量化识别历史上的争议案例，验证模型能捕捉真实问题 \\
+\hline
+\end{longtable}
+
+\subsection{图3：贝叶斯推断汇总图}
+
+\begin{center}
+\texttt{bayesian\_inference\_summary.png}
+\end{center}
+
+\begin{longtable}{|p{3cm}|p{11cm}|}
+\hline
+\textbf{项目} & \textbf{说明} \\
+\hline
+图表类型 & 多面板图：后验分布、CI宽度分布、接受率分布 \\
+\hline
+对应公式 & 公式5（贝叶斯约束）、公式6（$P_w$）、公式7（CIW） \\
+\hline
+面板1 & 粉丝投票份额$f(i,w)$的后验分布示例 \\
+\hline
+面板2 & CI宽度按选手数量的变化 \\
+\hline
+面板3 & MCMC接受率分布 \\
+\hline
+主要发现 & 1) 平均CI宽度0.288；2) 选手越少CI越窄；3) 接受率适中（30-50\%），采样有效 \\
+\hline
+\end{longtable}
+
+\subsection{图4：确定性与一致性分析图}
+
+\begin{center}
+\texttt{certainty\_consistency\_analysis.png}
+\end{center}
+
+\begin{longtable}{|p{3cm}|p{11cm}|}
+\hline
+\textbf{项目} & \textbf{说明} \\
+\hline
+图表类型 & 双面板：确定性热力图 + 一致性柱状图 \\
+\hline
+对应公式 & 公式7（CIW）、公式6（$P_w$） \\
+\hline
+面板1 & 按赛季$\times$周次的CI宽度热力图 \\
+\hline
+面板2 & 按赛季的精确匹配率柱状图 \\
+\hline
+主要发现 & 1) 95.6\%的周次精确预测淘汰结果；2) Jaccard=0.960, F1=0.963 \\
+\hline
+\end{longtable}
+
+\subsection{图5：Pareto优化前沿图}
+
+\begin{center}
+\texttt{pareto\_optimization.png}
+\end{center}
+
+\begin{longtable}{|p{3cm}|p{11cm}|}
+\hline
+\textbf{项目} & \textbf{说明} \\
+\hline
+图表类型 & 散点图 + Pareto前沿曲线 \\
+\hline
+对应公式 & 公式8（$J$目标）、公式9（$F$目标）、公式10（膝点） \\
+\hline
+X轴 & J (Meritocracy) - 精英主义指标 \\
+\hline
+Y轴 & F (Engagement) - 参与度指标 \\
+\hline
+曲线1（蓝实线） & Rank方法Pareto前沿 \\
+\hline
+曲线2（红虚线） & Percentage方法Pareto前沿 \\
+\hline
+标记点 & $\bullet$ 当前规则（Pct+Save）；$\pentagon$ Judges' Save；$\star$ 推荐规则（膝点） \\
+\hline
+主要发现 & Rank方法有明显膝点（$d=0.224$）；Pct方法近似线性（$d=0.060$） \\
+\hline
+\end{longtable}
+
+\subsection{图6：规则比较柱状图}
+
+\begin{center}
+\texttt{rules\_comparison.png}
+\end{center}
+
+\begin{longtable}{|p{3cm}|p{11cm}|}
+\hline
+\textbf{项目} & \textbf{说明} \\
+\hline
+图表类型 & 分组柱状图 \\
+\hline
+X轴 & 五种规则：Rank 50-50, Pct 50-50, Rank+Save, Current, Recommended \\
+\hline
+Y轴 & 相关系数（0-1） \\
+\hline
+蓝色柱 & J (Meritocracy) 值 \\
+\hline
+橙色柱 & F (Engagement) 值 \\
+\hline
+主要发现 & 推荐规则$J=0.665, F=0.704$（双高）；当前规则$J=0.445$（最低） \\
+\hline
+\end{longtable}
+
+\subsection{图7：方差分解图}
+
+\begin{center}
+\texttt{variance\_decomposition.png}
+\end{center}
+
+\begin{longtable}{|p{3cm}|p{11cm}|}
+\hline
+\textbf{项目} & \textbf{说明} \\
+\hline
+图表类型 & 分组柱状图 \\
+\hline
+对应公式 & 公式13（ICC方差分解） \\
+\hline
+X轴 & 方差来源：Pro Dancer, Celebrity, Season, Residual \\
+\hline
+Y轴 & 解释方差百分比 \\
+\hline
+主要发现 & Celebrity因素最大（J:52.6\%, F:42.2\%）；Pro Dancer次之（J:28.6\%, F:30.6\%） \\
+\hline
+\end{longtable}
+
+\subsection{图8：Pro Dancer效应图}
+
+\begin{center}
+\texttt{pro\_dancer\_effects.png}
+\end{center}
+
+\begin{longtable}{|p{3cm}|p{11cm}|}
+\hline
+\textbf{项目} & \textbf{说明} \\
+\hline
+图表类型 & 散点图（气泡大小=观测数） \\
+\hline
+对应公式 & 公式11中的$b_{pro}^J$、公式12中的$b_{pro}^F$ \\
+\hline
+X轴 & J\_lift（评委分提升效应） \\
+\hline
+Y轴 & F\_lift（粉丝投票提升效应） \\
+\hline
+主要发现 & Derek Hough位于右上角（双高）；相关系数$r=0.416$ \\
+\hline
+\end{longtable}
+
+\subsection{图9：J\% vs Fan Vote散点图}
+
+\begin{center}
+\texttt{jpct\_vs\_fan\_vote.png}
+\end{center}
+
+\begin{longtable}{|p{3cm}|p{11cm}|}
+\hline
+\textbf{项目} & \textbf{说明} \\
+\hline
+图表类型 & 散点图 + 回归线 \\
+\hline
+对应公式 & 公式12中的$\eta$系数 \\
+\hline
+X轴 & Judge Score (J\%) \\
+\hline
+Y轴 & Fan Vote Share (\%) \\
+\hline
+红色回归线 & $\eta = 0.0007$（正斜率） \\
+\hline
+主要发现 & 正相关但斜率很小；粉丝投票有独立判断 \\
+\hline
+\end{longtable}
+
+\subsection{图10：粉丝弹性分析图}
+
+\begin{center}
+\texttt{fan\_elasticity\_analysis.png}
+\end{center}
+
+\begin{longtable}{|p{3cm}|p{11cm}|}
+\hline
+\textbf{项目} & \textbf{说明} \\
+\hline
+图表类型 & 双面板：时序折线图 + 对比柱状图 \\
+\hline
+对应公式 & 公式14（Fan-Elasticity） \\
+\hline
+面板1 & 按赛季的弹性变化（Rank vs Pct） \\
+\hline
+面板2 & 两种方法的平均弹性对比 \\
+\hline
+主要发现 & Rank弹性0.1374 vs Pct弹性0.1216；差异不显著 \\
+\hline
+\end{longtable}
+
+\subsection{图11：案例研究汇总图}
+
+\begin{center}
+\texttt{case\_studies\_summary.png}
+\end{center}
+
+\begin{longtable}{|p{3cm}|p{11cm}|}
+\hline
+\textbf{项目} & \textbf{说明} \\
+\hline
+图表类型 & 四个子图对应四个历史案例 \\
+\hline
+Case 1 (S2) & Jerry Rice：若有Judges' Save，Week 3-4即被淘汰 \\
+\hline
+Case 2 (S4) & Billy Ray Cyrus：若用Rank方法，名次更低 \\
+\hline
+Case 3 (S11) & Bristol Palin：新策略下被阻止进入Top 3 \\
+\hline
+Case 4 (S27) & Bobby Bones：若有安全机制，Week 6被淘汰而非夺冠 \\
+\hline
+\end{longtable}
+
+\subsection{图12：最终推荐规则图}
+
+\begin{center}
+\texttt{final\_recommendation.png}
+\end{center}
+
+\begin{longtable}{|p{3cm}|p{11cm}|}
+\hline
+\textbf{项目} & \textbf{说明} \\
+\hline
+图表类型 & 信息图/汇总图 \\
+\hline
+对应公式 & 公式15（动态对数权重） \\
+\hline
+内容 & 推荐公式展示；权重随周次变化曲线；预期效果数据 \\
+\hline
+关键数据 & $J=0.665, F=0.704$，争议事件减少60-70\% \\
+\hline
+\end{longtable}
+
+%==============================================================================
+\section{附加图表列表}
+%==============================================================================
+
+除上述核心图表外，项目还生成了以下辅助图表：
+
+\subsection{Phase 1: 特征工程图表}
+\begin{itemize}
+    \item \texttt{pbi\_by\_industry.png} - 按行业分类的PBI分布
+    \item \texttt{pbi\_trend.png} - PBI随赛季的趋势变化
+    \item \texttt{star\_makers.png} - Star Maker舞伴识别图
+\end{itemize}
+
+\subsection{Phase 2: 贝叶斯推断图表}
+\begin{itemize}
+    \item \texttt{ci\_width\_by\_week.png} - CI宽度按周次变化
+    \item \texttt{ci\_width\_distribution.png} - CI宽度分布直方图
+    \item \texttt{uncertainty\_by\_season.png} - 按赛季的不确定性
+\end{itemize}
+
+\subsection{Phase 3: 模拟器图表}
+\begin{itemize}
+    \item \texttt{ffi\_comparison.png} - FFI对比图
+    \item \texttt{jfi\_comparison.png} - JFI对比图
+    \item \texttt{weekly\_differences.png} - 每周差异分布
+    \item \texttt{era\_analysis.png} - 按时代的分析
+\end{itemize}
+
+\subsection{Phase 4: Pareto优化图表}
+\begin{itemize}
+    \item \texttt{weight\_vs\_objectives.png} - 权重与目标的关系
+    \item \texttt{tradeoff\_ratio.png} - 权衡比率图
+\end{itemize}
+
+\subsection{Phase 5: 推荐规则图表}
+\begin{itemize}
+    \item \texttt{dynamic\_weights.png} - 动态权重变化曲线
+    \item \texttt{method\_comparison.png} - 方法对比汇总
+    \item \texttt{summary\_infographic.png} - 综合信息图
+\end{itemize}
+
+%==============================================================================
+\section{公式-图表-结论对应关系总结}
+%==============================================================================
+
+\begin{longtable}{|c|p{4cm}|p{4cm}|p{4.5cm}|}
+\hline
+\textbf{阶段} & \textbf{核心公式} & \textbf{对应图表} & \textbf{主要结论} \\
+\hline
+\endfirsthead
+\hline
+\textbf{阶段} & \textbf{核心公式} & \textbf{对应图表} & \textbf{主要结论} \\
+\hline
+\endhead
+Phase 1 & 公式1(J\%)、公式2(PBI)、公式16(Divergence) & 全局扫描热力图、PBI分析图 & 社交媒体时代分歧加剧，改革必要 \\
+\hline
+Phase 2 & 公式5(约束)、公式6($P_w$)、公式7(CIW) & 贝叶斯汇总图、确定性一致性图 & 模型95.6\%准确，输出可信 \\
+\hline
+Phase 3 & 公式3(Rank)、公式4(Pct)、公式14(弹性) & 方法比较图、弹性图、案例图 & Pct更偏粉丝，Rank更公平 \\
+\hline
+Phase 4 & 公式8(J)、公式9(F)、公式10-13 & Pareto前沿图、方差分解图 & Rank有明确最优点，推荐50-50+Save \\
+\hline
+Phase 5 & 公式15(动态权重) & 最终推荐图 & 动态权重+Judges' Save，减少60-70\%争议 \\
+\hline
+\end{longtable}
+
+%==============================================================================
+\section{关键数值结果汇总}
+%==============================================================================
+
+\subsection{模型性能}
+\begin{itemize}
+    \item 淘汰预测精确匹配率：\textbf{95.6\%}
+    \item Jaccard相似度：\textbf{0.960}
+    \item F1分数：\textbf{0.963}
+    \item 平均CI宽度：\textbf{0.288}
+\end{itemize}
+
+\subsection{方法对比（34季平均）}
+
+\begin{center}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{指标} & \textbf{Rank方法} & \textbf{Percentage方法} & \textbf{优胜} \\
+\hline
+FFI (粉丝偏好) & 0.7670 & 0.7882 & Pct \\
+\hline
+JFI (评委偏好) & 0.7274 & 0.3735 & \textbf{Rank} \\
+\hline
+Fan-Elasticity & 0.1374 & 0.1216 & Rank \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{方差分解}
+
+\begin{center}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{因素} & \textbf{对Judge Score} & \textbf{对Fan Vote} \\
+\hline
+Celebrity & 52.6\% & 42.2\% \\
+\hline
+Pro Dancer & 28.6\% & 30.6\% \\
+\hline
+Season & 3.4\% & 9.3\% \\
+\hline
+Residual & 15.4\% & 17.9\% \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Star Makers（前5位）}
+\begin{enumerate}
+    \item Derek Hough (+8.1 J-lift, +1.76 F-lift)
+    \item Mark Ballas (+5.9 J-lift, +1.17 F-lift)
+    \item Valentin Chmerkovskiy (+5.9 J-lift, +0.16 F-lift)
+    \item Julianne Hough (+3.8 J-lift, +2.02 F-lift)
+    \item Maksim Chmerkovskiy (+3.4 J-lift, +0.99 F-lift)
+\end{enumerate}
+
+%==============================================================================
+\section{最终推荐}
+%==============================================================================
+
+\subsection{推荐规则}
+
+\begin{center}
+\fbox{
+\parbox{12cm}{
+\centering
+\textbf{推荐评分公式}\\[0.5em]
+$Score(i,w) = \alpha(w) \cdot J\% + (1-\alpha(w)) \cdot \log(1 + F\%)$\\[0.5em]
+其中 $\alpha(w)$: 50\% $\rightarrow$ 70\% 随周次递增\\[1em]
+\textbf{配套机制}\\[0.5em]
+Judges' Save: 对Bottom 2中评委分较高者进行拯救
+}
+}
+\end{center}
+
+\subsection{预期效果}
+
+\begin{itemize}
+    \item \textbf{公平性提升}：J从0.445提升至0.665（+49\%）
+    \item \textbf{参与度保持}：F从0.691提升至0.704（+1.9\%）
+    \item \textbf{争议减少}：极端事件预期减少60-70\%
+    \item \textbf{历史验证}：Bobby Bones、Bristol Palin等案例将被阻止
+\end{itemize}
+
+\vfill
+\begin{center}
+\rule{10cm}{0.4pt}\\[0.5em]
+\textit{MCM 2026 Problem C - Fairness-Engagement Equilibrium Model (FEEM)}\\
+\textit{符号、公式与图表完整文档}\\
+2026年2月
+\end{center}
+
+\end{document}
