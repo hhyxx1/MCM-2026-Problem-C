@@ -1,0 +1,32 @@
+{
+  "rule_name": "Dynamic Log-Weighting with Judges' Save",
+  "formula": "Score(t) = w_j(t)\u00b7J% + w_f(t)\u00b7[\u03b1\u00b7log(F%) + (1-\u03b1)\u00b7F%]",
+  "formula_details": {
+    "w_j(t)": "0.43 + 0.015\u00b7(t-1)",
+    "w_f(t)": "1 - w_j(t)",
+    "alpha": 0.1,
+    "judges_save_threshold": 10
+  },
+  "parameters": {
+    "base_judge_weight": 0.42500000000000004,
+    "delta_per_week": 0.015,
+    "log_strength": 0.1,
+    "judges_save": true
+  },
+  "performance": {
+    "J": 0.5397386649786791,
+    "F": 0.6119928823119738,
+    "Balance": 0.5735993283604304
+  },
+  "vs_current_rule": {
+    "current_rule": "Pct 50-50",
+    "J_change_pct": 18.78824904649731,
+    "F_change_pct": -13.346140557596623,
+    "Balance_change_pct": 3.7290344348862066
+  },
+  "interpretation": {
+    "J": "Spearman correlation between final ranking and judge ranking (higher = more meritocratic)",
+    "F": "Spearman correlation between final ranking and fan ranking (higher = more engagement)",
+    "Balance": "Harmonic mean of J and F (higher = better trade-off)"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "rule_name": "Sigmoid(jmin=0.20,jmax=0.80,s=7)",
+  "rule_type": "Sigmoid",
+  "parameters": {
+    "j_min": 0.2,
+    "j_max": 0.8000000000000002,
+    "steepness": 7.0
+  },
+  "performance": {
+    "J_early": -0.05269252147987623,
+    "F_early": 0.962400483983529,
+    "J_late": 0.9399177669832897,
+    "F_late": 0.035924369747899164,
+    "Balance_traditional": 0.47117910389689477,
+    "Balance_phased": 0.5798803492396254,
+    "dynamic_pattern": 1.9190864026987957,
+    "Score_ultimate": 0.7368183129455297
+  },
+  "vs_static_rank": {
+    "wins": 4,
+    "total": 8,
+    "dimensions_won": [
+      "\u65e9\u671f\u7c89\u4e1d\u53c2\u4e0e",
+      "\u540e\u671f\u7cbe\u82f1\u9009\u62d4",
+      "\u52a8\u6001\u6a21\u5f0f",
+      "\u6700\u7ec8\u5f97\u5206"
+    ]
+  },
+  "design_rationale": [
+    "Early phase (weeks 1-3): Low judge weight maximizes fan engagement",
+    "Mid phase (weeks 4-7): Gradual transition maintains balance",
+    "Late phase (weeks 8+): High judge weight ensures merit-based outcome",
+    "Rank-based scoring provides robustness to extreme fan vote distributions",
+    "Multi-phase optimization captures the true value of dynamic weighting"
+  ]
+}

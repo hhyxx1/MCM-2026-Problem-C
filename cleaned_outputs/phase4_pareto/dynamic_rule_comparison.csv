@@ -1,0 +1,4 @@
+Rule,Type,J,F,Balance,Status
+Current (Pct 50-50),Static,0.4543704190533266,0.7062499999999999,0.5529785676494594,🔴 Current
+Dynamic+Log (Base=40%),Dynamic,0.7194291274256361,0.453125,0.5560362899075051,⚪ Variant
+Recommended (Dynamic+Log+Save),Dynamic+Save,0.8626841761207038,0.26773576462394766,0.40864708626867846,⭐ Recommended

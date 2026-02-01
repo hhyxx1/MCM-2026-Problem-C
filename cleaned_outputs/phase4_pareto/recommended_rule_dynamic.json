@@ -1,0 +1,28 @@
+{
+  "rule_name": "Dynamic Log-Weighting with Judges' Save",
+  "formula": "Score = (0.5 + 0.05*t) \u00b7 J% + (0.5 - 0.05*t) \u00b7 log(1 + F%)",
+  "parameters": {
+    "base_judge_weight": 0.45,
+    "delta": 0.03,
+    "log_smoothing": true,
+    "judges_save": true,
+    "judges_save_threshold": 10
+  },
+  "performance": {
+    "J_meritocracy": 0.8626841761207038,
+    "F_engagement": 0.26773576462394766,
+    "balance_score": 0.40864708626867846
+  },
+  "vs_current": {
+    "current_J": 0.4543704190533266,
+    "current_F": 0.7062499999999999,
+    "J_improvement": "89.9%",
+    "F_change": "-62.1%"
+  },
+  "rationale": [
+    "Dynamic weighting: Increases judge influence as competition progresses (50% \u2192 80%)",
+    "Log smoothing: Compresses extreme fan votes, preventing canvassing from dominating",
+    "Judges' Save: Last safety net for high-skill contestants in Bottom 2",
+    "Combined effect: Better meritocracy without significantly hurting engagement"
+  ]
+}

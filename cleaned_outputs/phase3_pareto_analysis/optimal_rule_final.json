@@ -1,0 +1,35 @@
+{
+  "best_dynamic": {
+    "rule_name": "Sigmoid(0.30,0.75,6)",
+    "rule_type": "dynamic_sigmoid",
+    "parameters": {
+      "j_min": 0.3,
+      "j_max": 0.7500000000000002,
+      "steepness": 6.0
+    },
+    "metrics": {
+      "J_early": 0.1419983994471103,
+      "F_early": 0.8784646426002969,
+      "J_late": 0.9133378568818129,
+      "F_late": 0.09523809523809523,
+      "Balance_traditional": 0.506438666325038,
+      "Balance_phased": 0.584988048781674,
+      "dynamic_pattern": 1.554566004796904,
+      "Score_balanced": 0.5693423982080332
+    }
+  },
+  "best_static": {
+    "rule_name": "Static_Rank(0.50)",
+    "parameters": {
+      "j_weight": 0.49999999999999994
+    },
+    "metrics": {
+      "Balance_traditional": 0.5667035151197994,
+      "Score_balanced": 0.46808524188607903
+    }
+  },
+  "comparison": {
+    "dynamic_wins": 5,
+    "total_dimensions": 8
+  }
+}

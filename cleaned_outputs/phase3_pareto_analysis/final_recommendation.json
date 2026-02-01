@@ -1,0 +1,46 @@
+{
+  "primary_recommendation": {
+    "rule_name": "Rank 50-50",
+    "description": "Simple rank-based weighting with equal judge and fan influence",
+    "formula": "FinalRank = 0.5 \u00d7 JudgeRank + 0.5 \u00d7 FanRank",
+    "performance": {
+      "J": 0.664751115828407,
+      "F": 0.704330083488925,
+      "Balance": 0.68396850209068
+    },
+    "vs_current": {
+      "J_change_pct": 46.301583015330344,
+      "F_change_pct": -0.2718465856389276,
+      "Balance_change_pct": 23.688067258615675
+    },
+    "rationale": [
+      "Rank method is inherently robust to extreme fan vote distributions",
+      "Achieves highest Balance score among all tested configurations",
+      "Simple to implement and explain to audiences",
+      "Naturally compresses extreme values without explicit log transformation"
+    ]
+  },
+  "alternative_recommendation": {
+    "rule_name": "Dynamic Log-Weighting with Judges' Save",
+    "use_case": "When producers want more judge influence in later rounds",
+    "formula": "Score(t) = w_j(t)\u00b7J% + w_f(t)\u00b7[\u03b1\u00b7log(F%) + (1-\u03b1)\u00b7F%]",
+    "parameters": {
+      "base_judge_weight": 0.45,
+      "delta_per_week": 0.015,
+      "log_strength": 0.1,
+      "judges_save": true
+    },
+    "trade_off": "Higher J (+18.8%) at cost of lower F (-13.3%)"
+  },
+  "key_insights": [
+    "Rank method outperforms Pct method in 97% of seasons on J metric",
+    "Fan vote variability (CV) is 2-3x higher than judge score variability",
+    "Dynamic weighting does not provide marginal benefit over Rank 50-50",
+    "Log smoothing effect is already captured by rank transformation"
+  ],
+  "analysis_metadata": {
+    "n_seasons_analyzed": 30,
+    "n_configurations_tested": 365,
+    "analysis_date": "2026-02-02"
+  }
+}

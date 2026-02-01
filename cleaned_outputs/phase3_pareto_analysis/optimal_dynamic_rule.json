@@ -1,0 +1,30 @@
+{
+  "rule_name": "Prot(b=0.30,\u03b4=0.020,p=0.35)",
+  "rule_type": "Dynamic with Protection",
+  "parameters": {
+    "base": 0.3,
+    "delta": 0.02,
+    "late_boost": NaN,
+    "protection": 0.35
+  },
+  "performance": {
+    "J_final": 0.5983388350855985,
+    "F_final": 0.6919429568588428,
+    "Balance_traditional": 0.6417456171458691,
+    "Balance_process": 0.5532230918875254,
+    "Balance_comprehensive": 0.6063366070425316,
+    "extreme_event_rate": 0.05782312925170068
+  },
+  "vs_static_rank": {
+    "J_change": -0.06641228074280858,
+    "F_change": -0.012387126630082124,
+    "Balance_comprehensive_change": -0.0447153767571955,
+    "extreme_rate_reduction": 0.0
+  },
+  "design_rationale": [
+    "Dynamic weighting: Judge weight increases from early to late rounds",
+    "Hybrid Rank-Pct: Early rounds use Pct for engagement perception, later rounds use Rank for robustness",
+    "Late boost: Accelerated judge weight increase in final rounds ensures merit-based outcomes",
+    "Process optimization: Evaluated on entire season elimination quality, not just final ranking"
+  ]
+}

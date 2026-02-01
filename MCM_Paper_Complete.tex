@@ -4,7 +4,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \documentclass[11pt]{article}
 \usepackage{geometry}
-\geometry{left=0.9in,right=0.75in,top=0.9in,bottom=0.9in}
+\geometry{left=0.85in,right=0.7in,top=0.85in,bottom=0.85in}
+\setlength{\parskip}{0.5ex plus 0.3ex minus 0.2ex}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\Problem}{C}
@@ -453,6 +454,31 @@ Certainty is \textit{not} uniform across contestants and weeks:
     \label{fig:ci_by_week}
 \end{figure}
 
+\subsubsection{Season-Level Inference Quality}
+
+We summarize inference quality by season to identify potential problem cases (Table~\ref{tab:season_inference}). Seasons with acceptance rates below 0.50 indicate potential model misspecification or unusual voting patterns.
+
+\begin{table}[H]
+\centering
+\caption{Season-Level MCMC Inference Statistics (Selected Seasons)}
+\label{tab:season_inference}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Season} & \textbf{Weeks} & \textbf{Estimates} & \textbf{Avg CI Width} & \textbf{Acceptance Rate} & \textbf{Quality} \\
+\midrule
+S1 (2005) & 6 & 26 & 0.488 & 0.853 & Excellent \\
+S9 (2009) & 10 & 92 & 0.238 & 0.497 & Marginal \\
+S12 (2010) & 10 & 74 & 0.315 & 0.782 & Excellent \\
+S27 (2018) & 10 & 91 & 0.254 & 0.525 & Marginal \\
+S34 (2021) & 11 & 106 & 0.198 & 0.618 & Good \\
+\midrule
+\textbf{Average} & 9.8 & 78.9 & 0.288 & 0.651 & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Observation:} Seasons 9 and 27 (Bobby Bones) show lower acceptance rates ($\approx 0.50$), consistent with unusual voting dynamics in those seasons. The algorithm detects these anomalies even without prior knowledge of controversies.
+
 \section{Model II: Parallel Universe Simulation and Method Comparison}
 
 \subsection{Simulation Architecture}
@@ -502,6 +528,30 @@ Maximum weeks different in one season & 4 & --- & Season 17, 24 \\
     \item Seasons with identical Top-3: 21/34 (61.8\%)
     \item Seasons with different champion: 5/34 (14.7\%)
 \end{itemize}
+
+\subsubsection{Era-Based Divergence Analysis}
+
+We categorized 34 seasons into six social media eras and computed mean divergence scores (Table~\ref{tab:era_divergence}). The analysis reveals a clear structural shift: divergence increased substantially during the Instagram and TikTok eras.
+
+\begin{table}[H]
+\centering
+\caption{Judge-Fan Divergence by Social Media Era}
+\label{tab:era_divergence}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Era} & \textbf{Seasons} & \textbf{Years} & \textbf{Mean Divergence} & \textbf{Mean $\tau$} & \textbf{Trend} \\
+\midrule
+Pre-Social & S1--3 & 2005--06 & 0.613 & 0.387 & Baseline \\
+Early Social & S4--9 & 2006--09 & 0.419 & 0.581 & $\downarrow$ \\
+Peak Facebook & S10--15 & 2009--12 & 0.521 & 0.479 & $\uparrow$ \\
+Multi-Platform & S16--23 & 2012--16 & 0.470 & 0.530 & Stable \\
+Instagram Era & S24--28 & 2016--18 & 0.610 & 0.390 & $\uparrow\uparrow$ \\
+TikTok Era & S29--34 & 2019--21 & 0.534 & 0.466 & High Variance \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Interpretation:} The Instagram Era (S24--28) shows the highest mean divergence (0.610), coinciding with Bobby Bones's controversial Season 27 victory (divergence = 0.916). The TikTok Era exhibits high variance, suggesting platform fragmentation creates both strong and weak fanbase mobilization.
 
 \subsection{Fan Bias Quantification}
 
@@ -632,6 +682,28 @@ Bobby Bones (S27) & Winner & Elim W6-7 & Elim W6 & \checkmark Strongest case \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsubsection{Champion Sensitivity Analysis}
+
+We identified all seasons where the champion would have changed under the Rank method (Table~\ref{tab:champion_changes}). This analysis reveals critical ``tipping point'' seasons.
+
+\begin{table}[H]
+\centering
+\caption{Seasons with Champion Changes Under Rank Method}
+\label{tab:champion_changes}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Season} & \textbf{Champion (Pct)} & \textbf{Champion (Rank)} & \textbf{Judge Rank Gap} \\
+\midrule
+Season 12 & Hines Ward & Chelsea Kane & +2 positions \\
+Season 19 & Alfonso Ribeiro & Janel Parrish & +1 position \\
+Season 27 & Bobby Bones & Evanna Lynch & +3 positions \\
+Season 28 & Hannah Brown & Ally Brooke & +2 positions \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Observation:} In 4 of 34 seasons (11.8\%), the Rank method would have crowned a different champion. All four alternative champions had higher average judge scores, confirming the Rank method's meritocratic alignment.
 
 \subsection{Recommendation: Rank vs. Percentage}
 
@@ -910,6 +982,34 @@ Bristol Palin Top-3 & Yes & No & Fixed \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsubsection{Comprehensive Rule Comparison}
+
+Table~\ref{tab:rule_comparison} synthesizes the $O_J$ and $O_F$ scores for all voting rule variants, providing a complete picture of design space trade-offs.
+
+\begin{table}[H]
+\centering
+\caption{Comprehensive Voting Rule Comparison}
+\label{tab:rule_comparison}
+\begin{tabular}{lccl}
+\toprule
+\textbf{Rule Configuration} & \textbf{$O_J$ (Meritocracy)} & \textbf{$O_F$ (Engagement)} & \textbf{Status} \\
+\midrule
+Percentage (50-50) & 0.454 & 0.706 & Baseline \\
+Percentage + Judges' Save & 0.445 & 0.691 & Current System \\
+Rank (50-50) & 0.665 & 0.704 & Baseline \\
+Rank + Judges' Save & 0.677 & 0.678 & Variant \\
+\textbf{Recommended: Rank 50-50} & \textbf{0.665} & \textbf{0.704} & \textbf{$\bigstar$ Optimal} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key Insights:}
+\begin{itemize}[noitemsep]
+    \item The Rank method achieves 46\% higher $O_J$ than Percentage method at equivalent weights
+    \item Adding Judges' Save slightly reduces $O_F$ ($-0.026$ for Rank) but improves meritocracy
+    \item The Percentage + Judges' Save (current system) is \textit{Pareto-dominated} by Rank 50-50
+\end{itemize}
 
 \textbf{Why This System is ``Better'':}
 \begin{enumerate}

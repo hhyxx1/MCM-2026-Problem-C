@@ -1,0 +1,20 @@
+{
+  "rule_name": "Dynamic Log-Weighting with Judges' Save",
+  "formula": "Score(t) = (0.45 + 0.01*t)\u00b7J% + (1-w_j)\u00b7[0.2\u00b7log(F%) + 0.8\u00b7F%]",
+  "parameters": {
+    "base_judge_weight": 0.45,
+    "delta_per_week": 0.01,
+    "log_strength": 0.2,
+    "judges_save": true
+  },
+  "performance": {
+    "J": 0.5397386649786791,
+    "F": 0.6119928823119738,
+    "Balance": 0.5735988308267536
+  },
+  "vs_current": {
+    "J_change": "+18.8%",
+    "F_change": "-13.3%",
+    "Balance_change": "+3.7%"
+  }
+}
