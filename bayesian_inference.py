@@ -196,6 +196,7 @@ def estimate_fan_votes_for_week(df_panel, season, week, method='rank', n_samples
     
     Returns:
         dict with contestant_id -> {mean, median, ci_low, ci_high, std}
+        Also includes week-level P_w (posterior consistency probability)
     """
     # Get contestants and their judge scores
     contestants = get_week_contestants(df_panel, season, week)
@@ -208,11 +209,37 @@ def estimate_fan_votes_for_week(df_panel, season, week, method='rank', n_samples
     # Get elimination info
     eliminated = get_elimination_info(df_panel, season, week)
     eliminated_idx = [contestant_ids.index(e) for e in eliminated if e in contestant_ids]
+    k = len(eliminated_idx)
     
     # Sample posterior
     samples, acc_rate = sample_dirichlet_with_constraints(
         j_pct, eliminated_idx, n_samples=n_samples, method=method
     )
+    
+    # =========================================================================
+    # COMPUTE P_w: Posterior Consistency (per Plan Patch 3 requirement)
+    # P_w = Prob(E_w is Bottom-k | posterior), estimated via posterior sampling
+    # =========================================================================
+    n_correct = 0
+    if k > 0:
+        for sample_f in samples:
+            # Calculate combined score for this sample
+            if method == 'rank':
+                combined = combined_score_rank(j_pct, sample_f)
+                # Higher rank = worse; get indices of k highest combined ranks
+                predicted_bottom_k = set(np.argsort(combined)[-k:])
+            else:
+                combined = combined_score_percentage(j_pct, sample_f)
+                # Lower score = worse; get indices of k lowest combined scores
+                predicted_bottom_k = set(np.argsort(combined)[:k])
+            
+            # Check if predicted bottom-k matches actual eliminated
+            if predicted_bottom_k == set(eliminated_idx):
+                n_correct += 1
+        
+        P_w = n_correct / len(samples)
+    else:
+        P_w = 1.0  # No elimination this week, trivially consistent
     
     # Compute statistics
     results = {}
@@ -232,7 +259,8 @@ def estimate_fan_votes_for_week(df_panel, season, week, method='rank', n_samples
             'ci_width': np.percentile(f_samples, 97.5) - np.percentile(f_samples, 2.5),
             'was_eliminated': cid in eliminated,
             'n_contestants': len(contestant_ids),
-            'acceptance_rate': acc_rate
+            'acceptance_rate': acc_rate,
+            'P_w': P_w  # Posterior consistency for this week
         }
     
     return results

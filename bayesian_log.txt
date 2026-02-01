@@ -1,0 +1,263 @@
+nohup: 忽略输入
+======================================================================
+PHASE 2: BAYESIAN INVERSE INFERENCE
+======================================================================
+
+[1] Data loaded:
+    Panel observations: 2777
+    Seasons: 1-34
+
+[2] Running Bayesian inference for all seasons...
+    (This may take a few minutes)
+
+    Season 1: 6 weeks, avg CI width: 0.4990, acceptance: 84.64%
+
+    Season 2: 8 weeks, avg CI width: 0.3338, acceptance: 74.65%
+
+    Season 3: 10 weeks, avg CI width: 0.3315, acceptance: 60.09%
+
+    Season 4: 10 weeks, avg CI width: 0.3146, acceptance: 71.69%
+
+    Season 5: 10 weeks, avg CI width: 0.2945, acceptance: 68.80%
+
+    Season 6: 10 weeks, avg CI width: 0.3094, acceptance: 74.20%
+
+    Season 7: 10 weeks, avg CI width: 0.3073, acceptance: 69.64%
+
+    Season 8: 11 weeks, avg CI width: 0.2853, acceptance: 69.58%
+
+    Season 9: 10 weeks, avg CI width: 0.2329, acceptance: 49.89%
+
+    Season 10: 10 weeks, avg CI width: 0.3056, acceptance: 70.31%
+
+    Season 11: 10 weeks, avg CI width: 0.2982, acceptance: 73.82%
+
+    Season 12: 10 weeks, avg CI width: 0.3158, acceptance: 78.29%
+
+    Season 13: 10 weeks, avg CI width: 0.2910, acceptance: 61.61%
+
+    Season 14: 10 weeks, avg CI width: 0.2707, acceptance: 68.08%
+
+    Season 15: 10 weeks, avg CI width: 0.2711, acceptance: 56.45%
+
+    Season 16: 10 weeks, avg CI width: 0.3009, acceptance: 84.44%
+
+    Season 17: 11 weeks, avg CI width: 0.2619, acceptance: 66.31%
+
+    Season 18: 10 weeks, avg CI width: 0.3027, acceptance: 75.70%
+
+    Season 19: 11 weeks, avg CI width: 0.2801, acceptance: 65.09%
+
+    Season 20: 10 weeks, avg CI width: 0.2676, acceptance: 59.48%
+
+    Season 21: 11 weeks, avg CI width: 0.2909, acceptance: 73.01%
+
+    Season 22: 10 weeks, avg CI width: 0.2774, acceptance: 72.65%
+
+    Season 23: 11 weeks, avg CI width: 0.2684, acceptance: 68.90%
+
+    Season 24: 10 weeks, avg CI width: 0.2425, acceptance: 61.52%
+
+    Season 25: 10 weeks, avg CI width: 0.2738, acceptance: 70.88%
+
+    Season 26: 4 weeks, avg CI width: 0.3074, acceptance: 47.39%
+
+    Season 27: 9 weeks, avg CI width: 0.2515, acceptance: 56.33%
+
+    Season 28: 11 weeks, avg CI width: 0.2902, acceptance: 70.88%
+
+    Season 29: 11 weeks, avg CI width: 0.2339, acceptance: 71.39%
+
+    Season 30: 10 weeks, avg CI width: 0.2259, acceptance: 55.94%
+
+    Season 31: 10 weeks, avg CI width: 0.2221, acceptance: 58.43%
+
+    Season 32: 11 weeks, avg CI width: 0.2599, acceptance: 53.76%
+
+    Season 33: 9 weeks, avg CI width: 0.2891, acceptance: 70.95%
+
+    Season 34: 11 weeks, avg CI width: 0.2544, acceptance: 62.12%
+
+[3] Inference complete!
+    Total estimates: 2777
+    Seasons processed: 34
+
+[4] Computing posterior statistics...
+
+    Certainty (CI Width) Summary:
+    Mean CI Width: 0.2786
+    Std CI Width: 0.1228
+    Min CI Width: 0.0000
+    Max CI Width: 0.8394
+
+    Top 10 Most Uncertain (Widest CI):
+ season  week celebrity_name   f_mean  ci_width  n_contestants
+      3    10   Emmitt Smith 0.499030  0.839386              2
+      3    10    Mario Lopez 0.500970  0.839386              2
+      1     6   Kelly Monaco 0.549246  0.790579              2
+      1     6  John O'Hurley 0.450754  0.790579              2
+     22    10     Ginger Zee 0.377131  0.766223              3
+     11    10  Jennifer Grey 0.351857  0.734132              3
+     21    10    Nick Carter 0.254004  0.719999              4
+     12    10   Chelsea Kane 0.310186  0.718386              3
+     14    10  Donald Driver 0.345435  0.717920              3
+     21    10    Bindi Irwin 0.253929  0.712072              4
+
+    Top 10 Most Certain (Narrowest CI):
+ season  week           celebrity_name   f_mean  ci_width  n_contestants
+     17     5              Amber Riley 0.124844  0.000000              9
+     17     5             Bill Engvall 0.124844  0.000000              9
+     17     5          Brant Daugherty 0.124844  0.000000              9
+     17     5         Christina Milian 0.001248  0.000000              9
+     17     5              Corbin Bleu 0.124844  0.000000              9
+     17     5 Elizabeth Berkley Lauren 0.124844  0.000000              9
+     17     5            Jack Osbourne 0.124844  0.000000              9
+     17     5              Leah Remini 0.124844  0.000000              9
+     17     5  Nicole "Snooki" Polizzi 0.124844  0.000000              9
+     24     6            Bonner Bolton 0.141869  0.014257              8
+
+[5] Saving results...
+    Saved: fan_vote_estimates.csv (2777 rows)
+    Saved: inference_season_stats.csv (34 rows)
+
+[6] Generating visualizations...
+    Saved: bayesian_inference_summary.png
+
+======================================================================
+SAMPLE OUTPUT: Season 27 (Bobby Bones season)
+======================================================================
+
+  Week 1:
+    Bobby Bones         : f=0.0904 [0.0076, 0.2402] J%=66.7
+    Joe Amabile         : f=0.0879 [0.0195, 0.2120] J%=46.7
+    Danelle Umstead     : f=0.0871 [0.0122, 0.2219] J%=60.0
+    Nancy McKeon        : f=0.0819 [0.0082, 0.2080] J%=65.0
+    Milo Manheim        : f=0.0805 [0.0104, 0.2216] J%=66.7
+    Tinashe             : f=0.0791 [0.0104, 0.2037] J%=76.7
+    Alexis Ren          : f=0.0788 [0.0047, 0.2180] J%=73.3
+    Evanna Lynch        : f=0.0785 [0.0098, 0.2103] J%=60.0
+    DeMarcus Ware       : f=0.0783 [0.0067, 0.2119] J%=76.7
+    John Schneider      : f=0.0783 [0.0092, 0.1977] J%=60.0
+    Mary Lou Retton     : f=0.0772 [0.0087, 0.2121] J%=66.7
+    Juan Pablo Di Pace  : f=0.0745 [0.0069, 0.2059] J%=73.3
+    Nikki Glaser        : f=0.0275 [0.0021, 0.0640] J%=58.3 [ELIMINATED]
+
+  Week 2:
+    Joe Amabile         : f=0.0986 [0.0287, 0.2311] J%=58.3
+    Bobby Bones         : f=0.0933 [0.0167, 0.2420] J%=65.0
+    DeMarcus Ware       : f=0.0925 [0.0087, 0.2285] J%=78.3
+    Milo Manheim        : f=0.0919 [0.0083, 0.2550] J%=86.7
+    Mary Lou Retton     : f=0.0912 [0.0085, 0.2584] J%=76.7
+    Alexis Ren          : f=0.0898 [0.0093, 0.2364] J%=81.7
+    John Schneider      : f=0.0848 [0.0063, 0.2146] J%=71.7
+    Nancy McKeon        : f=0.0833 [0.0116, 0.2249] J%=68.3
+    Evanna Lynch        : f=0.0817 [0.0090, 0.2232] J%=80.0
+    Juan Pablo Di Pace  : f=0.0814 [0.0086, 0.2304] J%=86.7
+    Tinashe             : f=0.0811 [0.0087, 0.2409] J%=86.7
+    Danelle Umstead     : f=0.0303 [0.0031, 0.0702] J%=61.7 [ELIMINATED]
+
+  Week 3:
+    Joe Amabile         : f=0.1172 [0.0327, 0.2669] J%=60.0
+    John Schneider      : f=0.1138 [0.0240, 0.2691] J%=70.0
+    DeMarcus Ware       : f=0.0976 [0.0089, 0.2557] J%=86.7
+    Tinashe             : f=0.0951 [0.0107, 0.2680] J%=90.0
+    Bobby Bones         : f=0.0930 [0.0142, 0.2513] J%=76.7
+    Milo Manheim        : f=0.0928 [0.0099, 0.2503] J%=90.0
+    Mary Lou Retton     : f=0.0922 [0.0126, 0.2402] J%=80.0
+    Juan Pablo Di Pace  : f=0.0906 [0.0079, 0.2390] J%=100.0
+    Alexis Ren          : f=0.0903 [0.0120, 0.2350] J%=86.7
+    Evanna Lynch        : f=0.0891 [0.0097, 0.2264] J%=90.0
+    Nancy McKeon        : f=0.0284 [0.0026, 0.0653] J%=73.3 [ELIMINATED]
+
+  Week 4:
+    Joe Amabile         : f=0.1930 [0.1110, 0.3632] J%=50.0
+    Bobby Bones         : f=0.1538 [0.1047, 0.2300] J%=66.7
+    John Schneider      : f=0.1501 [0.0753, 0.2431] J%=70.0
+    Juan Pablo Di Pace  : f=0.1253 [0.0291, 0.3345] J%=80.0
+    DeMarcus Ware       : f=0.1080 [0.0637, 0.1807] J%=73.3
+    Alexis Ren          : f=0.0775 [0.0165, 0.1294] J%=83.3
+    Evanna Lynch        : f=0.0745 [0.0247, 0.1110] J%=80.0
+    Mary Lou Retton     : f=0.0563 [0.0080, 0.1110] J%=86.7
+    Milo Manheim        : f=0.0480 [0.0125, 0.1110] J%=96.7
+    Tinashe             : f=0.0134 [0.0011, 0.0383] J%=86.7 [ELIMINATED]
+
+  Week 5:
+    Joe Amabile         : f=0.1149 [0.0039, 0.3820] J%=56.7
+    Bobby Bones         : f=0.1129 [0.0032, 0.3629] J%=70.0
+    Evanna Lynch        : f=0.1118 [0.0026, 0.3778] J%=80.0
+    Alexis Ren          : f=0.1111 [0.0029, 0.3704] J%=96.7
+    John Schneider      : f=0.1109 [0.0032, 0.3503] J%=80.0
+    Juan Pablo Di Pace  : f=0.1109 [0.0042, 0.3677] J%=96.7
+    Mary Lou Retton     : f=0.1100 [0.0029, 0.3755] J%=83.3
+    DeMarcus Ware       : f=0.1090 [0.0033, 0.3682] J%=86.7
+    Milo Manheim        : f=0.1085 [0.0033, 0.3645] J%=90.0
+
+  Week 6:
+    John Schneider      : f=0.1500 [0.0520, 0.3111] J%=63.3
+    Bobby Bones         : f=0.1378 [0.0378, 0.3228] J%=73.3
+    Joe Amabile         : f=0.1298 [0.0438, 0.2741] J%=73.3
+    Milo Manheim        : f=0.1201 [0.0144, 0.3665] J%=100.0
+    DeMarcus Ware       : f=0.1188 [0.0177, 0.2906] J%=86.7
+    Alexis Ren          : f=0.1068 [0.0109, 0.2825] J%=90.0
+    Evanna Lynch        : f=0.1034 [0.0145, 0.2843] J%=96.7
+    Juan Pablo Di Pace  : f=0.1003 [0.0103, 0.2603] J%=100.0
+    Mary Lou Retton     : f=0.0331 [0.0030, 0.0747] J%=80.0 [ELIMINATED]
+
+  Week 7:
+    Joe Amabile         : f=0.1933 [0.0833, 0.3565] J%=78.3
+    Bobby Bones         : f=0.1730 [0.0671, 0.4067] J%=88.3
+    Evanna Lynch        : f=0.1423 [0.0146, 0.3786] J%=98.3
+    Alexis Ren          : f=0.1307 [0.0190, 0.3099] J%=91.7
+    Juan Pablo Di Pace  : f=0.1245 [0.0246, 0.2930] J%=93.3
+    Milo Manheim        : f=0.1229 [0.0115, 0.3385] J%=96.7
+    DeMarcus Ware       : f=0.0675 [0.0097, 0.1370] J%=88.3 [ELIMINATED]
+    John Schneider      : f=0.0458 [0.0042, 0.1102] J%=90.0 [ELIMINATED]
+
+  Week 8:
+    Bobby Bones         : f=0.2970 [0.0352, 0.5153] J%=75.0
+    Alexis Ren          : f=0.1948 [0.0660, 0.5287] J%=96.7
+    Milo Manheim        : f=0.1723 [0.0577, 0.2681] J%=91.7
+    Evanna Lynch        : f=0.1499 [0.0520, 0.2958] J%=96.7
+    Joe Amabile         : f=0.1428 [0.0339, 0.3214] J%=76.7 [ELIMINATED]
+    Juan Pablo Di Pace  : f=0.0433 [0.0037, 0.1047] J%=100.0 [ELIMINATED]
+
+  Week 9:
+    Milo Manheim        : f=0.2684 [0.0410, 0.6198] J%=100.0 [ELIMINATED]
+    Bobby Bones         : f=0.2536 [0.0340, 0.6189] J%=90.0 [ELIMINATED]
+    Evanna Lynch        : f=0.2416 [0.0315, 0.5997] J%=100.0 [ELIMINATED]
+    Alexis Ren          : f=0.2365 [0.0331, 0.6208] J%=95.0 [ELIMINATED]
+
+======================================================================
+BAYESIAN INFERENCE SUMMARY
+======================================================================
+
+✓ COMPLETED: Fan vote share estimation for all season-weeks
+
+METHOD:
+  • MCMC sampling with Dirichlet proposals
+  • Elimination constraints enforced (Bottom-k must be eliminated)
+  • Rank-based aggregation: Combined = 0.5 * J_rank + 0.5 * F_rank
+
+OUTPUT:
+  • f(i,w): Estimated fan vote share for contestant i in week w
+  • 95% Credible Intervals for each estimate
+  • Uncertainty measured by CI width
+
+KEY STATISTICS:
+  • Total estimates: 2777
+  • Average CI width: 0.2786
+  • Average acceptance rate: 66.63%
+
+INTERPRETATION:
+  • Wider CI = More uncertainty about true fan vote share
+  • CI width varies by week (fewer contestants = narrower CI)
+  • Eliminated contestants constrained to have low combined score
+
+FILES SAVED:
+  • fan_vote_estimates.csv - All estimates with CIs
+  • inference_season_stats.csv - Season-level summary
+  • bayesian_inference_summary.png - Visualization
+
+======================================================================
+PHASE 2.1 BAYESIAN INFERENCE COMPLETE!
+======================================================================

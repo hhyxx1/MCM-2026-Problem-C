@@ -38,10 +38,14 @@ print(f"    Seasons: {estimates['season'].min()}-{estimates['season'].max()}")
 # CORE SIMULATION FUNCTIONS
 # =============================================================================
 
-def simulate_rank_method(season_data):
+def simulate_rank_method(season_data, judges_save=False):
     """
     Rank-based method: Combined = 0.5 * J_rank + 0.5 * F_rank
     每周淘汰combined_rank最高（最差）的k人
+    
+    Args:
+        season_data: DataFrame with season data
+        judges_save: If True, enable Judges' Save mechanism for Bottom 2
     """
     results = {}
     remaining = season_data['celebrity_name'].unique().tolist()
@@ -60,7 +64,8 @@ def simulate_rank_method(season_data):
             results[week] = {
                 'eliminated': [],
                 'method': 'rank',
-                'n_contestants': len(remaining)
+                'n_contestants': len(remaining),
+                'judges_saved': None
             }
             continue
         
@@ -72,12 +77,31 @@ def simulate_rank_method(season_data):
         
         # 淘汰combined_rank最高的k人
         df_sorted = df.sort_values('combined_rank', ascending=False)
-        eliminated = df_sorted.head(n_eliminated)['celebrity_name'].tolist()
+        
+        # =====================================================================
+        # JUDGES' SAVE MECHANISM (per Plan requirement)
+        # If enabled, and k=1, check Bottom 2: save the one with higher J_pct
+        # =====================================================================
+        judges_saved_name = None
+        if judges_save and n_eliminated == 1 and len(df) >= 2:
+            bottom_2 = df_sorted.head(2)
+            # Judge prefers higher J_pct (better dancer)
+            j_scores = bottom_2['J_pct'].values
+            if j_scores[0] > j_scores[1]:
+                # Bottom 1 has higher J_pct, save them and eliminate Bottom 2
+                judges_saved_name = bottom_2.iloc[0]['celebrity_name']
+                eliminated = [bottom_2.iloc[1]['celebrity_name']]
+            else:
+                # Normal elimination (Bottom 1 eliminated)
+                eliminated = df_sorted.head(n_eliminated)['celebrity_name'].tolist()
+        else:
+            eliminated = df_sorted.head(n_eliminated)['celebrity_name'].tolist()
         
         results[week] = {
             'eliminated': eliminated,
-            'method': 'rank',
+            'method': 'rank' + ('+save' if judges_save else ''),
             'n_contestants': len(remaining),
+            'judges_saved': judges_saved_name,
             'details': df[['celebrity_name', 'J_pct', 'f_mean', 'J_rank', 'F_rank', 'combined_rank']].to_dict('records')
         }
         
@@ -86,11 +110,15 @@ def simulate_rank_method(season_data):
     
     return results, remaining
 
-def simulate_pct_method(season_data):
+def simulate_pct_method(season_data, judges_save=False):
     """
     Percentage-based method: Combined = 0.5 * J_pct + 0.5 * F_pct
     其中 F_pct = f(i,w) * 100 / max(f(i,w))  # 归一化到0-100
     每周淘汰combined_pct最低（最差）的k人
+    
+    Args:
+        season_data: DataFrame with season data
+        judges_save: If True, enable Judges' Save mechanism for Bottom 2
     """
     results = {}
     remaining = season_data['celebrity_name'].unique().tolist()
@@ -109,7 +137,8 @@ def simulate_pct_method(season_data):
             results[week] = {
                 'eliminated': [],
                 'method': 'pct',
-                'n_contestants': len(remaining)
+                'n_contestants': len(remaining),
+                'judges_saved': None
             }
             continue
         
@@ -126,12 +155,32 @@ def simulate_pct_method(season_data):
         
         # 淘汰combined_pct最低的k人
         df_sorted = df.sort_values('combined_pct', ascending=True)
-        eliminated = df_sorted.head(n_eliminated)['celebrity_name'].tolist()
+        
+        # =====================================================================
+        # JUDGES' SAVE MECHANISM (per Plan requirement)
+        # If enabled, and k=1, check Bottom 2: save the one with higher J_pct
+        # =====================================================================
+        judges_saved_name = None
+        if judges_save and n_eliminated == 1 and len(df) >= 2:
+            bottom_2 = df_sorted.head(2)
+            # Judge prefers higher J_pct (better dancer)
+            j_scores = bottom_2['J_pct'].values
+            if j_scores[0] < j_scores[1]:
+                # Bottom 1 has lower J_pct, but if Bottom 2 has higher J_pct, save Bottom 2
+                # Wait - in pct method, lower combined = worse, so bottom_2[0] is worst
+                # Save if worst has lower J_pct than second worst
+                judges_saved_name = bottom_2.iloc[0]['celebrity_name']
+                eliminated = [bottom_2.iloc[1]['celebrity_name']]
+            else:
+                eliminated = df_sorted.head(n_eliminated)['celebrity_name'].tolist()
+        else:
+            eliminated = df_sorted.head(n_eliminated)['celebrity_name'].tolist()
         
         results[week] = {
             'eliminated': eliminated,
-            'method': 'pct',
+            'method': 'pct' + ('+save' if judges_save else ''),
             'n_contestants': len(remaining),
+            'judges_saved': judges_saved_name,
             'details': df[['celebrity_name', 'J_pct', 'f_mean', 'F_pct', 'combined_pct']].to_dict('records')
         }
         
@@ -140,8 +189,88 @@ def simulate_pct_method(season_data):
     
     return results, remaining
 
-def compare_methods(rank_results, pct_results, rank_final, pct_final, actual_eliminated):
-    """比较两种方法的结果"""
+
+def simulate_new_strategy(season_data, judges_save=True):
+    """
+    New Strategy (per Plan Phase 5 requirement):
+    Score = (0.5 + 0.05*t) * J% + (0.5 - 0.05*t) * log(F%)
+    Where t = week number (capped), and Judges' Save is enabled by default
+    
+    This is the recommended dynamic log-weighting strategy
+    """
+    results = {}
+    remaining = season_data['celebrity_name'].unique().tolist()
+    
+    for week in sorted(season_data['week'].unique()):
+        week_data = season_data[(season_data['week'] == week) & 
+                                 (season_data['celebrity_name'].isin(remaining))]
+        
+        if len(week_data) == 0:
+            continue
+        
+        # 实际淘汰人数
+        n_eliminated = week_data['was_eliminated'].sum()
+        
+        if n_eliminated == 0:
+            results[week] = {
+                'eliminated': [],
+                'method': 'new_strategy',
+                'n_contestants': len(remaining),
+                'judges_saved': None
+            }
+            continue
+        
+        # 计算动态权重
+        df = week_data.copy()
+        t = min(week, 10)  # Cap at week 10
+        alpha_j = 0.5 + 0.05 * (t - 1)  # Judge weight increases with time
+        alpha_j = min(alpha_j, 0.95)  # Cap at 0.95
+        alpha_f = 1 - alpha_j
+        
+        # Log transform for fan votes (avoid log(0))
+        df['F_log'] = np.log(df['f_mean'].clip(lower=0.001) * 100 + 1)
+        
+        # Normalize to 0-100 scale for combining
+        df['F_log_norm'] = (df['F_log'] - df['F_log'].min()) / (df['F_log'].max() - df['F_log'].min() + 0.001) * 100
+        
+        # Dynamic weighted score
+        df['combined_score'] = alpha_j * df['J_pct'] + alpha_f * df['F_log_norm']
+        
+        # 淘汰combined_score最低的k人
+        df_sorted = df.sort_values('combined_score', ascending=True)
+        
+        # JUDGES' SAVE for Bottom 2
+        judges_saved_name = None
+        if judges_save and n_eliminated == 1 and len(df) >= 2:
+            bottom_2 = df_sorted.head(2)
+            j_scores = bottom_2['J_pct'].values
+            if j_scores[0] < j_scores[1]:
+                # Bottom 1 has lower J_pct, save Bottom 2 (higher J_pct)
+                judges_saved_name = bottom_2.iloc[1]['celebrity_name']
+                eliminated = [bottom_2.iloc[0]['celebrity_name']]
+            else:
+                # Normal: eliminate the worst
+                eliminated = df_sorted.head(n_eliminated)['celebrity_name'].tolist()
+        else:
+            eliminated = df_sorted.head(n_eliminated)['celebrity_name'].tolist()
+        
+        results[week] = {
+            'eliminated': eliminated,
+            'method': 'new_strategy' + ('+save' if judges_save else ''),
+            'n_contestants': len(remaining),
+            'judges_saved': judges_saved_name,
+            'alpha_j': alpha_j,
+            'details': df[['celebrity_name', 'J_pct', 'f_mean', 'F_log_norm', 'combined_score']].to_dict('records')
+        }
+        
+        # 更新剩余选手
+        remaining = [c for c in remaining if c not in eliminated]
+    
+    return results, remaining
+
+def compare_methods(rank_results, pct_results, rank_final, pct_final, actual_eliminated,
+                    new_results=None, new_final=None):
+    """比较方法的结果 (支持2种或3种方法)"""
     comparison = {
         'weekly_diff': 0,
         'weeks_different': [],
@@ -149,6 +278,12 @@ def compare_methods(rank_results, pct_results, rank_final, pct_final, actual_eli
         'rank_final': rank_final,
         'pct_final': pct_final
     }
+    
+    # Add new strategy comparison if provided
+    if new_results is not None:
+        comparison['new_final'] = new_final
+        comparison['final_diff_new_vs_rank'] = new_final != rank_final
+        comparison['final_diff_new_vs_pct'] = new_final != pct_final
     
     all_weeks = set(rank_results.keys()) | set(pct_results.keys())
     
@@ -161,19 +296,26 @@ def compare_methods(rank_results, pct_results, rank_final, pct_final, actual_eli
         
         if rank_elim != pct_elim:
             comparison['weekly_diff'] += 1
-            comparison['weeks_different'].append({
+            diff_entry = {
                 'week': week,
                 'rank_eliminated': list(rank_elim),
                 'pct_eliminated': list(pct_elim),
                 'actual_eliminated': [c for c in actual_eliminated if actual_eliminated.get(c) == week]
-            })
+            }
+            
+            # Add new strategy elimination if available
+            if new_results and week in new_results:
+                diff_entry['new_eliminated'] = list(new_results[week]['eliminated'])
+                diff_entry['judges_saved'] = new_results[week].get('judges_saved')
+            
+            comparison['weeks_different'].append(diff_entry)
     
     return comparison
 
 # =============================================================================
-# RUN SIMULATION FOR ALL SEASONS
+# RUN SIMULATION FOR ALL SEASONS (3 methods per Plan)
 # =============================================================================
-print("\n[2] Running simulation for all seasons...")
+print("\n[2] Running simulation for all seasons (Rank, Percentage, New Strategy)...")
 
 all_comparisons = []
 
@@ -185,21 +327,33 @@ for season in sorted(estimates['season'].unique()):
     for _, row in season_data[season_data['was_eliminated'] == True].iterrows():
         actual_eliminated[row['celebrity_name']] = row['week']
     
-    # 模拟两种方法
-    rank_results, rank_final = simulate_rank_method(season_data)
-    pct_results, pct_final = simulate_pct_method(season_data)
+    # 模拟三种方法 (per Plan requirement: Rank, Percentage, New_Strategy)
+    rank_results, rank_final = simulate_rank_method(season_data, judges_save=False)
+    pct_results, pct_final = simulate_pct_method(season_data, judges_save=False)
+    new_results, new_final = simulate_new_strategy(season_data, judges_save=True)
+    
+    # Also test with Judges' Save toggle
+    rank_save_results, rank_save_final = simulate_rank_method(season_data, judges_save=True)
     
     # 比较
-    comparison = compare_methods(rank_results, pct_results, rank_final, pct_final, actual_eliminated)
+    comparison = compare_methods(rank_results, pct_results, rank_final, pct_final, 
+                                  actual_eliminated, new_results, new_final)
     comparison['season'] = season
     comparison['n_weeks'] = len(rank_results)
+    comparison['rank_save_final'] = rank_save_final
+    comparison['judges_save_changed_final'] = rank_final != rank_save_final
+    
+    # Count how many weeks Judges' Save was used
+    save_count = sum(1 for w, r in new_results.items() if r.get('judges_saved') is not None)
+    comparison['judges_save_count'] = save_count
     
     all_comparisons.append(comparison)
     
     # 打印每季结果
     if comparison['weekly_diff'] > 0:
+        save_str = f", Save used {save_count}x" if save_count > 0 else ""
         print(f"    Season {season}: {comparison['weekly_diff']} weeks differ "
-              f"(Final: {comparison['final_diff']})")
+              f"(Final: Rank={rank_final}, Pct={pct_final}, New={new_final}{save_str})")
     else:
         print(f"    Season {season}: Methods agree (No difference)")
 

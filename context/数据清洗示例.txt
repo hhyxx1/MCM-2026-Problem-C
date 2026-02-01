@@ -1,0 +1,147 @@
+示例1：
+Data Pre-processing
+Since we can only use the official COMAP dataset ’Problem_C_Data_Wordle.xlsx’,
+and the given data is obtained by mining Twitter, there is a possibility of data anoma-
+lies, so we pre-processed this part of the data before building the model.
+• Fill: We replace the outliers in Number of reported results with the average of the
+before and after data.
+• Reject: We remove the entire data where the sum of the distribution of the re-
+ported results deviates from 100%.
+• We remove the entire word that has a number of letters not equal to 5, including
+"clen" and "tash".
+
+示例2
+Data Cleaning
+Observing the provided data, some problems and corresponding processing are found as follows.
+Referencing the Wordle Status and we discovered that there were some erroneous data in the
+attachment. These included incorrect word lengths, spelling errors, and incorrect values in Number
+of reported results, among others. For instance, the word at 314 was mistakenly written as "tash".
+Additionally, the Number of reported results at 529 was erroneously recorded as 2569. To address
+these issues, we conducted data cleaning to minimize errors , and to enhance the quality and
+accuracy of our data . The following are the results of our data cleaning process.
+Original datamarxh(473)tash(314)clen(525)rprobe(545)2569(529)
+Data after cleaningmarshtrashcleanprobe25569
+Table 1: Data cleaning
+During our data inspection, we identified instances where the sum of the proportion of attempts
+for certain days did not equal 100% due to statistical errors. To address this issue, we recalculated
+the proportions for each day so that the sum would be exactly 100%. By doing so, we aimed to
+reduce errors associated with the same
+P variable on different days and to improve the accuracy of
+our model.Our processing result is ...
+
+示例3：
+Data Cleaning
+While examining the dataset we found two types of outliers in the dataset: word lengths
+that are not 5 and an unusually low number of total reports. Details of the anomalous data
+are as follows.
+DateContest numberWordNumber of
+reported results
+2022/12/16
+2022/11/26
+2022/4/29
+2022/11/30545
+525
+314
+529rprobe
+clen
+tash
+study22853
+26381
+106652
+2569
+To ensure the correctness of the data, we chose to use the removal of anomalous data
+instead of correction and interpolation.
+For KNN regression and classification, to avoid the effect of magnitudes on calculat-
+ing the distance between observations, we normalized the data according to the following
+equation.
+𝑥𝑖𝑗∗ =
+𝑥𝑖𝑗 − 𝑥
+𝑠𝑑 (𝑋𝑗 )
+,
+where 𝑥𝑖𝑗 is i-th observation of criteria j, 𝑋𝑗 is all the observations of criteria j, 𝑥𝑖𝑗∗ is
+normalized data. The normalized data had a mean of 0 and a variance of 1.
+
+
+示例4：
+Data pre-processing
+Before building the model, a preliminary check of the data in the report is needed. Ac-
+cording to the rules of Wordle, each word is 5 letters long. But there are unusual statistics of 4
+or 6 letters in the data. Errors in words can interfere with the analysis of word attributes later,
+so the word data were corrected based on past answer data1. Based on the relationship between
+the number of reports, we found that there was a large deviation between the number of results
+of No. 529 and the values on the before and after dates. Therefore, we considered it as abnormal
+data and corrected it by taking the average value of the data for each of the two days before
+and after. The overall pre-processing process is shown in Figure 2.
+...
+Figure 2: Data pre-processing
+
+示例5：
+Data Cleaning
+Topic C reports on the use of Wordle in the past year. However, we found a lot of dirty data in this
+report.
+Table 2: Dirty data
+Contest numberWord
+525
+314
+540
+473
+207clen
+tash
+naı̈ve
+marxh
+favor
+Number of reported results Number in hard mode 1 try 2 tries 3 tries
+26381
+106652
+21947
+30935
+137586
+2424
+7001
+2075
+2885
+3073
+1
+2
+1
+0
+1
+17
+19
+7
+9
+4
+36
+34
+24
+30
+15
+4 tries 5 tries 6 tries 7 or more tries (X)
+31
+27
+32
+35
+26
+12
+13
+24
+19
+29
+3
+4
+11
+6
+21
+0
+1
+1
+1
+4
+In the data shown above, the two words numbered 525, and 314 do not match the game because they
+are only 4 in length, so we inferred that the dataset blundered by under-entering the letters. To solve
+such a problem, we found the most similar letters to them instead by comparing them with artificial
+intelligence algorithms. The word numbered 540 is due to a misspelling of the letter, which should
+be ”naive.” We searched the word database and found that the word ”marxh,” numbered 473, did not
+exist. We then compared the shapes of the words with database analysis and concluded that the correct
+spelling should be ”marsh.” The word numbered 207 has an extra space in the input, so it is also an
+outlier. We can delete the extra space to get the correct data.

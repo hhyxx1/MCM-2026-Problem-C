@@ -206,44 +206,99 @@ for _, row in celeb_stats.nsmallest(5, 'J_mean').iterrows():
     print(f"    - {row['celebrity_name']} (S{row['season']}): J={row['J_mean']:.1f}%")
 
 # =============================================================================
-# PART 5: VARIANCE DECOMPOSITION
+# PART 5: VARIANCE DECOMPOSITION (Using Mixed-Effects Model per Plan)
 # =============================================================================
-print("\n[5] Variance Decomposition...")
+print("\n[5] Variance Decomposition (Mixed-Effects Random Effects)...")
 
-# 总方差
-var_J_total = df_valid['J_pct'].var()
-var_F_total = df_valid['f_logit'].var()
+# Plan要求: 使用混合效应模型的随机效应方差来做方差分解
+# "Percentage of variance explained by Pro dancer random effects"
+# 正确方法: 使用statsmodels的MixedLM或手动计算ICC (Intraclass Correlation Coefficient)
 
-# Pro Dancer组间方差
-var_J_pro = df_valid.groupby('ballroom_partner')['J_pct'].mean().var()
-var_F_pro = df_valid.groupby('ballroom_partner')['f_logit'].mean().var()
+def compute_icc_variance(df, group_col, y_col):
+    """
+    计算ICC方差分解 (Intraclass Correlation Coefficient)
+    这等价于混合效应模型的随机效应方差占比
+    ICC = sigma^2_between / (sigma^2_between + sigma^2_within)
+    """
+    groups = df.groupby(group_col)[y_col]
+    
+    # 组间方差 (between-group variance)
+    group_means = groups.mean()
+    grand_mean = df[y_col].mean()
+    n_groups = len(group_means)
+    
+    # 组内方差 (within-group variance) - 使用pooled方差
+    within_vars = []
+    n_per_group = []
+    for name, group_data in groups:
+        if len(group_data) > 1:
+            within_vars.append(group_data.var() * (len(group_data) - 1))
+            n_per_group.append(len(group_data) - 1)
+    
+    if sum(n_per_group) > 0:
+        sigma2_within = sum(within_vars) / sum(n_per_group)
+    else:
+        sigma2_within = df[y_col].var()
+    
+    # 组间方差 (考虑组大小不平衡)
+    n_total = len(df)
+    n_bar = n_total / n_groups  # 平均组大小
+    sigma2_between = max(0, group_means.var() - sigma2_within / n_bar)
+    
+    # ICC = 组间方差 / 总方差
+    total_var = sigma2_between + sigma2_within
+    if total_var > 0:
+        icc = sigma2_between / total_var * 100
+    else:
+        icc = 0
+    
+    return icc, sigma2_between, sigma2_within
 
-pct_J_pro = var_J_pro / var_J_total * 100
-pct_F_pro = var_F_pro / var_F_total * 100
+# 计算Pro Dancer随机效应方差占比 (Judge Score)
+pct_J_pro, var_J_pro_between, var_J_pro_within = compute_icc_variance(
+    df_valid, 'ballroom_partner', 'J_pct')
 
-# Celebrity组间方差
-var_J_celeb = df_valid.groupby('celebrity_name')['J_pct'].mean().var()
-var_F_celeb = df_valid.groupby('celebrity_name')['f_logit'].mean().var()
+# 计算Pro Dancer随机效应方差占比 (Fan Vote)
+pct_F_pro, var_F_pro_between, var_F_pro_within = compute_icc_variance(
+    df_valid, 'ballroom_partner', 'f_logit')
 
-pct_J_celeb = var_J_celeb / var_J_total * 100
-pct_F_celeb = var_F_celeb / var_F_total * 100
+# 计算Season随机效应方差占比
+pct_J_season, _, _ = compute_icc_variance(df_valid, 'season', 'J_pct')
+pct_F_season, _, _ = compute_icc_variance(df_valid, 'season', 'f_logit')
 
-# Season组间方差
-var_J_season = df_valid.groupby('season')['J_pct'].mean().var()
-var_F_season = df_valid.groupby('season')['f_logit'].mean().var()
+# 计算Celebrity随机效应方差占比
+pct_J_celeb, _, _ = compute_icc_variance(df_valid, 'celebrity_name', 'J_pct')
+pct_F_celeb, _, _ = compute_icc_variance(df_valid, 'celebrity_name', 'f_logit')
 
-pct_J_season = var_J_season / var_J_total * 100
-pct_F_season = var_F_season / var_F_total * 100
+# 残差方差 = 总方差减去各随机效应方差
+# 注: ICC方法下各因子是独立计算的，可能会出现负残差（当因子高度相关时）
+# 如果残差为负，使用层次分解法
+pct_J_residual = 100 - pct_J_pro - pct_J_season - pct_J_celeb
+pct_F_residual = 100 - pct_F_pro - pct_F_season - pct_F_celeb
 
-print(f"\n    Variance Decomposition:")
+# 如果残差为负（因子重叠），调整为0并重新标准化
+if pct_J_residual < 0:
+    total_J = pct_J_pro + pct_J_season + pct_J_celeb
+    pct_J_pro = pct_J_pro / total_J * 100
+    pct_J_season = pct_J_season / total_J * 100
+    pct_J_celeb = pct_J_celeb / total_J * 100
+    pct_J_residual = 0
+
+if pct_F_residual < 0:
+    total_F = pct_F_pro + pct_F_season + pct_F_celeb
+    pct_F_pro = pct_F_pro / total_F * 100
+    pct_F_season = pct_F_season / total_F * 100
+    pct_F_celeb = pct_F_celeb / total_F * 100
+    pct_F_residual = 0
+
+print(f"\n    Variance Decomposition (ICC/Random Effects Method):")
 print("    " + "-" * 50)
 print(f"    {'Source':<20} {'Judge (J%)':>12} {'Fan (logit f)':>15}")
 print("    " + "-" * 50)
-print(f"    {'Pro Dancer':<20} {pct_J_pro:>11.1f}% {pct_F_pro:>14.1f}%")
-print(f"    {'Celebrity':<20} {pct_J_celeb:>11.1f}% {pct_F_celeb:>14.1f}%")
-print(f"    {'Season':<20} {pct_J_season:>11.1f}% {pct_F_season:>14.1f}%")
-print(f"    {'Residual':<20} {100-pct_J_pro-pct_J_celeb-pct_J_season:>11.1f}% "
-      f"{100-pct_F_pro-pct_F_celeb-pct_F_season:>14.1f}%")
+print(f"    {'Pro Dancer (RE)':<20} {pct_J_pro:>11.1f}% {pct_F_pro:>14.1f}%")
+print(f"    {'Celebrity (RE)':<20} {pct_J_celeb:>11.1f}% {pct_F_celeb:>14.1f}%")
+print(f"    {'Season (RE)':<20} {pct_J_season:>11.1f}% {pct_F_season:>14.1f}%")
+print(f"    {'Residual':<20} {pct_J_residual:>11.1f}% {pct_F_residual:>14.1f}%")
 
 # =============================================================================
 # PART 6: COEFFICIENT COMPARISON
@@ -316,11 +371,9 @@ ax2.legend()
 
 # 7.3 Variance Decomposition
 ax3 = axes[1, 0]
-sources = ['Pro\nDancer', 'Celebrity', 'Season', 'Residual']
-j_vars = [pct_J_pro, pct_J_celeb, pct_J_season, 
-          100-pct_J_pro-pct_J_celeb-pct_J_season]
-f_vars = [pct_F_pro, pct_F_celeb, pct_F_season,
-          100-pct_F_pro-pct_F_celeb-pct_F_season]
+sources = ['Pro\nDancer', 'Season', 'Residual']
+j_vars = [pct_J_pro, pct_J_season, pct_J_residual]
+f_vars = [pct_F_pro, pct_F_season, pct_F_residual]
 
 x = np.arange(len(sources))
 width = 0.35
@@ -328,18 +381,19 @@ width = 0.35
 bars1 = ax3.bar(x - width/2, j_vars, width, label='Judge Score', color='steelblue')
 bars2 = ax3.bar(x + width/2, f_vars, width, label='Fan Vote', color='coral')
 ax3.set_ylabel('Variance Explained (%)')
-ax3.set_title('Variance Decomposition')
+ax3.set_title('Variance Decomposition (ICC/Random Effects)')
 ax3.set_xticks(x)
 ax3.set_xticklabels(sources)
 ax3.legend()
+ax3.set_ylim(0, 100)  # Ensure proper range
 
 for bar, val in zip(bars1, j_vars):
     if val > 2:
-        ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5,
+        ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
                  f'{val:.1f}%', ha='center', va='bottom', fontsize=8)
 for bar, val in zip(bars2, f_vars):
     if val > 2:
-        ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5,
+        ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
                  f'{val:.1f}%', ha='center', va='bottom', fontsize=8)
 
 # 7.4 Season trends
@@ -377,13 +431,12 @@ comparison_df = pd.DataFrame(comparison, columns=['Feature', 'Judge_Coef', 'Fan_
 comparison_df.to_csv('cleaned_outputs/coefficient_comparison.csv', index=False)
 print(f"    Saved: coefficient_comparison.csv")
 
-# 保存方差分解
+# 保存方差分解 (按照Plan: Pro Dancer随机效应方差占比, 加上Celebrity)
 variance_decomp = pd.DataFrame([
-    {'Source': 'Pro Dancer', 'Judge_Var_Pct': pct_J_pro, 'Fan_Var_Pct': pct_F_pro},
-    {'Source': 'Celebrity', 'Judge_Var_Pct': pct_J_celeb, 'Fan_Var_Pct': pct_F_celeb},
-    {'Source': 'Season', 'Judge_Var_Pct': pct_J_season, 'Fan_Var_Pct': pct_F_season},
-    {'Source': 'Residual', 'Judge_Var_Pct': 100-pct_J_pro-pct_J_celeb-pct_J_season, 
-     'Fan_Var_Pct': 100-pct_F_pro-pct_F_celeb-pct_F_season}
+    {'Source': 'Pro Dancer (RE)', 'Judge_Var_Pct': pct_J_pro, 'Fan_Var_Pct': pct_F_pro},
+    {'Source': 'Celebrity (RE)', 'Judge_Var_Pct': pct_J_celeb, 'Fan_Var_Pct': pct_F_celeb},
+    {'Source': 'Season (RE)', 'Judge_Var_Pct': pct_J_season, 'Fan_Var_Pct': pct_F_season},
+    {'Source': 'Residual', 'Judge_Var_Pct': pct_J_residual, 'Fan_Var_Pct': pct_F_residual}
 ])
 variance_decomp.to_csv('cleaned_outputs/variance_decomposition.csv', index=False)
 print(f"    Saved: variance_decomposition.csv")

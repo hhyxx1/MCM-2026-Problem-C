@@ -78,6 +78,40 @@ print(ci_by_era.to_string(index=False))
 # =============================================================================
 print("\n[3] Analyzing CONSISTENCY (Elimination Prediction)...")
 
+# =========================================================================
+# INDICATOR B.2: Posterior Consistency P_w (per Plan requirement)
+# P_w = Prob(E_w is Bottom-k | posterior), from MCMC sampling frequency
+# =========================================================================
+print("\n    [3a] Posterior Consistency P_w (from Bayesian inference)...")
+
+# P_w is now computed in bayesian_inference.py and stored in fan_vote_estimates.csv
+if 'P_w' in estimates.columns:
+    # Calculate overall posterior consistency
+    P_w_by_week = estimates.groupby(['season', 'week'])['P_w'].first().reset_index()
+    
+    avg_P_w = P_w_by_week['P_w'].mean()
+    print(f"    Average Posterior Consistency (P_bar): {avg_P_w:.4f}")
+    print(f"    Min P_w: {P_w_by_week['P_w'].min():.4f}")
+    print(f"    Max P_w: {P_w_by_week['P_w'].max():.4f}")
+    
+    # P_w by era
+    P_w_by_week['era'] = P_w_by_week['season'].apply(
+        lambda s: 'Early (S1-10)' if s <= 10 else ('Middle (S11-20)' if s <= 20 else 
+                  ('Late (S21-27)' if s <= 27 else 'TikTok (S28+)'))
+    )
+    P_w_by_era = P_w_by_week.groupby('era')['P_w'].agg(['mean', 'std', 'count']).round(4)
+    print("\n    Posterior Consistency by Era:")
+    print(P_w_by_era.to_string())
+else:
+    print("    WARNING: P_w not found in estimates. Re-run bayesian_inference.py")
+    P_w_by_week = None
+    avg_P_w = None
+
+# =========================================================================
+# INDICATOR B.1: Exact-Match Rate (deterministic check using point estimates)
+# =========================================================================
+print("\n    [3b] Exact-Match Rate (using posterior mean/median)...")
+
 # 计算每个season-week的预测准确性
 # 使用rank-based方法：Combined = 0.5 * J_rank + 0.5 * F_rank
 
@@ -346,14 +380,21 @@ print("\n[7] Saving results...")
 consistency_df.to_csv('cleaned_outputs/consistency_analysis.csv', index=False)
 print(f"    Saved: consistency_analysis.csv ({len(consistency_df)} rows)")
 
-# 保存CI分析结果
-ci_summary = estimates.groupby(['season', 'week']).agg({
+# 保存CI分析结果 (now includes P_w if available)
+agg_dict = {
     'ci_width': ['mean', 'std', 'min', 'max'],
     'f_mean': 'mean',
     'n_contestants': 'first',
     'acceptance_rate': 'first'
-}).round(4)
-ci_summary.columns = ['ci_mean', 'ci_std', 'ci_min', 'ci_max', 'f_mean', 'n_contestants', 'acceptance_rate']
+}
+col_names = ['ci_mean', 'ci_std', 'ci_min', 'ci_max', 'f_mean', 'n_contestants', 'acceptance_rate']
+
+if 'P_w' in estimates.columns:
+    agg_dict['P_w'] = 'first'
+    col_names.append('P_w')
+
+ci_summary = estimates.groupby(['season', 'week']).agg(agg_dict).round(4)
+ci_summary.columns = col_names
 ci_summary = ci_summary.reset_index()
 ci_summary.to_csv('cleaned_outputs/certainty_summary.csv', index=False)
 print(f"    Saved: certainty_summary.csv ({len(ci_summary)} rows)")
@@ -365,10 +406,17 @@ print("\n" + "=" * 70)
 print("CERTAINTY & CONSISTENCY SUMMARY")
 print("=" * 70)
 
-print("""
+# Build summary text
+P_w_text = ""
+if 'P_w' in estimates.columns:
+    P_w_text = f"""
+• Posterior Consistency (P_bar): {estimates.groupby(['season','week'])['P_w'].first().mean():.4f}
+  - This is Prob(E_w = Bottom-k | posterior samples), per Plan requirement"""
+
+print(f"""
 CERTAINTY (How confident are we about f(i,w) estimates?):
 ---------------------------------------------------------
-• Average CI Width: {:.3f} (on [0,1] scale)
+• Average CI Width: {estimates['ci_width'].mean():.3f} (on [0,1] scale)
 • Narrower CI when:
   - More contestants in the week (more constraints)
   - Later weeks (more elimination history)
@@ -376,8 +424,8 @@ CERTAINTY (How confident are we about f(i,w) estimates?):
 
 CONSISTENCY (How well do estimates predict eliminations?):
 ----------------------------------------------------------
-• Exact Match Rate: {:.1%}
-• Average Overlap Rate: {:.1%}
+• Exact Match Rate: {consistency_df['exact_match'].mean():.1%}
+• Average Overlap Rate: {consistency_df['overlap_rate'].mean():.1%}{P_w_text}
 • Better predictions when:
   - CI Width is narrower
   - Clear separation between eliminated and safe contestants
@@ -398,13 +446,9 @@ IMPLICATIONS FOR PHASE 3:
 FILES SAVED:
 ------------
 • consistency_analysis.csv - Week-level prediction accuracy
-• certainty_summary.csv - CI width statistics
+• certainty_summary.csv - CI width statistics (now includes P_w)
 • certainty_consistency_analysis.png - Visualizations
-""".format(
-    estimates['ci_width'].mean(),
-    consistency_df['exact_match'].mean(),
-    consistency_df['overlap_rate'].mean()
-))
+""")
 
 print("=" * 70)
 print("PATCH 3 COMPLETE!")
