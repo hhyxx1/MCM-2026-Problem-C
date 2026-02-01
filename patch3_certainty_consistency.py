@@ -289,10 +289,12 @@ for _, row in s27_consistency.iterrows():
 # =============================================================================
 print("\n[6] Generating visualizations...")
 
-fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+import os
+output_dir = 'cleaned_outputs/patch3_certainty'
+os.makedirs(output_dir, exist_ok=True)
 
-# 5.1 CI Width by Number of Contestants
-ax1 = axes[0, 0]
+# --- 5.1 CI Width by Number of Contestants (单独图) ---
+fig1, ax1 = plt.subplots(figsize=(8, 6))
 ax1.bar(ci_by_n['n_contestants'], ci_by_n['avg_ci_width'], color='steelblue', alpha=0.7)
 ax1.errorbar(ci_by_n['n_contestants'], ci_by_n['avg_ci_width'], 
              yerr=ci_by_n['std_ci_width'], fmt='none', color='black', capsize=3)
@@ -300,9 +302,12 @@ ax1.set_xlabel('Number of Contestants')
 ax1.set_ylabel('Average CI Width')
 ax1.set_title('Certainty: CI Width by Number of Contestants')
 ax1.set_xticks(range(2, 14))
+plt.tight_layout()
+plt.savefig(f'{output_dir}/ci_width_by_contestants.png', dpi=150, bbox_inches='tight')
+plt.close()
 
-# 5.2 CI Width by Week
-ax2 = axes[0, 1]
+# --- 5.2 CI Width by Week (单独图) ---
+fig2, ax2 = plt.subplots(figsize=(8, 6))
 ax2.plot(ci_by_week['week'], ci_by_week['avg_ci_width'], 'o-', color='darkorange')
 ax2.fill_between(ci_by_week['week'], 
                   ci_by_week['avg_ci_width'] - ci_by_week['std_ci_width'],
@@ -311,9 +316,12 @@ ax2.fill_between(ci_by_week['week'],
 ax2.set_xlabel('Week')
 ax2.set_ylabel('Average CI Width')
 ax2.set_title('Certainty: CI Width by Week')
+plt.tight_layout()
+plt.savefig(f'{output_dir}/ci_width_by_week.png', dpi=150, bbox_inches='tight')
+plt.close()
 
-# 5.3 Exact Match Rate by Season
-ax3 = axes[0, 2]
+# --- 5.3 Exact Match Rate by Season (单独图) ---
+fig3, ax3 = plt.subplots(figsize=(10, 6))
 seasons = consistency_by_season['season']
 rates = consistency_by_season['exact_match_rate']
 colors = ['green' if r > 0.5 else 'red' for r in rates]
@@ -321,19 +329,25 @@ ax3.bar(seasons, rates, color=colors, alpha=0.7)
 ax3.axhline(y=0.5, color='black', linestyle='--', linewidth=1)
 ax3.set_xlabel('Season')
 ax3.set_ylabel('Exact Match Rate')
-ax3.set_title('Consistency: Elimination Prediction Accuracy')
+ax3.set_title('Consistency: Elimination Prediction Accuracy by Season')
+plt.tight_layout()
+plt.savefig(f'{output_dir}/exact_match_by_season.png', dpi=150, bbox_inches='tight')
+plt.close()
 
-# 5.4 CI Width vs Overlap Rate (Scatter)
-ax4 = axes[1, 0]
+# --- 5.4 CI Width vs Overlap Rate (单独图) ---
+fig4, ax4 = plt.subplots(figsize=(8, 6))
 scatter = ax4.scatter(consistency_df['avg_ci_width'], consistency_df['overlap_rate'],
                        c=consistency_df['n_contestants'], cmap='viridis', alpha=0.6, s=30)
 plt.colorbar(scatter, ax=ax4, label='# Contestants')
 ax4.set_xlabel('Average CI Width')
 ax4.set_ylabel('Overlap Rate')
 ax4.set_title(f'Certainty vs Consistency (r={corr_ci_overlap:.2f})')
+plt.tight_layout()
+plt.savefig(f'{output_dir}/certainty_vs_consistency_scatter.png', dpi=150, bbox_inches='tight')
+plt.close()
 
-# 5.5 Era Comparison
-ax5 = axes[1, 1]
+# --- 5.5 Era Comparison (单独图) ---
+fig5, ax5 = plt.subplots(figsize=(10, 6))
 era_order = ['Early (S1-10)', 'Middle (S11-20)', 'Late (S21-27)', 'TikTok (S28+)']
 ci_by_era_sorted = ci_by_era.set_index('era').loc[era_order].reset_index()
 consistency_by_era_sorted = consistency_by_era.set_index('era').loc[era_order].reset_index()
@@ -354,8 +368,78 @@ ax5.set_xticklabels(era_order, rotation=15, ha='right')
 ax5.set_title('Certainty & Consistency by Era')
 ax5.legend(loc='upper left')
 ax5_twin.legend(loc='upper right')
+plt.tight_layout()
+plt.savefig(f'{output_dir}/era_comparison.png', dpi=150, bbox_inches='tight')
+plt.close()
 
-# 5.6 Distribution of CI Width
+# --- 5.6 Distribution of CI Width (单独图) ---
+fig6, ax6 = plt.subplots(figsize=(8, 6))
+ax6.hist(estimates['ci_width'], bins=50, color='mediumpurple', alpha=0.7, edgecolor='black')
+ax6.axvline(x=estimates['ci_width'].mean(), color='red', linestyle='--', 
+            label=f'Mean={estimates["ci_width"].mean():.3f}')
+ax6.axvline(x=estimates['ci_width'].median(), color='green', linestyle='--',
+            label=f'Median={estimates["ci_width"].median():.3f}')
+ax6.set_xlabel('CI Width')
+ax6.set_ylabel('Frequency')
+ax6.set_title('Distribution of Credible Interval Width')
+ax6.legend()
+plt.tight_layout()
+plt.savefig(f'{output_dir}/ci_width_distribution.png', dpi=150, bbox_inches='tight')
+plt.close()
+
+print(f"    Saved 6 individual plots to {output_dir}/")
+
+# --- 生成面板图 (保留原有功能) ---
+fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+
+ax1 = axes[0, 0]
+ax1.bar(ci_by_n['n_contestants'], ci_by_n['avg_ci_width'], color='steelblue', alpha=0.7)
+ax1.errorbar(ci_by_n['n_contestants'], ci_by_n['avg_ci_width'], 
+             yerr=ci_by_n['std_ci_width'], fmt='none', color='black', capsize=3)
+ax1.set_xlabel('Number of Contestants')
+ax1.set_ylabel('Average CI Width')
+ax1.set_title('Certainty: CI Width by Number of Contestants')
+ax1.set_xticks(range(2, 14))
+
+ax2 = axes[0, 1]
+ax2.plot(ci_by_week['week'], ci_by_week['avg_ci_width'], 'o-', color='darkorange')
+ax2.fill_between(ci_by_week['week'], 
+                  ci_by_week['avg_ci_width'] - ci_by_week['std_ci_width'],
+                  ci_by_week['avg_ci_width'] + ci_by_week['std_ci_width'],
+                  alpha=0.3, color='orange')
+ax2.set_xlabel('Week')
+ax2.set_ylabel('Average CI Width')
+ax2.set_title('Certainty: CI Width by Week')
+
+ax3 = axes[0, 2]
+ax3.bar(seasons, rates, color=colors, alpha=0.7)
+ax3.axhline(y=0.5, color='black', linestyle='--', linewidth=1)
+ax3.set_xlabel('Season')
+ax3.set_ylabel('Exact Match Rate')
+ax3.set_title('Consistency: Elimination Prediction Accuracy')
+
+ax4 = axes[1, 0]
+scatter = ax4.scatter(consistency_df['avg_ci_width'], consistency_df['overlap_rate'],
+                       c=consistency_df['n_contestants'], cmap='viridis', alpha=0.6, s=30)
+plt.colorbar(scatter, ax=ax4, label='# Contestants')
+ax4.set_xlabel('Average CI Width')
+ax4.set_ylabel('Overlap Rate')
+ax4.set_title(f'Certainty vs Consistency (r={corr_ci_overlap:.2f})')
+
+ax5 = axes[1, 1]
+bars1 = ax5.bar(x - width/2, ci_by_era_sorted['avg_ci_width'], width, label='CI Width', color='steelblue')
+ax5_twin = ax5.twinx()
+bars2 = ax5_twin.bar(x + width/2, consistency_by_era_sorted['exact_match_rate'], width, 
+                      label='Exact Match Rate', color='coral')
+ax5.set_xlabel('Era')
+ax5.set_ylabel('CI Width', color='steelblue')
+ax5_twin.set_ylabel('Exact Match Rate', color='coral')
+ax5.set_xticks(x)
+ax5.set_xticklabels(era_order, rotation=15, ha='right')
+ax5.set_title('Certainty & Consistency by Era')
+ax5.legend(loc='upper left')
+ax5_twin.legend(loc='upper right')
+
 ax6 = axes[1, 2]
 ax6.hist(estimates['ci_width'], bins=50, color='mediumpurple', alpha=0.7, edgecolor='black')
 ax6.axvline(x=estimates['ci_width'].mean(), color='red', linestyle='--', 
@@ -369,7 +453,9 @@ ax6.legend()
 
 plt.tight_layout()
 plt.savefig('cleaned_outputs/certainty_consistency_analysis.png', dpi=150, bbox_inches='tight')
-print("    Saved: certainty_consistency_analysis.png")
+plt.savefig(f'{output_dir}/panel_all.png', dpi=150, bbox_inches='tight')
+plt.close()
+print("    Saved: certainty_consistency_analysis.png (panel)")
 
 # =============================================================================
 # PART 6: SAVE RESULTS

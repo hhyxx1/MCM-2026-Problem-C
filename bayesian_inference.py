@@ -361,10 +361,72 @@ print(f"    Saved: inference_season_stats.csv ({len(df_season_stats)} rows)")
 print("\n[6] Generating visualizations...")
 
 import matplotlib.pyplot as plt
+import os
 
+# 创建单独图片的目录
+img_dir = f'{output_dir}/bayesian_inference'
+os.makedirs(img_dir, exist_ok=True)
+
+# 准备数据
+week_ci = df_estimates.groupby('week')['ci_width'].agg(['mean', 'std']).reset_index()
+
+# --- Plot 1: CI Width Distribution (单独图) ---
+fig1, ax1 = plt.subplots(figsize=(8, 6))
+ax1.hist(df_estimates['ci_width'], bins=50, edgecolor='black', alpha=0.7, color='steelblue')
+ax1.axvline(df_estimates['ci_width'].mean(), color='red', linestyle='--', 
+            label=f'Mean={df_estimates["ci_width"].mean():.3f}')
+ax1.set_xlabel('95% Credible Interval Width')
+ax1.set_ylabel('Frequency')
+ax1.set_title('Distribution of Estimation Uncertainty')
+ax1.legend()
+plt.tight_layout()
+plt.savefig(f'{img_dir}/ci_width_distribution.png', dpi=150, bbox_inches='tight')
+plt.close()
+
+# --- Plot 2: CI Width by Week (单独图) ---
+fig2, ax2 = plt.subplots(figsize=(8, 6))
+ax2.errorbar(week_ci['week'], week_ci['mean'], yerr=week_ci['std'], 
+             fmt='o-', capsize=3, color='steelblue')
+ax2.set_xlabel('Week')
+ax2.set_ylabel('Mean CI Width')
+ax2.set_title('Estimation Uncertainty by Week\n(Later weeks have fewer contestants)')
+plt.tight_layout()
+plt.savefig(f'{img_dir}/ci_width_by_week.png', dpi=150, bbox_inches='tight')
+plt.close()
+
+# --- Plot 3: f_mean vs J_pct (单独图) ---
+fig3, ax3 = plt.subplots(figsize=(8, 6))
+ax3.scatter(df_estimates['J_pct'], df_estimates['f_mean'], 
+            c=df_estimates['was_eliminated'].astype(int), 
+            cmap='coolwarm', alpha=0.5, s=20)
+ax3.set_xlabel('Judge Score (%)')
+ax3.set_ylabel('Estimated Fan Vote Share')
+ax3.set_title('Fan Vote Share vs Judge Score\n(Red=Eliminated, Blue=Survived)')
+z = np.polyfit(df_estimates['J_pct'], df_estimates['f_mean'], 1)
+p = np.poly1d(z)
+x_line = np.linspace(df_estimates['J_pct'].min(), df_estimates['J_pct'].max(), 100)
+ax3.plot(x_line, p(x_line), 'g--', linewidth=2, label=f'Trend')
+ax3.legend()
+plt.tight_layout()
+plt.savefig(f'{img_dir}/fan_vote_vs_judge_score.png', dpi=150, bbox_inches='tight')
+plt.close()
+
+# --- Plot 4: Season-level Statistics (单独图) ---
+fig4, ax4 = plt.subplots(figsize=(10, 6))
+ax4.bar(df_season_stats['season'], df_season_stats['avg_ci_width'], 
+        color='steelblue', edgecolor='black', alpha=0.7)
+ax4.set_xlabel('Season')
+ax4.set_ylabel('Average CI Width')
+ax4.set_title('Estimation Uncertainty by Season')
+plt.tight_layout()
+plt.savefig(f'{img_dir}/uncertainty_by_season.png', dpi=150, bbox_inches='tight')
+plt.close()
+
+print(f"    Saved 4 individual plots to {img_dir}/")
+
+# --- 生成面板图 (保留原有功能) ---
 fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-# Plot 1: CI Width Distribution
 ax1 = axes[0, 0]
 ax1.hist(df_estimates['ci_width'], bins=50, edgecolor='black', alpha=0.7, color='steelblue')
 ax1.axvline(df_estimates['ci_width'].mean(), color='red', linestyle='--', 
@@ -374,16 +436,13 @@ ax1.set_ylabel('Frequency')
 ax1.set_title('Distribution of Estimation Uncertainty')
 ax1.legend()
 
-# Plot 2: CI Width by Week
 ax2 = axes[0, 1]
-week_ci = df_estimates.groupby('week')['ci_width'].agg(['mean', 'std']).reset_index()
 ax2.errorbar(week_ci['week'], week_ci['mean'], yerr=week_ci['std'], 
              fmt='o-', capsize=3, color='steelblue')
 ax2.set_xlabel('Week')
 ax2.set_ylabel('Mean CI Width')
 ax2.set_title('Estimation Uncertainty by Week\n(Later weeks have fewer contestants)')
 
-# Plot 3: f_mean vs J_pct
 ax3 = axes[1, 0]
 ax3.scatter(df_estimates['J_pct'], df_estimates['f_mean'], 
             c=df_estimates['was_eliminated'].astype(int), 
@@ -391,15 +450,9 @@ ax3.scatter(df_estimates['J_pct'], df_estimates['f_mean'],
 ax3.set_xlabel('Judge Score (%)')
 ax3.set_ylabel('Estimated Fan Vote Share')
 ax3.set_title('Fan Vote Share vs Judge Score\n(Red=Eliminated, Blue=Survived)')
-
-# Add trend line
-z = np.polyfit(df_estimates['J_pct'], df_estimates['f_mean'], 1)
-p = np.poly1d(z)
-x_line = np.linspace(df_estimates['J_pct'].min(), df_estimates['J_pct'].max(), 100)
 ax3.plot(x_line, p(x_line), 'g--', linewidth=2, label=f'Trend')
 ax3.legend()
 
-# Plot 4: Season-level Statistics
 ax4 = axes[1, 1]
 ax4.bar(df_season_stats['season'], df_season_stats['avg_ci_width'], 
         color='steelblue', edgecolor='black', alpha=0.7)
@@ -409,7 +462,8 @@ ax4.set_title('Estimation Uncertainty by Season')
 
 plt.tight_layout()
 plt.savefig(f'{output_dir}/bayesian_inference_summary.png', dpi=150, bbox_inches='tight')
-print(f"    Saved: bayesian_inference_summary.png")
+plt.savefig(f'{img_dir}/panel_all.png', dpi=150, bbox_inches='tight')
+print(f"    Saved: bayesian_inference_summary.png (panel)")
 
 plt.close()
 
