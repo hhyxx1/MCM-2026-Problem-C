@@ -22,7 +22,11 @@
 \usepackage{float}
 \usepackage{booktabs}
 \usepackage{titlesec}
+\usepackage{enumitem}
 \usepackage{hyperref}
+
+\setlength{\headheight}{14.5pt}
+\addtolength{\topmargin}{-2.5pt}
 
 \hypersetup{
     colorlinks=true,
@@ -274,26 +278,151 @@ Having established reliable fan vote estimates, we now proceed to design and eva
 
 \section{Pareto Optimization Model for Dynamic Weighting Rules}
 
+The core challenge in voting rule design is balancing two competing objectives: \textbf{Meritocracy} (rewarding technical excellence) and \textbf{Engagement} (maintaining audience participation). Rather than arbitrarily choosing weights, we formulate this as a multi-objective optimization problem and search for Pareto-optimal rules.
+
 \subsection{Dual Objective Definition}
-% J = Spearman(最终排名, 评委排名) - 精英选拔
-% F = Spearman(最终排名, 粉丝排名) - 粉丝参与
-% Balance = 2JF/(J+F) - 调和平均
+
+We define two correlation-based objectives to quantify rule performance:
+
+\begin{definition}[Meritocracy Index]
+The Spearman correlation between final placement and judge ranking:
+\begin{equation}
+    J = \rho_s(\text{FinalRank}, \text{JudgeRank})
+\end{equation}
+Higher $J$ indicates that technically superior contestants (as judged by professionals) achieve better final placements.
+\end{definition}
+
+\begin{definition}[Engagement Index]
+The Spearman correlation between final placement and fan ranking:
+\begin{equation}
+    F = \rho_s(\text{FinalRank}, \text{FanRank})
+\end{equation}
+Higher $F$ indicates that fan-favored contestants achieve better final placements, reflecting meaningful audience participation.
+\end{definition}
+
+The traditional approach uses the harmonic mean as a balance metric:
+\begin{equation}
+    \text{Balance}_{trad} = \frac{2JF}{J + F}
+\end{equation}
+
+\textbf{Baseline Comparison under Traditional Metrics:} Figure~\ref{fig:key_rules} compares three aggregation rules using traditional metrics. Under the harmonic mean Balance, the Rank-Based rule slightly outperforms both Percentage-Based and Dynamic Log-Weighted rules. This suggests that \textit{under traditional evaluation, static rules appear optimal}---motivating our development of a phase-aware evaluation framework.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\linewidth]{cleaned_outputs/phase4_pareto/key_rules_comparison.png}
+    \caption{Comparison of Three Aggregation Rules under Traditional Metrics. $\rho_J$: Judge-Final correlation (meritocracy); $\rho_F$: Fan-Final correlation (engagement); $H$: Harmonic mean balance. Note that Rank-Based achieves the highest Balance, but this metric ignores phase-specific requirements.}
+    \label{fig:key_rules}
+\end{figure}
+
+However, this metric treats all weeks equally and fails to capture the \textit{phase-differentiated} value of dynamic rules.
 
 \subsection{Multi-Phase Evaluation Framework}
-% 阶段划分：早期/中期/后期
-% 动态模式得分：(F_early - F_late) + (J_late - J_early)
-% 阶段Balance：早期侧重F，后期侧重J
-% 综合得分：多维度加权
+
+\textbf{Key Insight:} Competition stages have different priorities. Early weeks should emphasize fan engagement (to build audience investment), while later weeks should emphasize meritocracy (to ensure credible champions).
+
+\textbf{Phase Division:} For a season with $N$ weeks (typically 8--11 across DWTS history), we divide the competition into three equal phases. This trichotomy balances phase differentiation with statistical stability, and reflects the natural progression from audience-building (early) to championship contention (late):
+\begin{itemize}[noitemsep]
+    \item \textbf{Early Phase:} Weeks $1$ to $\lfloor N/3 \rfloor$ --- Fan engagement priority
+    \item \textbf{Middle Phase:} Weeks $\lfloor N/3 \rfloor + 1$ to $\lfloor 2N/3 \rfloor$ --- Balanced transition
+    \item \textbf{Late Phase:} Weeks $\lfloor 2N/3 \rfloor + 1$ to $N$ --- Meritocracy priority
+\end{itemize}
+
+We compute phase-specific metrics $J_{early}, F_{early}, J_{late}, F_{late}$ by averaging correlations within each phase.
+
+\begin{definition}[Dynamic Pattern Score]
+A metric that rewards rules achieving high fan engagement early and high meritocracy late:
+\begin{equation}
+    \text{DynPat} = (F_{early} - F_{late}) + (J_{late} - J_{early})
+\end{equation}
+Higher DynPat indicates stronger phase differentiation in the desired direction.
+\end{definition}
+
+\begin{definition}[Phased Balance]
+A weighted balance that emphasizes $F$ in early weeks and $J$ in late weeks:
+\begin{equation}
+    \text{Balance}_{phased} = \frac{1}{2}\left[(0.4 J_{early} + 0.6 F_{early}) + (0.6 J_{late} + 0.4 F_{late})\right]
+\end{equation}
+\end{definition}
+
+\textbf{Composite Score:} We combine multiple objectives into a single evaluation metric:
+\begin{equation}
+    \text{Score} = 0.35 \cdot \text{Balance}_{trad} + 0.30 \cdot \text{Balance}_{phased} + 0.25 \cdot \max(0, 0.3 \cdot \text{DynPat}) + 0.10
+\end{equation}
 
 \subsection{Rule Space Search}
-% 静态规则：Rank制 vs Pct制
-% 旧动态规则：线性 + 对数平滑
-% 新动态规则：Sigmoid + Rank制
+
+We search over 107 rule configurations spanning static and dynamic weighting schemes.
+
+\textbf{Static Rules (Baseline):} Fixed judge weight throughout the season:
+\begin{equation}
+    \text{Score}(i,t) = w_J \cdot J_{rank}(i) + (1-w_J) \cdot F_{rank}(i), \quad w_J \in [0.35, 0.65]
+\end{equation}
+
+\textbf{Sigmoid Dynamic Rules (Proposed):} Judge weight follows an S-curve:
+\begin{equation}
+    w_J(t) = w_{min} + \frac{w_{max} - w_{min}}{1 + e^{-s(t/T - 0.5)}}
+\end{equation}
+where $w_{min}$ is the early-stage judge weight, $w_{max}$ is the late-stage judge weight, and $s$ controls transition steepness.
+
+\textbf{Parameter Ranges:}
+\begin{table}[H]
+\centering
+\begin{tabular}{lcl}
+\toprule
+\textbf{Parameter} & \textbf{Range} & \textbf{Interpretation} \\
+\midrule
+$w_{min}$ & $[0.30, 0.45]$ & Early-stage judge weight (lower = more fan influence) \\
+$w_{max}$ & $[0.55, 0.75]$ & Late-stage judge weight (higher = more judge influence) \\
+$s$ (steepness) & $\{3, 4, 5, 6\}$ & Transition speed (higher = sharper mid-season shift) \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Optimal Rule Selection}
-% Pareto前沿分析
-% 最优配置：Sigmoid(0.30, 0.75, 6)
-% 综合得分 +21.6%，5:3胜出
+
+After evaluating all 107 configurations across 34 seasons, we identify the optimal dynamic rule.
+
+\textbf{Why Not Traditional Balance Alone?} The traditional harmonic mean Balance favors static rules because it averages performance across all weeks without distinguishing competition stages. However, the show's value proposition differs by phase: early weeks need audience investment (high $F$), while late weeks need credible champions (high $J$). A rule that achieves $J = F = 0.55$ uniformly is \textit{less desirable} than one achieving $F_{early} = 0.88$ and $J_{late} = 0.91$, even if their overall averages are similar. This motivates our multi-phase evaluation framework, which explicitly rewards phase-appropriate behavior.
+
+\textbf{Optimal Configuration:} $\boxed{\text{Sigmoid}(w_{min}=0.30, w_{max}=0.75, s=6)}$
+
+\begin{table}[H]
+\centering
+\caption{Head-to-Head Comparison: Best Static vs. Best Dynamic Rule}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Metric} & \textbf{Static Rank(0.50)} & \textbf{Sigmoid(0.30,0.75,6)} & \textbf{Winner} \\
+\midrule
+Early Fan Engagement ($F_{early}$) & 0.575 & \textbf{0.879} & $\star$ Dynamic \\
+Late Meritocracy ($J_{late}$) & 0.545 & \textbf{0.913} & $\star$ Dynamic \\
+Early Meritocracy ($J_{early}$) & \textbf{0.433} & 0.224 & Static \\
+Late Fan Engagement ($F_{late}$) & \textbf{0.579} & 0.261 & Static \\
+Traditional Balance & \textbf{0.567} & 0.506 & Static \\
+Phased Balance & 0.566 & \textbf{0.585} & $\star$ Dynamic \\
+Dynamic Pattern & $-0.028$ & \textbf{1.555} & $\star$ Dynamic \\
+\textbf{Composite Score} & 0.468 & \textbf{0.569} & $\star$ Dynamic \\
+\midrule
+\multicolumn{3}{l}{\textbf{Final Verdict}} & \textbf{Dynamic wins 5:3} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key Findings:}
+\begin{enumerate}[noitemsep]
+    \item The Sigmoid rule achieves \textbf{+52.7\% improvement} in early fan engagement ($F_{early}$: 0.575 $\rightarrow$ 0.879).
+    \item The Sigmoid rule achieves \textbf{+67.5\% improvement} in late meritocracy ($J_{late}$: 0.545 $\rightarrow$ 0.913).
+    \item The composite score improves by \textbf{+21.6\%} (0.468 $\rightarrow$ 0.569).
+    \item Dynamic rules win on 5 of 8 evaluation dimensions.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\linewidth]{cleaned_outputs/phase5_recommendation/dynamic_weights.png}
+    \caption{Weight Evolution under Optimal Sigmoid Rule. Judge weight increases from 30\% (Week 1) to 75\% (finale), following an S-curve that ensures smooth transition.}
+    \label{fig:weight_evolution}
+\end{figure}
+
+\textbf{Interpretation:} The optimal rule embodies the principle: \textit{``The deeper into the competition, the more judges' opinions matter.''} Early weeks allow fan favorites to survive (building audience investment), while late weeks ensure technical excellence determines the champion.
 
 \section{Rule Simulation and Mechanism Comparison}
 
