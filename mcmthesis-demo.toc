@@ -1,0 +1,46 @@
+\contentsline {section}{\numberline {1}Introduction}{4}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Problem Background}{4}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Restatement of the Problem}{4}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Our work}{4}{subsection.1.3}%
+\contentsline {section}{\numberline {2}Assumptions and Justifications}{5}{section.2}%
+\contentsline {section}{\numberline {3}Notations}{6}{section.3}%
+\contentsline {section}{\numberline {4}Insurance Pricing and Decision Model}{6}{section.4}%
+\contentsline {section}{\numberline {5}Insurance Pricing and Decision Model}{6}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Data Collection}{6}{subsection.5.1}%
+\contentsline {section}{\numberline {6}Data Pre-processing}{6}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Identified Data Anomalies}{6}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Data Cleaning Process}{7}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Judge Score Standardization ($J\%$)}{7}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Panel Data Conversion}{7}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.5}Covariate Standardization}{7}{subsection.6.5}%
+\contentsline {subsubsection}{\numberline {6.5.1}Cleaning Results Summary}{8}{subsubsection.6.5.1}%
+\contentsline {subsection}{\numberline {6.6}Risk Analysis}{8}{subsection.6.6}%
+\contentsline {subsubsection}{\numberline {6.6.1}Expected Annual Loss (EAL)}{8}{subsubsection.6.6.1}%
+\contentsline {subsubsection}{\numberline {6.6.2}Community Risk Factor (CRF)}{9}{subsubsection.6.6.2}%
+\contentsline {subsubsection}{\numberline {6.6.3}Risk Calculation}{10}{subsubsection.6.6.3}%
+\contentsline {subsection}{\numberline {6.7}Insurance Premium}{11}{subsection.6.7}%
+\contentsline {subsection}{\numberline {6.8}Measures}{15}{subsection.6.8}%
+\contentsline {subsubsection}{\numberline {6.8.1}Insurance Securitization}{15}{subsubsection.6.8.1}%
+\contentsline {subsubsection}{\numberline {6.8.2}Co-operation with the Government}{16}{subsubsection.6.8.2}%
+\contentsline {subsubsection}{\numberline {6.8.3}The Implementation of Measures}{16}{subsubsection.6.8.3}%
+\contentsline {subsection}{\numberline {6.9}Real Estate Decision Making}{17}{subsection.6.9}%
+\contentsline {section}{\numberline {7}Building Preservation Model}{18}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Building Value Quantification}{18}{subsection.7.1}%
+\contentsline {subsubsection}{\numberline {7.1.1}Indicators Determination}{18}{subsubsection.7.1.1}%
+\contentsline {subsubsection}{\numberline {7.1.2}Weight Calculation}{20}{subsubsection.7.1.2}%
+\contentsline {subsubsection}{\numberline {7.1.3}Quantitative Results of Building Values}{21}{subsubsection.7.1.3}%
+\contentsline {subsection}{\numberline {7.2}Determination of protection measures}{22}{subsection.7.2}%
+\contentsline {subsubsection}{\numberline {7.2.1}Measure Score}{22}{subsubsection.7.2.1}%
+\contentsline {subsubsection}{\numberline {7.2.2}Score of Protection Measures}{22}{subsubsection.7.2.2}%
+\contentsline {subsubsection}{\numberline {7.2.3}Mentoring for Community Leaders}{23}{subsubsection.7.2.3}%
+\contentsline {section}{\numberline {8}Landmark Case Analysis}{23}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Insurance Pricing for Tokyo Tower}{23}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Architectural Value of Tokyo Tower}{24}{subsection.8.2}%
+\contentsline {section}{\numberline {9}Sensitivity and Robustness Analysis}{24}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Sensitivity}{24}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Robustness}{25}{subsection.9.2}%
+\contentsline {section}{\numberline {10}Model Evaluation}{25}{section.10}%
+\contentsline {subsection}{\numberline {10.1}Strengths}{25}{subsection.10.1}%
+\contentsline {subsection}{\numberline {10.2}Weaknesses}{25}{subsection.10.2}%
+\contentsline {section}{Appendices}{27}{section*.18}%
+\contentsline {section}{Appendix \numberline {A}First Appendix}{27}{appendix.1.A}%
