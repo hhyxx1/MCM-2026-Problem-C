@@ -55,10 +55,18 @@
 \end{tabular}}
 %%%%%%%%%%% Begin Summary %%%%%%%%%%%
 \begin{center}
-\textbf{\Large Title}
+\textbf{\Large The Fairness-Engagement Equilibrium Model for DWTS Voting Reform}
 \end{center}
 
-Summary
+This paper addresses the voting rule optimization problem in Dancing with the Stars (DWTS), aiming to balance professional judging standards with audience engagement. We collected and processed data from 34 seasons, covering 421 contestants and 2,777 weekly observations. After standardizing judge scores (converting both 30-point and 40-point scales to percentages) and removing invalid entries (N/A and zero scores), we constructed a Popularity Bias Index (PBI = $Rank_{Judge} - Rank_{Final}$) ranging from $-8.5$ to $+6.0$, where positive values indicate fan-driven survivals.
+
+We developed a Bayesian inverse inference model using Hit-and-Run MCMC sampling to estimate hidden fan vote shares $f(i,w)$ under simplex constraints ($\sum_i f = 1$, $f \geq 0$). The model achieved 95.2\% prediction accuracy on non-anomalous elimination weeks, with an average 95\% credible interval width of 0.288, demonstrating reliable uncertainty quantification. This inference forms the foundation for counterfactual simulations under alternative voting rules.
+
+We established a Pareto optimization framework with dual objectives: Meritocracy ($J$ = Spearman correlation between final ranking and judge ranking) and Engagement ($F$ = correlation with fan ranking). A multi-phase evaluation scheme divides each season into early, middle, and late stages, rewarding rules that achieve high $F$ in early weeks and high $J$ in late weeks. Among 107 rule configurations tested, the Sigmoid dynamic weighting rule (parameters: $w_{min}=0.30$, $w_{max}=0.75$, steepness$=6$) achieved the highest composite score of 0.570, outperforming the best static rule (Rank 50-50, score 0.469) by 21.6\%.
+
+Comparative analysis revealed that Rank-based scoring outperforms Percentage-based scoring: Rank method yields $J=0.665$ versus Pct method $J=0.454$ (46.4\% improvement), while maintaining comparable engagement ($F=0.704$ vs $0.706$). Historical case studies on four controversial outcomes---Jerry Rice (S2), Billy Ray Cyrus (S4), Bristol Palin (S11), and Bobby Bones (S27, winner with lowest judge scores)---confirmed that the proposed rule would correct all four anomalies.
+
+We recommend replacing the current Percentage-based system with a Sigmoid-weighted Rank system: $Score(t) = w_J(t) \cdot J_{rank} + (1-w_J(t)) \cdot F_{rank}$, where $w_J(t) = 0.30 + 0.45/(1+e^{-6(t/T-0.5)})$. This design increases early-stage fan engagement by 52.7\% ($F_{early}$: 0.58 $\rightarrow$ 0.89) and late-stage meritocracy by 67.5\% ($J_{late}$: 0.55 $\rightarrow$ 0.92), achieving the principle that ``the deeper into competition, the more judges' opinions matter.''
 %%%%%%%%%%% End Summary %%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -222,28 +230,11 @@ Summary
 
 \section{Memo to the Producer}
 
-\subsection{Problem Diagnosis}
-% 社交媒体时代刷票问题
-
-\subsection{Recommended Solution}
-% Sigmoid动态权重 + Rank制
-% 公式：Score(t) = w_J(t) * J_rank + (1-w_J(t)) * F_rank
-% 权重演化：30% → 75%
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{cleaned_outputs/phase5_recommendation/dynamic_weights.png}
     \caption{Proposed Sigmoid Dynamic Weighting Scheme. The weight of Meritocracy increases smoothly from 30\% to 75\% as the season progresses.}
     \label{fig:weights}
 \end{figure}
-
-\subsection{Expected Benefits}
-% 早期粉丝参与 +52.7%
-% 后期精英选拔 +67.5%
-% 综合得分 +21.6%
-
-\subsection{Optional Mechanism: Judges' Save}
-% 仅对Bottom 2生效
-% 评委可挑选一人进行保护
 
 \end{document}
