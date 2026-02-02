@@ -555,14 +555,156 @@ Under the Rank method, adding Judges' Save \textbf{improves} JFI by 1.3 percenta
 
 \section{Covariate Effect Analysis}
 
-\subsection{Pro Dancer Effect Model}
-% 评委分数模型：J% ~ Age + Industry + Pro_Partner + Week
-% 粉丝票模型：logit(f) ~ Age + Industry + Pro_Partner + J%
-% 方差分解：Pro Dancer随机效应解释的方差百分比
+Beyond voting mechanisms, we investigate how contestant and partner characteristics influence competition outcomes. Specifically, we ask: \textit{How much do pro dancers and celebrity attributes (age, industry, region) impact performance? Do these factors affect judge scores and fan votes in the same way?}
+
+\subsection{Mixed-Effects Model Specification}
+
+We employ linear mixed-effects models to decompose variance in both judge scores and fan vote shares. The model structure is:
+
+\textbf{Judge Score Model:}
+$$
+J\%_{i,t} = \beta_0 + \beta_1 \cdot \text{Age}_i + \sum_k \gamma_k \cdot \text{Industry}_{i,k} + \beta_2 \cdot \text{Week}_t + u_{\text{pro}(i)} + v_{\text{celeb}(i)} + w_s + \epsilon_{i,t}
+$$
+
+\textbf{Fan Vote Model:}
+$$
+\text{logit}(\hat{f}_{i,t}) = \alpha_0 + \alpha_1 \cdot \text{Age}_i + \sum_k \delta_k \cdot \text{Industry}_{i,k} + \alpha_2 \cdot J\%_{i,t} + u'_{\text{pro}(i)} + v'_{\text{celeb}(i)} + w'_s + \eta_{i,t}
+$$
+
+where $u, v, w$ represent random effects for professional dancer, celebrity, and season respectively. This specification allows us to quantify the variance contribution of each factor.
+
+\subsection{Variance Decomposition}
+
+Table~\ref{tab:variance} presents the percentage of total variance explained by each source:
+
+\begin{table}[H]
+\centering
+\caption{Variance Decomposition: Judge Scores vs. Fan Votes}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Source} & \textbf{Judge Score (\%)} & \textbf{Fan Vote (\%)} \\
+\midrule
+Pro Dancer (Random Effect) & 28.6 & 31.0 \\
+Celebrity (Random Effect) & 52.6 & 42.2 \\
+Season (Random Effect) & 3.4 & 9.4 \\
+Residual & 15.4 & 17.3 \\
+\bottomrule
+\end{tabular}
+\label{tab:variance}
+\end{table}
+
+\textbf{Key Finding:} The variance decomposition reveals \textbf{asymmetric} influences on judge scores versus fan votes:
+
+\begin{itemize}
+    \item \textbf{Celebrity effect is stronger for judges} (52.6\% vs. 42.2\%). Judges respond more to the celebrity's intrinsic dancing ability and improvement trajectory.
+    
+    \item \textbf{Season effect is stronger for fans} (9.4\% vs. 3.4\%). Fan voting behavior is more influenced by external factors such as social media trends and voting platform changes.
+    
+    \item \textbf{Pro dancer effect is similar} (28.6\% vs. 31.0\%). Professional partners contribute roughly equally to both judge scores and fan appeal.
+\end{itemize}
+
+This asymmetry implies that strategies to boost judge scores (e.g., intensive training) differ from strategies to boost fan votes (e.g., social media engagement).
+
+\subsection{Pro Dancer Effect Analysis}
+
+We compute the ``lift'' for each professional dancer---the deviation from the grand mean after controlling for celebrity and season effects:
+
+$$
+\text{J\_lift}_p = \bar{J}^{(p)} - \bar{J}^{(\text{all})}, \quad \text{F\_lift}_p = \bar{F}^{(p)} - \bar{F}^{(\text{all})}
+$$
+
+Table~\ref{tab:pro_dancer} shows selected professional dancers with contrasting effects:
+
+\begin{table}[H]
+\centering
+\caption{Pro Dancer Effect: Impact on Judge Scores vs. Fan Votes}
+\begin{tabular}{lcccl}
+\toprule
+\textbf{Pro Dancer} & \textbf{J\_lift} & \textbf{F\_lift} & \textbf{n} & \textbf{Pattern} \\
+\midrule
+Derek Hough & $+8.05$ & $+1.65$ & 17 & Judge booster \\
+Mark Ballas & $+5.88$ & $+1.16$ & 20 & Judge booster \\
+Julianne Hough & $+3.79$ & $+2.18$ & 5 & Dual booster \\
+Cheryl Burke & $+1.34$ & $+1.11$ & 24 & Balanced \\
+Lacey Schwimmer & $-6.85$ & $+1.44$ & 6 & Fan specialist \\
+Tristan MacManus & $-9.43$ & $-1.90$ & 5 & Dual negative \\
+\bottomrule
+\end{tabular}
+\label{tab:pro_dancer}
+\end{table}
+
+\textbf{Critical Observation:} Some dancers exhibit \textbf{opposite effects} on judge scores versus fan votes. Lacey Schwimmer, for instance, shows J\_lift = $-6.85$ but F\_lift = $+1.44$, indicating she boosts fan appeal while potentially sacrificing technical polish. This divergence suggests that professional dancers employ different choreographic and presentation strategies.
 
 \subsection{Celebrity Industry Effect}
-% 行业分类：运动员/演员/歌手/政客等
-% 名人效应对评委分和粉丝票的差异化影响
+
+We analyze how celebrity industry category affects the Popularity Bias Index (PBI = $\bar{R}^J - R^*$), which captures the gap between judge-predicted and actual placement:
+
+\begin{table}[H]
+\centering
+\caption{Industry Effect on Competition Outcomes}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Industry} & \textbf{avg PBI} & \textbf{avg J\%} & \textbf{n} & \textbf{Interpretation} \\
+\midrule
+Comedian & $+0.26$ & 60.7 & 12 & Low J, high fan support \\
+Politician & $+0.07$ & 57.3 & 3 & Low J, controversial \\
+TV Personality & $-0.53$ & 70.6 & 72 & Balanced \\
+Athlete & $-0.55$ & 74.2 & 99 & High J, moderate fan \\
+Actor & $-1.11$ & 74.5 & 128 & High J, underperforms \\
+Musician & $-1.42$ & 74.9 & 62 & Highest J, weak fan base \\
+Model & $-2.27$ & 68.0 & 18 & Moderate J, lowest fan \\
+\bottomrule
+\end{tabular}
+\label{tab:industry}
+\end{table}
+
+\textbf{Key Insights:}
+\begin{enumerate}
+    \item \textbf{Musicians} achieve the highest average judge scores (74.9\%) but the most negative PBI ($-1.42$), indicating their technical skills translate to judge approval but not fan votes.
+    
+    \item \textbf{Comedians} show the opposite pattern: lowest judge scores (60.7\%) but positive PBI ($+0.26$), suggesting their entertainment value resonates more with audiences than judges.
+    
+    \item \textbf{Athletes} represent a middle ground with high judge scores (74.2\%) and moderate PBI ($-0.55$), likely due to their physical coordination and competitive mindset.
+\end{enumerate}
+
+\subsection{Age Effect}
+
+We examine how contestant age influences both metrics:
+
+\begin{table}[H]
+\centering
+\caption{Age Effect on Judge Scores and Fan Support}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Age Group} & \textbf{avg J\%} & \textbf{avg PBI} & \textbf{n} & \textbf{Pattern} \\
+\midrule
+18--25 & 80.7 & $-0.85$ & 67 & Highest J, moderate fan \\
+26--35 & 76.3 & $-0.57$ & 135 & High J, best fan ratio \\
+36--45 & 72.3 & $-1.15$ & 100 & Moderate J, weak fan \\
+46--55 & 68.0 & $-1.53$ & 68 & Lower J, weakest fan \\
+55+ & 60.2 & $-0.36$ & 51 & Lowest J, strong fan \\
+\bottomrule
+\end{tabular}
+\label{tab:age}
+\end{table}
+
+The age effect shows a \textbf{non-linear pattern}. Young contestants (18--25) achieve the highest judge scores due to physical agility, while older contestants (55+) receive lower scores but enjoy relatively strong fan support (PBI = $-0.36$), possibly due to ``underdog'' appeal.
+
+\subsection{Summary: Differential Impact}
+
+To directly answer the MCM question: \textbf{No, these factors do NOT impact judge scores and fan votes in the same way.}
+
+\begin{itemize}
+    \item \textbf{Pro Dancers:} Some boost judge scores (Derek Hough: $+8.05$) while others boost fan votes (Lacey Schwimmer: $+1.44$), with occasional opposite effects.
+    
+    \item \textbf{Industry:} Musicians excel with judges but struggle with fans; Comedians show the reverse pattern.
+    
+    \item \textbf{Age:} Young contestants dominate judge scores; older contestants receive compensating fan support.
+    
+    \item \textbf{Variance Structure:} Celebrity identity explains more judge variance (52.6\% vs. 42.2\%), while season context explains more fan variance (9.4\% vs. 3.4\%).
+\end{itemize}
+
+These findings have practical implications for the show's casting and partnership decisions, which we address in the Memo to Producer.
 
 \section{Model Evaluation and Sensitivity Analysis}
 
