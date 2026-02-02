@@ -92,11 +92,11 @@ We recommend a Rank-based Sigmoid dynamic weighting scheme where judge weight in
 
 \textit{Dancing with the Stars} (DWTS) is a celebrity dance competition that has aired on ABC since 2005, spanning 34 seasons and featuring over 400 contestants. Each season pairs approximately 12 celebrities---drawn from diverse backgrounds including athletes, actors, musicians, and public figures---with professional ballroom dancers. Couples perform weekly routines judged by a panel of experts, while viewers cast votes to support their favorites. The contestant with the lowest combined score is eliminated each week until a champion emerges after approximately 10 weeks.
 
-The show employs a hybrid evaluation system combining \textbf{professional judgment} and \textbf{audience participation}. A panel of 3--4 judges assigns technical scores (originally out of 30 points, later expanded to 40), while viewers vote through phone, text, and online platforms. These two inputs are aggregated to determine eliminations, though the exact combination formula and raw vote counts have never been publicly disclosed. This opacity has fueled recurring debates about whether the scoring mechanism appropriately balances competitive merit with entertainment appeal.
+The show employs a hybrid evaluation system combining professional judgment and audience participation. A panel of 3--4 judges assigns technical scores (originally out of 30 points, later expanded to 40), while viewers vote through phone, text, and online platforms. These two inputs are aggregated to determine eliminations, though the exact combination formula and raw vote counts have never been publicly disclosed. This opacity has fueled recurring debates about whether the scoring mechanism appropriately balances competitive merit with entertainment appeal.
 
 Several seasons have produced controversial outcomes that sparked public criticism. In Season 27, radio personality Bobby Bones won the Mirror Ball Trophy despite receiving the lowest average judge scores among finalists---a result widely attributed to his dedicated fan base mobilizing votes. Season 11 saw Bristol Palin, daughter of politician Sarah Palin, advance to third place amid accusations of politically-motivated voting. Similar patterns appeared with Jerry Rice (Season 2) and Billy Ray Cyrus (Season 4), where fan popularity appeared to override technical assessment. These episodes raise fundamental questions about whether the current system serves the show's dual objectives of rewarding dance excellence and maintaining audience engagement.
 
-Two primary aggregation methods have been discussed for combining judge scores and fan votes: the \textbf{Percentage-based} system, which weights raw score proportions, and the \textbf{Rank-based} system, which weights ordinal positions. Additionally, the show introduced a ``\textbf{Judges' Save}'' mechanism allowing the panel to rescue one couple from the bottom two once per season. Understanding how these design choices affect outcomes---and whether they favor one evaluation channel over the other---is essential for optimizing the competition format.
+Two primary aggregation methods have been discussed for combining judge scores and fan votes: the Percentage-based system, which weights raw score proportions, and the Rank-based system, which weights ordinal positions. Additionally, the show introduced a ``Judges' Save'' mechanism allowing the panel to rescue one couple from the bottom two once per season. Understanding how these design choices affect outcomes---and whether they favor one evaluation channel over the other---is essential for optimizing the competition format.
 
 \subsection{Problem Restatement}
 
@@ -221,7 +221,7 @@ To justify the need for voting rule reform, we conducted a global scan across al
 \begin{equation}
     \mathcal{D}(s) = 1 - \rho_s(R^J, R^*)
 \end{equation}
-where $\rho_s$ is the Spearman correlation between weekly judge rankings $R^J$ and final placements $R^*$. Higher $\mathcal{D}$ indicates greater disagreement between judges and fans.
+where $\rho_s$ is the Spearman correlation between weekly judge rankings $R^J$ and final placements $R^*$ \cite{spearman1904}. Higher $\mathcal{D}$ indicates greater disagreement between judges and fans.
 
 We categorized the 34 seasons into six social media eras based on platform adoption: Pre-Social (S1--3, 2005--2006), Early Social (S4--9, 2006--2009), Peak Facebook (S10--15, 2009--2012), Multi-Platform (S16--23, 2012--2016), Instagram Era (S24--28, 2016--2018), and TikTok Era (S29--34, 2019--2021). Linear regression revealed a significant upward trend in divergence over time (slope = $+0.0068$ per season, $R^2 = 0.12$, $p < 0.05$), indicating that fan-judge disagreement has systematically increased. The most striking outliers appeared in Season 27 ($\mathcal{D} = 0.92$, Bobby Bones controversy) and Season 24 ($\mathcal{D} = 0.79$), both in the Instagram Era when organized fan voting campaigns became prevalent.
 
@@ -244,7 +244,7 @@ Era-level analysis showed that mean divergence increased from 0.61 in the Pre-So
 
 \section{Bayesian Inverse Inference Model for Fan Vote Estimation}
 
-Since fan votes are never disclosed by the show, we face a critical missing variable problem. However, elimination outcomes contain implicit information: eliminated contestants must have the lowest combined scores. We treat fan vote shares as latent variables and employ Bayesian inference to reconstruct their posterior distribution.
+Since fan votes are never disclosed by the show, we face a critical missing variable problem. However, elimination outcomes contain implicit information: eliminated contestants must have the lowest combined scores. We treat fan vote shares as latent variables and employ Bayesian inference to reconstruct their posterior distribution \cite{gelman2013bda}.
 
 \subsection{Problem Formulation}
 
@@ -270,14 +270,14 @@ The elimination constraint can be rewritten as linear inequalities on $\mathbf{f
     F\%_s - F\%_e > J\%_e - J\%_s \quad \forall s \in S_t, e \in E_t
 \end{equation}
 
-These constraints define a convex polytope in the $(n_t-1)$-dimensional simplex, and our goal is to sample uniformly from this feasible region.
+These constraints define a convex polytope in the $(n_t-1)$-dimensional simplex, and our goal is to sample uniformly from this feasible region \cite{boyd2004}.
 
 \subsection{Hit-and-Run MCMC Algorithm}
 
-We employ the Hit-and-Run algorithm to sample from the constrained polytope:
+We employ the Hit-and-Run algorithm to sample from the constrained polytope \cite{lovaszvempala2006}:
 
 \begin{enumerate}
-    \item \textbf{Initialization:} Find the analytic center of the polytope using linear programming:
+    \item \textbf{Initialization:} Find the analytic center of the polytope using linear programming \cite{boyd2004}:
     \begin{equation}
         \mathbf{f}^{(0)} = \arg\max_{\mathbf{f}} \sum_j \log(b_j - \mathbf{a}_j^T \mathbf{f})
     \end{equation}
@@ -295,7 +295,7 @@ We employ the Hit-and-Run algorithm to sample from the constrained polytope:
     \item \textbf{State Update:} Sample $\lambda^* \sim U[\lambda_{\min}, \lambda_{\max}]$ and set $\mathbf{f}^{(k+1)} = \mathbf{f}^{(k)} + \lambda^* \mathbf{d}$
 \end{enumerate}
 
-We use 5,000 posterior samples with 1,000 burn-in iterations per week. The Gelman-Rubin diagnostic confirms convergence ($\hat{R} < 1.05$).
+We use 5,000 posterior samples with 1,000 burn-in iterations per week. The Gelman-Rubin diagnostic confirms convergence ($\hat{R} < 1.05$) \cite{gelmanrubin1992}.
 
 \textbf{Special Week Handling:}
 \begin{table}[H]
@@ -384,14 +384,14 @@ Having established reliable fan vote estimates, we now proceed to design and eva
 
 \section{Pareto Optimization Model for Dynamic Weighting Rules}
 
-The core challenge in voting rule design is balancing two competing objectives: \textbf{Meritocracy} (rewarding technical excellence) and \textbf{Engagement} (maintaining audience participation). Rather than arbitrarily choosing weights, we formulate this as a multi-objective optimization problem and search for Pareto-optimal rules.
+The core challenge in voting rule design is balancing two competing objectives: \textbf{Meritocracy} (rewarding technical excellence) and \textbf{Engagement} (maintaining audience participation). Rather than arbitrarily choosing weights, we formulate this as a multi-objective optimization problem and search for Pareto-optimal rules \cite{miettinen1999}.
 
 \subsection{Dual Objective Definition}
 
 We define two correlation-based objectives to quantify rule performance:
 
 \begin{definition}[Meritocracy Index]
-The Spearman correlation between final placement and judge ranking:
+The Spearman correlation between final placement and judge ranking \cite{spearman1904}:
 \begin{equation}
     J = \rho_s(\text{FinalRank}, \text{JudgeRank})
 \end{equation}
@@ -399,7 +399,7 @@ Higher $J$ indicates that technically superior contestants (as judged by profess
 \end{definition}
 
 \begin{definition}[Engagement Index]
-The Spearman correlation between final placement and fan ranking:
+The Spearman correlation between final placement and fan ranking \cite{spearman1904}:
 \begin{equation}
     F = \rho_s(\text{FinalRank}, \text{FanRank})
 \end{equation}
@@ -646,7 +646,7 @@ Under the Rank method, adding Judges' Save \textbf{improves} JFI by 1.3 percenta
 
 \section{Covariate Effect Analysis}
 
-To quantify how professional dancers and celebrity characteristics influence competition outcomes, we construct linear mixed-effects models with random effects for pro dancer, celebrity, and season. The model specifications are:
+To quantify how professional dancers and celebrity characteristics influence competition outcomes, we construct linear mixed-effects models with random effects for pro dancer, celebrity, and season \cite{lairdware1982}. The model specifications are:
 $$
 J\%_{i,t} = \beta_0 + \boldsymbol{\beta}^T \mathbf{X}_i + u_{\text{pro}(i)} + v_{\text{celeb}(i)} + w_s + \epsilon_{i,t}
 $$
@@ -765,7 +765,7 @@ Figure~\ref{fig:param_sensitivity}(b) shows that composite score increases monot
 \end{itemize}
 The Rank method is \textbf{2.4$\times$ more stable} across seasons, confirming its robustness to varying competition structures and audience demographics.
 
-\textbf{Bootstrap Validation.} To establish statistical significance, we conduct bootstrap resampling ($n=1000$) on the score improvement of the dynamic rule over the static baseline. Figure~\ref{fig:stability}(b) presents the bootstrap distribution:
+\textbf{Bootstrap Validation.} To establish statistical significance, we conduct bootstrap resampling ($n=1000$) on the score improvement of the dynamic rule over the static baseline \cite{efron1979}. Figure~\ref{fig:stability}(b) presents the bootstrap distribution:
 \begin{itemize}[noitemsep]
     \item Mean improvement: $+0.101$ (21.6\% relative gain)
     \item 95\% CI: $[0.089, 0.113]$
@@ -826,5 +826,8 @@ This paper develops a comprehensive analytical framework to evaluate and optimiz
 \textbf{Practical Implications.} Based on these findings, we recommend adopting the Rank-based Sigmoid dynamic weighting system for future seasons. This configuration (1) corrects historical anomalies where fan mobilization overrode technical merit, (2) maintains audience engagement through meaningful early-season voting, (3) ensures that finals outcomes reflect accumulated dance expertise, and (4) provides natural robustness against extreme voting patterns (fan-elasticity 0.87 vs. 2.34 under Percentage). The framework developed here generalizes to other reality competition formats requiring balanced stakeholder integration.
 
 \section{Memo to the Producer}
+
+\bibliographystyle{plain}
+\bibliography{references}
 
 \end{document}
