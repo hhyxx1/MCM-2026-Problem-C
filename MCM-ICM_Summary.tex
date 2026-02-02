@@ -650,16 +650,74 @@ These findings demonstrate that covariates exert \textbf{differential effects} o
 
 \section{Sensitivity Analysis and Model Evaluation}
 
+To ensure the robustness of our proposed dynamic weighting rule and validate model reliability, we conduct comprehensive sensitivity analysis across three dimensions: parameter stability, cross-season consistency, and extreme scenario resilience.
+
 \subsection{Sensitivity Analysis}
-% 参数敏感性：w_min, w_max, steepness
-% 鲁棒性检验
+
+\textbf{Parameter Sensitivity.} The optimal Sigmoid dynamic rule involves three key parameters: $w_{min}$ (early-stage judge weight), $w_{max}$ (late-stage judge weight), and steepness $s$. We evaluate the composite score across 107 parameter configurations to assess the stability of our recommendation.
+
+Figure~\ref{fig:param_sensitivity}(a) presents a heatmap of composite scores for varying $(w_{min}, w_{max})$ combinations at fixed steepness $s=6$. The optimal configuration $(0.30, 0.75)$ lies within a stable ``high-score plateau'' (scores $>0.55$), indicating that small perturbations in weight boundaries do not significantly degrade performance. The score range across all 107 configurations spans $[0.462, 0.570]$, with our recommended setting achieving the maximum.
+
+Figure~\ref{fig:param_sensitivity}(b) shows that composite score increases monotonically with steepness $s$ up to $s=6$, then plateaus. Higher steepness produces sharper mid-season transitions, better capturing the phase-differentiated objectives. The optimal $s=6$ balances transition sharpness with smooth weight evolution, avoiding abrupt changes that might confuse audiences.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{cleaned_outputs/phase3_pareto_analysis/parameter_sensitivity_analysis.png}
+    \caption{Parameter Sensitivity Analysis. (a) Composite score heatmap for $w_{min}$ vs. $w_{max}$ at steepness $s=6$; the star marks the optimal configuration. (b) Steepness sensitivity showing mean $\pm$ std and maximum scores; the dashed red line indicates the Static Rank 50-50 baseline.}
+    \label{fig:param_sensitivity}
+\end{figure}
+
+\textbf{Cross-Season Stability.} We assess method stability by computing the coefficient of variation (CV) of performance metrics across 34 seasons. As shown in Figure~\ref{fig:stability}(a), the Rank method exhibits substantially lower variability than the Percentage method:
+\begin{itemize}[noitemsep]
+    \item Rank method: $\text{CV}(J) = 0.477$
+    \item Percentage method: $\text{CV}(J) = 1.148$
+\end{itemize}
+The Rank method is \textbf{2.4$\times$ more stable} across seasons, confirming its robustness to varying competition structures and audience demographics.
+
+\textbf{Bootstrap Validation.} To establish statistical significance, we conduct bootstrap resampling ($n=1000$) on the score improvement of the dynamic rule over the static baseline. Figure~\ref{fig:stability}(b) presents the bootstrap distribution:
+\begin{itemize}[noitemsep]
+    \item Mean improvement: $+0.101$ (21.6\% relative gain)
+    \item 95\% CI: $[0.089, 0.113]$
+\end{itemize}
+Since the entire confidence interval lies above zero, we conclude that the dynamic rule's superiority is \textbf{statistically significant} at $\alpha = 0.05$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{cleaned_outputs/phase3_pareto_analysis/cross_season_stability.png}
+    \caption{Cross-Season Stability Analysis. (a) Boxplot comparing Rank vs. Pct methods across 34 seasons; Rank achieves lower variance. (b) Bootstrap distribution of score improvement (Dynamic $-$ Static); the 95\% CI excludes zero, confirming statistical significance.}
+    \label{fig:stability}
+\end{figure}
+
+\textbf{Robustness to Extreme Scenarios.} We examine whether method performance degrades when fan votes exhibit high variability (indicative of organized voting campaigns). Figure~\ref{fig:robustness}(a) plots performance improvement against the CV ratio (fan/judge variability). Regression analysis reveals a \textbf{positive correlation} ($r = 0.31$, $p < 0.10$): the Rank method's advantage over Pct \textit{increases} when fan votes are more variable. This confirms that Rank-based scoring provides natural protection against extreme voting patterns.
+
+DWTS used different judge panels across eras: 3-judge system (Seasons 1--10, 13--14, 16, 27, 29) and 4-judge system (remaining seasons). Figure~\ref{fig:robustness}(b) shows that both Rank and Pct methods maintain consistent relative performance across judge systems, with Rank consistently outperforming Pct regardless of the scoring scale.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{cleaned_outputs/phase3_pareto_analysis/robustness_analysis.png}
+    \caption{Robustness Analysis. (a) Performance improvement vs. fan vote variability ratio; the Rank method's advantage increases with higher variability. (b) Performance across 3-judge and 4-judge seasons; Rank consistently outperforms Pct under both systems.}
+    \label{fig:robustness}
+\end{figure}
 
 \subsection{Strengths and Weaknesses}
 
 \textbf{Strengths:}
-
+\begin{enumerate}[noitemsep]
+    \item \textbf{Reliable inference foundation:} Our Bayesian inverse model achieves 95.2\% posterior consistency on non-anomalous weeks, providing trustworthy fan vote estimates for counterfactual analysis.
+    \item \textbf{Innovative evaluation framework:} The multi-phase assessment captures dynamic rules' stage-differentiated advantages, revealing benefits invisible under traditional metrics.
+    \item \textbf{Historical validation:} All four controversial cases (Jerry Rice, Billy Ray Cyrus, Bristol Palin, Bobby Bones) would be corrected under the proposed rule.
+    \item \textbf{Inherent robustness:} Rank-based scoring exhibits 2.7$\times$ lower fan-elasticity than Percentage scoring, naturally suppressing extreme voting influence.
+    \item \textbf{Interpretability:} The principle ``the deeper into competition, the more judges matter'' is intuitive for audiences and producers alike.
+\end{enumerate}
 
 \textbf{Weaknesses:}
+\begin{enumerate}[noitemsep]
+    \item \textbf{Inferred latent variables:} Fan vote shares remain estimates with irreducible uncertainty; actual vote data would strengthen conclusions.
+    \item \textbf{Rational voting assumption:} Our model assumes voters respond to contestant performance; emotional, retaliatory, or strategic voting behaviors are not explicitly modeled.
+    \item \textbf{Coarse temporal resolution:} Social media influence is captured via era-level fixed effects rather than fine-grained platform metrics (e.g., daily tweet counts).
+    \item \textbf{Retrospective validation only:} Conclusions are based on historical simulation; prospective experiments (e.g., A/B testing in a live season) would provide stronger causal evidence.
+    \item \textbf{Single-show generalization:} While our framework is generalizable, parameter optima may differ for other reality competition shows with different audience demographics.
+\end{enumerate}
 
 
 \section{Conclusion}
