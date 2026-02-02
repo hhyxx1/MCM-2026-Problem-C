@@ -86,13 +86,15 @@ def draw_phase_box(ax, x, y, w, h, title, phase_color):
     ax.text(x + 0.2, y + h - 0.3, title, ha='left', va='top', 
             fontsize=10, fontweight='bold', color=phase_color['title'])
 
-def draw_arrow(ax, start, end, color='#455A64', style='-', lw=1.5, path=None):
+def draw_arrow(ax, start, end, color='#455A64', style='-', lw=2.0, path=None, mutation_scale=20):
     """绘制箭头，支持正交路径（折线）"""
+    arrow_style = '-|>' # Filled arrow
     if path is None:
         # 直接连接
         ax.annotate('', xy=end, xytext=start,
-                    arrowprops=dict(arrowstyle='->', color=color, lw=lw,
-                                   linestyle=style, shrinkA=5, shrinkB=5))
+                    arrowprops=dict(arrowstyle=arrow_style, color=color, lw=lw,
+                                   linestyle=style, shrinkA=5, shrinkB=5,
+                                   mutation_scale=mutation_scale))
     else:
         # 正交路径：path是中间点列表
         all_points = [start] + path + [end]
@@ -101,8 +103,9 @@ def draw_arrow(ax, start, end, color='#455A64', style='-', lw=1.5, path=None):
             if i == len(all_points) - 2:
                 # 最后一段带箭头
                 ax.annotate('', xy=p2, xytext=p1,
-                            arrowprops=dict(arrowstyle='->', color=color, lw=lw,
-                                           linestyle=style, shrinkA=0, shrinkB=5))
+                            arrowprops=dict(arrowstyle=arrow_style, color=color, lw=lw,
+                                           linestyle=style, shrinkA=0, shrinkB=5,
+                                           mutation_scale=mutation_scale))
             else:
                 # 中间段不带箭头
                 ax.plot([p1[0], p2[0]], [p1[1], p2[1]], color=color, lw=lw, linestyle=style)
@@ -202,49 +205,34 @@ draw_arrow(ax, (3.5, 7.8), (2.4, 7.1), path=[(3.5, 7.1), (2.4, 7.1)])
 # Impact -> Memo (horizontal)
 draw_arrow(ax, (4.0, 6.7), (4.5, 6.7), color='#6A1B9A', lw=2)
 
-# ==================== Cross-Phase Links (正交路径，避开所有框) ====================
+# ==================== Cross-Phase Links (Main Workflow Backbone) ====================
 
-# Phase 1 Panel -> Phase 2 MCMC: 从Panel底部出发，向下到Phase 2
-# Panel (1.5-3.5, 15.8-16.7) -> MCMC (3.3-5.5, 12.5-13.4)
-draw_arrow(ax, (2.5, 15.8), (4.4, 13.4), 
-           path=[(2.5, 15.0), (0.1, 15.0), (0.1, 13.95), (3.3, 13.95)], 
-           color='#2E7D32', lw=2)
+# 1. Phase 1 (Panel Output) -> Phase 2 (Constraints Input)
+# Path: Bottom of Panel (2.5, 15.8) -> Down -> Left -> Top of Constraints (1.8, 13.4)
+draw_arrow(ax, (2.5, 15.8), (1.8, 13.4), 
+           path=[(2.5, 14.5), (1.8, 14.5)], 
+           color='#37474F', lw=2.5)
 
-# Phase 2 Posterior -> Phase 3 Bi-Objectives: 从Posterior右侧出发，绕过去
-# Posterior (0.8-3.0, 10.8-11.7) -> Bi-Objectives (8.5-11.0, 17.5-18.4)
-draw_arrow(ax, (3.0, 11.25), (8.5, 17.95), 
-           path=[(7.5, 11.25), (7.5, 17.95)], 
-           color='#2E7D32', lw=2)
+# 2. Phase 2 (Posterior Output) -> Phase 3 (Bi-Objectives Input) - The Bridge
+# Path: Bottom of Posterior (1.9, 10.8) -> Down -> Right (Gap) -> Up -> Right -> Top of Bi-Obj
+# Gap X is approx 7.5
+draw_arrow(ax, (1.9, 10.8), (9.75, 18.4), 
+           path=[(1.9, 10.0), (7.5, 10.0), (7.5, 18.8), (9.75, 18.8)], 
+           color='#37474F', lw=2.5)
 
-# Phase 1 Global Scan -> Phase 3: 分歧趋势证明改革必要性
-# Global Scan (4.5-6.7, 15.8-16.7) -> Bi-Objectives (8.5-11.0, 17.5-18.4)
-draw_arrow(ax, (6.7, 16.25), (8.5, 17.5), 
-           path=[(7.8, 16.25), (7.8, 17.95), (8.5, 17.95)], 
-           color='#1565C0', lw=2, style='--')
-
-# Phase 3 Advantage -> Phase 4 Simulator: 从Advantage底部向下
-# Advantage (8.5-15.0, 12.8-13.6) -> Simulator (8.5-10.7, 10.2-11.1)
+# 3. Phase 3 (Advantage Output) -> Phase 4 (Simulator Input)
+# Path: Bottom of Advantage (9.6, 12.8) -> Vertical Down -> Top of Simulator (9.6, 11.1)
 draw_arrow(ax, (9.6, 12.8), (9.6, 11.1), 
            path=[], 
-           color='#E65100', lw=2)
+           color='#37474F', lw=2.5)
 
-# Phase 2 Posterior -> Phase 4 Cases: 粉丝票用于案例分析
-# Posterior (0.8-3.0, 10.8-11.7) -> 4 Cases (8.5-11.0, 8.5-9.4)
-draw_arrow(ax, (1.9, 10.8), (8.5, 8.95), 
-           path=[(1.9, 8.95), (8.5, 8.95)], 
-           color='#546E7A', style='--')
-
-# Phase 3 Advantage -> Phase 5 Recommend: 优势论证流入最终建议
-# Advantage (8.5-15.0, 12.8-13.6) -> Recommend diamond (1.5-5.5, 7.8-9.0)
-draw_arrow(ax, (8.5, 13.2), (5.5, 8.4), 
-           path=[(8.0, 13.2), (8.0, 10.0), (5.5, 10.0), (5.5, 8.4)], 
-           color='#C62828', lw=2)
-
-# Phase 4 Evidence -> Phase 5 Memo: 案例证据支持备忘录
-# Evidence (9.5-13.0, 7.0-7.8) -> Memo (4.5-6.8, 6.3-7.1)
-draw_arrow(ax, (9.5, 7.4), (6.8, 6.7), 
-           path=[(8.2, 7.4), (8.2, 5.0), (5.65, 5.0), (5.65, 6.3)], 
-           color='#546E7A', style='--')
+# 4. Phase 4 (Evidence Output) -> Phase 5 (Recommendation Input)
+# Path: Left of Evidence (9.5, 7.4) -> Left (Gap) -> Up/Down -> Right Tip of Recommend Diamond
+# Recommend Diamond Right Tip is (5.5, 8.4)
+# Evidence Left Center is (9.5, 7.4)
+draw_arrow(ax, (9.5, 7.4), (5.5, 8.4), 
+           path=[(7.5, 7.4), (7.5, 8.4)], 
+           color='#37474F', lw=2.5)
 
 # ==================== Legend ====================
 legend_y = 1.5

@@ -1,0 +1,134 @@
+// MCM 2026 Workflow Flowchart
+digraph {
+	nodesep=0.15 rankdir=TB ranksep=0.25 splines=spline
+	graph [bgcolor=white dpi=280 margin=0 newrank=true pack=true packmode=clust pad=0.02 ratio=compress]
+	node [fontname="DejaVu Sans" fontsize=9 margin="0.10,0.08"]
+	edge [arrowsize=0.65 color="#455A64" fontname="DejaVu Sans" fontsize=8]
+	subgraph cluster_phase1 {
+		color="#90CAF9" fillcolor="#F7FBFF" fontsize=10.5 label="PHASE 1  数据考古与全局扫描" labeljust=l labelloc=t style="rounded,filled"
+		a_p1 [label="" fixedsize=true height=0.01 shape=point style=invis width=0.01]
+		raw [label="Raw Data
+421 contestants • 34 seasons" color="#1565C0" fillcolor="#E3F2FD" penwidth=2 shape=cylinder style="rounded,filled"]
+		clean [label="Cleaning
+J% 标准化 • 退赛处理" color="#F9A825" fillcolor="#FFF8E1" penwidth=2 shape=box style="rounded,filled"]
+		feat [label="Features
+PBI + Age/Industry/Pro" color="#F9A825" fillcolor="#FFF8E1" penwidth=2 shape=box style="rounded,filled"]
+		panel [label="Panel (i,w)
+2,777 obs" color="#6A1B9A" fillcolor="#F3E5F5" penwidth=2 shape=note style="rounded,filled"]
+		div [label="Global Scan
+分歧趋势 +57%" color="#EF6C00" fillcolor="#FFF3E0" penwidth=2 shape=box style="rounded,filled"]
+		a_p1 -> raw [style=invis]
+		raw -> clean
+		clean -> feat
+		clean -> panel
+		feat -> panel
+		panel -> div
+	}
+	subgraph cluster_phase2 {
+		color="#A5D6A7" fillcolor="#F7FFF8" fontsize=10.5 label="PHASE 2  贝叶斯逆推与验证" labeljust=l labelloc=t style="rounded,filled"
+		a_p2 [label="" fixedsize=true height=0.01 shape=point style=invis width=0.01]
+		constraints [label="Constraints
+Bottom-k • Σf=1" color="#F9A825" fillcolor="#FFF8E1" penwidth=2 shape=box style="rounded,filled"]
+		mcmc [label="MCMC (Hit-and-Run)
+Avg CI: 0.287" color="#2E7D32" fillcolor="#E8F5E9" penwidth=2 shape=box style="rounded,filled"]
+		post [label="Posterior f(i,w)
+2,777 estimates" color="#6A1B9A" fillcolor="#F3E5F5" penwidth=2 shape=note style="rounded,filled"]
+		valid [label="Validation
+CI 0.287 • Exact 95.2% • P̄ 0.000" color="#EF6C00" fillcolor="#FFF3E0" penwidth=2 shape=box style="rounded,filled"]
+		a_p2 -> constraints [style=invis]
+		constraints -> mcmc [color="#6D4C41" style=dashed]
+		mcmc -> post
+		post -> valid
+	}
+	subgraph cluster_phase3 {
+		color="#FFCC80" fillcolor="#FFFDF7" fontsize=10.5 label="PHASE 3  Pareto优化与动态加权 ⭐核心" labeljust=l labelloc=t style="rounded,filled"
+		a_p3 [label="" fixedsize=true height=0.01 shape=point style=invis width=0.01]
+		objectives [label="Bi-Objectives
+J (Merit) • F (Engagement)" color="#F9A825" fillcolor="#FFF8E1" penwidth=2 shape=box style="rounded,filled"]
+		rule_space [label="Rule Space
+Static vs Dynamic" color="#F9A825" fillcolor="#FFF8E1" penwidth=2 shape=box style="rounded,filled"]
+		pareto [label="Pareto Frontier
+51 configurations" color="#2E7D32" fillcolor="#E8F5E9" penwidth=2 shape=box style="rounded,filled"]
+		multi_phase [label="Multi-Phase Eval
+Early F • Late J" color="#2E7D32" fillcolor="#E8F5E9" penwidth=2 shape=box style="rounded,filled,bold"]
+		sigmoid [label="Sigmoid Dynamic ⭐
+w_min=0.30 • w_max=0.75 • s=6" color="#C62828" fillcolor="#FFEBEE" penwidth=2.6 shape=diamond style=filled]
+		advantage [label="Advantage
+F_early +52.7% • J_late +67.5%
+Composite +21.6%" color="#EF6C00" fillcolor="#FFF3E0" penwidth=2 shape=box style="rounded,filled"]
+		a_p3 -> objectives [style=invis]
+		objectives -> rule_space
+		rule_space -> pareto
+		pareto -> multi_phase
+		multi_phase -> sigmoid [color="#E65100" penwidth=2.2]
+		sigmoid -> advantage
+	}
+	subgraph cluster_phase4 {
+		color="#CE93D8" fillcolor="#FDF7FF" fontsize=10.5 label="PHASE 4  规则模拟与案例验证" labeljust=l labelloc=t style="rounded,filled"
+		a_p4 [label="" fixedsize=true height=0.01 shape=point style=invis width=0.01]
+		sim [label="Simulator
+Replay 34 seasons" color="#2E7D32" fillcolor="#E8F5E9" penwidth=2 shape=box style="rounded,filled"]
+		rank_pct [label="Rank vs Pct
+FFI Δ+0.057" color="#F9A825" fillcolor="#FFF8E1" penwidth=2 shape=box style="rounded,filled"]
+		cases [label="4 Cases
+Rice • Cyrus • Palin • Bones" color="#F9A825" fillcolor="#FFF8E1" penwidth=2 shape=box style="rounded,filled"]
+		effects [label="Effects Model
+Pro Dancer + Covariates" color="#F9A825" fillcolor="#FFF8E1" penwidth=2 shape=box style="rounded,filled"]
+		evidence [label="Evidence
+Rank更稳健 • Save有效" color="#EF6C00" fillcolor="#FFF3E0" penwidth=2 shape=box style="rounded,filled"]
+		a_p4 -> sim [style=invis]
+		sim -> rank_pct
+		sim -> cases
+		rank_pct -> evidence
+		cases -> evidence
+	}
+	subgraph cluster_phase5 {
+		color="#FFAB91" fillcolor="#FFF7F4" fontsize=10.5 label="PHASE 5  最终建议与备忘录" labeljust=l labelloc=t style="rounded,filled"
+		a_p5 [label="" fixedsize=true height=0.01 shape=point style=invis width=0.01]
+		rec [label="RECOMMEND
+Sigmoid+Rank • Save Y" color="#C62828" fillcolor="#FFEBEE" penwidth=3.0 shape=box style="rounded,filled,bold"]
+		compare [label="Impact
+早期F 0.58→0.88 • 后期J 0.55→0.91" color="#EF6C00" fillcolor="#FFF3E0" penwidth=2 shape=box style="rounded,filled"]
+		memo [label="Memo
+制片人建议 + 风险提示" color="#6A1B9A" fillcolor="#F3E5F5" penwidth=2 shape=note style="rounded,filled"]
+		a_p5 -> rec [style=invis]
+		rec -> compare
+		compare -> memo [color="#6A1B9A" penwidth=2.2]
+	}
+	panel -> mcmc [color="#2E7D32" penwidth=2.0]
+	post -> objectives [color="#2E7D32" penwidth=2.2 xlabel="f(i,w)"]
+	div -> objectives [color="#1565C0" penwidth=2.2 style=bold xlabel="reform rationale"]
+	sigmoid -> sim [color="#E65100" penwidth=2.2 xlabel="optimal rule"]
+	post -> cases [color="#546E7A" style=dashed]
+	feat -> effects [color="#546E7A" style=dashed]
+	post -> effects [color="#546E7A" style=dashed]
+	advantage -> rec [color="#C62828" penwidth=2.2 style=bold]
+	evidence -> memo [color="#546E7A" style=dashed]
+	effects -> memo [color="#546E7A" style=dashed]
+	legend [label="Legend
+Input • Process • Core • Decision • Finding" color="#6A1B9A" fillcolor="#F3E5F5" fontsize=8 penwidth=1.6 shape=note style="rounded,filled"]
+	a_leg [label="" fixedsize=true height=0.01 shape=point style=invis width=0.01]
+	a_leg -> legend [style=invis]
+	{
+		rank=same
+		a_p1
+		a_p3
+	}
+	{
+		rank=same
+		a_p2
+		a_p4
+	}
+	{
+		rank=same
+		a_p5
+		a_leg
+	}
+	a_p1 -> a_p3 [style=invis weight=50]
+	a_p2 -> a_p4 [style=invis weight=50]
+	a_p5 -> a_leg [style=invis weight=50]
+	a_p1 -> a_p2 [style=invis weight=50]
+	a_p2 -> a_p5 [style=invis weight=50]
+	a_p3 -> a_p4 [style=invis weight=50]
+	a_p4 -> a_leg [style=invis weight=50]
+}
