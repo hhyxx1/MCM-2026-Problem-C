@@ -6,7 +6,18 @@ Phase 4 Final: Pareto with Dynamic Log-Weighting (Process-Based Evaluation)
 而是模拟整个赛季的淘汰过程，看最终排名与Judge/Fan排名的相关性
 
 推荐规则公式:
-    Score(t) = (0.5 + δ*t) · J% + (0.5 - δ*t) · [α·log(F%) + (1-α)·F%]
+    数学表达式: S(t) = α(t)·𝒥 + [1-α(t)]·[ℓ·log(F) + (1-ℓ)·F]
+    其中: α(t) = α₀ + δ·t
+
+数学符号对应 (Symbol Mapping):
+    J%, J_pct -> 𝒥         评委得分百分比
+    F%, f_mean -> F, f     粉丝投票份额/百分比
+    Score -> S             综合得分
+    w_j, judge_weight -> α 评委权重
+    delta -> δ             周增量
+    alpha (log) -> ℓ       对数强度
+    J_corr -> ℳ           择优性指数
+    F_corr -> ℱ           粉丝偏爱指数
 
 Author: MCM 2026 Team
 """

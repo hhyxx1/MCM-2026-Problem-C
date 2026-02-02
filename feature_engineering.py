@@ -1,20 +1,27 @@
 """
 Dancing with the Stars - Feature Engineering
 =============================================
-Phase 1, Step 2: Key Feature - Popularity Bias Index (PBI)
+Phase 1, Step 2: Key Feature - Popularity Bias Index (Δ)
 
 Tasks:
-1. Calculate PBI = Rank_Judge(i) - Rank_Final(i)
-   - Positive PBI: Fan favorite (ranked better by audience than judges)
-   - Negative PBI: Judge favorite (ranked better by judges than audience)
+1. Calculate Δ = R^𝒥_i - R^*_i  (formerly PBI)
+   数学定义: 人气偏差指数 = 评委排名 - 最终名次
+   - Positive Δ: Fan favorite (ranked better by audience than judges)
+   - Negative Δ: Judge favorite (ranked better by judges than audience)
 
 2. Patch 1: Partner Impact Analysis
-   - Calculate historical average PBI for each Professional Dancer
+   - Calculate historical average Δ for each Professional Dancer
    - Identify "Star Makers" who consistently boost celebrity performance
 
 3. Patch 1B: Celebrity Covariates Analysis
-   - Analyze how Age, Industry, Region affect Judge Scores
+   - Analyze how Age, Industry, Region affect Judge Scores 𝒥
    - Prepare features for mixed-effects modeling
+
+数学符号对应 (Symbol Mapping):
+    PBI      -> Δ         人气偏差指数
+    J_pct    -> 𝒥(i,t)    评委得分百分比
+    rank_judge -> R^𝒥     评委排名
+    rank_final -> R^*     最终名次
 """
 
 import pandas as pd
@@ -77,13 +84,13 @@ print("\n[3] Calculating final placement ranks...")
 df_panel['rank_final'] = df_panel['placement']
 
 # ============================================================================
-# STEP 3: CALCULATE PBI (Popularity Bias Index)
+# STEP 3: CALCULATE Δ (Popularity Bias Index, 人气偏差指数)
 # ============================================================================
-print("\n[4] Calculating Popularity Bias Index (PBI)...")
+print("\n[4] Calculating Popularity Bias Index (Δ, formerly PBI)...")
 
-# PBI = Rank_Judge - Rank_Final
-# Positive PBI: Contestant ranked better by audience (final) than by judges
-# Negative PBI: Contestant ranked better by judges than by audience
+# 数学公式: Δ = R^𝒥 - R^*
+# Positive Δ: Contestant ranked better by audience (final) than by judges
+# Negative Δ: Contestant ranked better by judges than by audience
 
 # Calculate average judge rank across all weeks for each contestant
 contestant_avg_judge_rank = df_panel.groupby(['season', 'contestant_id', 'celebrity_name', 
@@ -338,11 +345,11 @@ star_colors = ['#2ecc71' if x > 0 else '#e74c3c' for x in top_star_makers['avg_P
 # Plot 1: PBI Distribution (Individual)
 fig1, ax1_ind = plt.subplots(figsize=(8, 6))
 ax1_ind.hist(contestant_avg_judge_rank['PBI'], bins=30, edgecolor='black', alpha=0.7, color='steelblue')
-ax1_ind.axvline(x=0, color='red', linestyle='--', linewidth=2, label='PBI=0 (Judge=Fan)')
+ax1_ind.axvline(x=0, color='red', linestyle='--', linewidth=2, label=r'$\Delta$=0 (Judge=Fan)')
 ax1_ind.axvline(x=contestant_avg_judge_rank['PBI'].mean(), color='green', linestyle='-', linewidth=2, label=f'Mean={contestant_avg_judge_rank["PBI"].mean():.2f}')
-ax1_ind.set_xlabel('Popularity Bias Index (PBI)')
+ax1_ind.set_xlabel(r'Popularity Bias Index ($\Delta$ = R$^{\mathcal{J}}$ - R*)')
 ax1_ind.set_ylabel('Frequency')
-ax1_ind.set_title('Distribution of PBI\n(Positive = Fan Favorite, Negative = Judge Favorite)')
+ax1_ind.set_title(r'Distribution of $\Delta$' + '\n(Positive = Fan Favorite, Negative = Judge Favorite)')
 ax1_ind.legend()
 plt.tight_layout()
 plt.savefig(f'{img_dir}/pbi_distribution.png', dpi=150, bbox_inches='tight')
@@ -353,8 +360,8 @@ print(f"    Saved: {img_dir}/pbi_distribution.png")
 fig2, ax2_ind = plt.subplots(figsize=(8, 6))
 ax2_ind.barh(industry_order, industry_pbi.sort_values('avg_PBI')['avg_PBI'], color=industry_colors, edgecolor='black')
 ax2_ind.axvline(x=0, color='black', linestyle='-', linewidth=1)
-ax2_ind.set_xlabel('Average PBI')
-ax2_ind.set_title('PBI by Industry\n(Green = Fan Boost, Red = Judge Aligned)')
+ax2_ind.set_xlabel('Average Δ')
+ax2_ind.set_title('Δ by Industry\n(Green = Fan Boost, Red = Judge Aligned)')
 plt.tight_layout()
 plt.savefig(f'{img_dir}/pbi_by_industry.png', dpi=150, bbox_inches='tight')
 plt.close()
@@ -368,9 +375,9 @@ ax3_ind.fill_between(season_pbi['season'],
                   season_pbi['avg_PBI'] + season_pbi['std_PBI'],
                   alpha=0.3)
 ax3_ind.axhline(y=0, color='red', linestyle='--', linewidth=1)
-ax3_ind.set_xlabel('Season')
-ax3_ind.set_ylabel('Average PBI')
-ax3_ind.set_title('PBI Trend Over Seasons\n(Positive trend = increasing fan influence)')
+ax3_ind.set_xlabel('Season (s)')
+ax3_ind.set_ylabel('Average Δ')
+ax3_ind.set_title('Δ Trend Over Seasons\n(Positive trend = increasing fan influence)')
 ax3_ind.plot(season_pbi['season'], p_trend(season_pbi['season']), 'r--', alpha=0.8, label=f'Trend: slope={z_trend[0]:.3f}')
 ax3_ind.legend()
 plt.tight_layout()
@@ -384,8 +391,8 @@ ax4_ind.barh(range(top_n), top_star_makers['avg_PBI'], color=star_colors, edgeco
 ax4_ind.set_yticks(range(top_n))
 ax4_ind.set_yticklabels(top_star_makers['ballroom_partner'])
 ax4_ind.axvline(x=0, color='black', linestyle='-', linewidth=1)
-ax4_ind.set_xlabel('Average PBI')
-ax4_ind.set_title(f'Top {top_n} "Star Makers"\n(Partners who boost celebrity fan votes)')
+ax4_ind.set_xlabel(r'Average $\Delta$')
+ax4_ind.set_title(f'Top {top_n} "Star Makers"\n' + r'(Pro dancers with high $u_p$ effect)')
 for i, (idx, row) in enumerate(top_star_makers.iterrows()):
     ax4_ind.annotate(f'n={int(row["num_seasons"])}', 
                  xy=(row['avg_PBI'] + 0.1, i),
@@ -406,10 +413,10 @@ z_score = np.polyfit(contestant_avg_judge_rank['avg_J_pct'], contestant_avg_judg
 p_score = np.poly1d(z_score)
 x_line = np.linspace(contestant_avg_judge_rank['avg_J_pct'].min(), contestant_avg_judge_rank['avg_J_pct'].max(), 100)
 ax5_ind.plot(x_line, p_score(x_line), 'r-', linewidth=2, label=f'Trend: r={corr:.3f}')
-plt.colorbar(scatter, label='Season')
-ax5_ind.set_xlabel('Average Judge Score (%)')
-ax5_ind.set_ylabel('Popularity Bias Index (PBI)')
-ax5_ind.set_title('PBI vs Judge Score\nNegative correlation: Lower-scoring contestants get more fan boost')
+plt.colorbar(scatter, label='Season (s)')
+ax5_ind.set_xlabel(r'Average $\mathcal{J}$(i,t) (%)')
+ax5_ind.set_ylabel(r'Popularity Bias Index ($\Delta$)')
+ax5_ind.set_title(r'$\Delta$ vs $\mathcal{J}$' + '\nNegative correlation: Lower-scoring contestants get more fan boost')
 ax5_ind.legend()
 plt.tight_layout()
 plt.savefig(f'{img_dir}/pbi_vs_score.png', dpi=150, bbox_inches='tight')
@@ -422,19 +429,19 @@ fig, axes = plt.subplots(2, 2, figsize=(14, 12))
 # Plot 1: PBI Distribution
 ax1 = axes[0, 0]
 ax1.hist(contestant_avg_judge_rank['PBI'], bins=30, edgecolor='black', alpha=0.7, color='steelblue')
-ax1.axvline(x=0, color='red', linestyle='--', linewidth=2, label='PBI=0 (Judge=Fan)')
+ax1.axvline(x=0, color='red', linestyle='--', linewidth=2, label=r'$\Delta$=0 (Judge=Fan)')
 ax1.axvline(x=contestant_avg_judge_rank['PBI'].mean(), color='green', linestyle='-', linewidth=2, label=f'Mean={contestant_avg_judge_rank["PBI"].mean():.2f}')
-ax1.set_xlabel('Popularity Bias Index (PBI)')
+ax1.set_xlabel(r'Popularity Bias Index ($\Delta$ = R$^{\mathcal{J}}$ - R*)')
 ax1.set_ylabel('Frequency')
-ax1.set_title('Distribution of PBI\n(Positive = Fan Favorite, Negative = Judge Favorite)')
+ax1.set_title(r'Distribution of $\Delta$' + '\n(Positive = Fan Favorite, Negative = Judge Favorite)')
 ax1.legend()
 
 # Plot 2: PBI by Industry
 ax2 = axes[0, 1]
 bars = ax2.barh(industry_order, industry_pbi.sort_values('avg_PBI')['avg_PBI'], color=industry_colors, edgecolor='black')
 ax2.axvline(x=0, color='black', linestyle='-', linewidth=1)
-ax2.set_xlabel('Average PBI')
-ax2.set_title('PBI by Industry\n(Green = Fan Boost, Red = Judge Aligned)')
+ax2.set_xlabel('Average Δ')
+ax2.set_title('Δ by Industry\n(Green = Fan Boost, Red = Judge Aligned)')
 
 # Plot 3: PBI Trend over Seasons
 ax3 = axes[1, 0]
@@ -444,9 +451,9 @@ ax3.fill_between(season_pbi['season'],
                   season_pbi['avg_PBI'] + season_pbi['std_PBI'],
                   alpha=0.3)
 ax3.axhline(y=0, color='red', linestyle='--', linewidth=1)
-ax3.set_xlabel('Season')
-ax3.set_ylabel('Average PBI')
-ax3.set_title('PBI Trend Over Seasons\n(Positive trend = increasing fan influence)')
+ax3.set_xlabel('Season (s)')
+ax3.set_ylabel('Average Δ')
+ax3.set_title('Δ Trend Over Seasons\n(Positive trend = increasing fan influence)')
 ax3.plot(season_pbi['season'], p_trend(season_pbi['season']), 'r--', alpha=0.8, label=f'Trend: slope={z_trend[0]:.3f}')
 ax3.legend()
 
@@ -456,8 +463,8 @@ bars = ax4.barh(range(top_n), top_star_makers['avg_PBI'], color=star_colors, edg
 ax4.set_yticks(range(top_n))
 ax4.set_yticklabels(top_star_makers['ballroom_partner'])
 ax4.axvline(x=0, color='black', linestyle='-', linewidth=1)
-ax4.set_xlabel('Average PBI')
-ax4.set_title(f'Top {top_n} "Star Makers"\n(Partners who boost celebrity fan votes)')
+ax4.set_xlabel(r'Average $\Delta$')
+ax4.set_title(f'Top {top_n} "Star Makers"\n' + r'(Pro dancers with high $u_p$ effect)')
 for i, (idx, row) in enumerate(top_star_makers.iterrows()):
     ax4.annotate(f'n={int(row["num_seasons"])}', 
                  xy=(row['avg_PBI'] + 0.1, i),
@@ -478,10 +485,10 @@ scatter = ax.scatter(contestant_avg_judge_rank['avg_J_pct'],
                      cmap='viridis', alpha=0.6, edgecolors='white', linewidth=0.5)
 ax.axhline(y=0, color='red', linestyle='--', linewidth=1, alpha=0.7)
 ax.plot(x_line, p_score(x_line), 'r-', linewidth=2, label=f'Trend: r={corr:.3f}')
-plt.colorbar(scatter, label='Season')
-ax.set_xlabel('Average Judge Score (%)')
-ax.set_ylabel('Popularity Bias Index (PBI)')
-ax.set_title('PBI vs Judge Score\nNegative correlation: Lower-scoring contestants get more fan boost')
+plt.colorbar(scatter, label='Season (s)')
+ax.set_xlabel(r'Average $\mathcal{J}$(i,t) (%)')
+ax.set_ylabel(r'Popularity Bias Index ($\Delta$)')
+ax.set_title(r'$\Delta$ vs $\mathcal{J}$' + '\nNegative correlation: Lower-scoring contestants get more fan boost')
 ax.legend()
 
 plt.savefig(f'{output_dir}/pbi_vs_score.png', dpi=150, bbox_inches='tight')

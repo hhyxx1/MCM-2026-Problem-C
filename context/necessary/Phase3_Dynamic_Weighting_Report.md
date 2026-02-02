@@ -211,10 +211,10 @@ $$w_J(t) = 0.30 + \frac{0.45}{1 + e^{-6(t/T - 0.5)}}$$
 ## 6. 可视化结果
 
 ### 6.1 权重演化图
-![Weight Evolution](cleaned_outputs/phase3_pareto_analysis/weight_evolution_final.png)
+![Weight Evolution](../../cleaned_outputs/phase3_pareto_analysis/weight_evolution_final.png)
 
 ### 6.2 Pareto前沿图
-![Pareto Frontier](cleaned_outputs/phase3_pareto_analysis/pareto_frontier_final.png)
+![Pareto Frontier](../../cleaned_outputs/phase3_pareto_analysis/pareto_frontier_final.png)
 
 ---
 

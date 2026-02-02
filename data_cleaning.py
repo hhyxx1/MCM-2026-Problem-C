@@ -4,11 +4,16 @@ Dancing with the Stars Data Cleaning Script
 Phase 1: Data Archeology & Global Scan
 
 Tasks:
-1. Standardization: Unify judge scores from all seasons into percentage (J%)
+1. Standardization: Unify judge scores from all seasons into percentage 𝒥(i,t)
    - Handle 30-point system (3 judges × 10 max) and 40-point system (4 judges × 10 max)
 2. Withdrawal Handling: Exclude N/A and 0-point data
-3. Convert wide table to long format panel data (i, w) for mixed-effects models
+3. Convert wide table to long format panel data (i, t) for mixed-effects models
 4. Extract celebrity covariates for analysis
+
+数学符号对应 (Symbol Mapping):
+    J_pct    -> 𝒥(i,t)    评委得分百分比 (Judge percentage)
+    i        -> 选手索引 (contestant index)
+    t        -> 周次 (week/time)
 """
 
 import pandas as pd
@@ -41,8 +46,9 @@ print(f"    Score columns: {len(score_cols)}")
 # ============================================================================
 def calculate_judge_percentage(row, week):
     """
-    Calculate normalized judge score percentage for a given week.
-    
+    Calculate normalized judge score percentage 𝒥(i,t) for a given week.
+    数学定义: 𝒥 = (实际得分 / 最高可能得分) × 100
+
     Handles:
     - 3-judge system (judge4 is N/A): max = 30
     - 4-judge system: max = 40

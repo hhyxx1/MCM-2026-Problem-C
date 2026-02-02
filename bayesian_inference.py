@@ -2,11 +2,17 @@
 Phase 2: Bayesian Inverse Inference for Fan Vote Estimation
 ==========================================================
 
-Goal: Estimate fan vote share f(i,w) for each contestant i in week w
+Goal: Estimate fan vote share f(i,t) for each contestant i in week t
+
+数学符号对应 (Symbol Mapping):
+    f(i,t)         -> 粉丝投票份额 (fan vote share)
+    𝒥(i,t)         -> 评委得分百分比 (J_pct in code)
+    ℰ_t            -> 第t周淘汰选手集合 (eliminated set)
+    S(i,t)         -> 综合得分 (combined score)
 
 Constraints:
-- f(i,w) >= 0 for all i
-- sum_i f(i,w) = 1 for each week w
+- f(i,t) >= 0 for all i
+- sum_i f(i,t) = 1 for each week t
 - Elimination constraint: eliminated contestants must be in Bottom-k by Combined Score
 
 Method: MCMC sampling with inequality constraints using Hit-and-Run algorithm
@@ -68,7 +74,8 @@ def get_elimination_info(df_panel, season, week):
 
 def combined_score_rank(j_pct, f_vote, alpha=0.5):
     """
-    Rank-based aggregation: Average of judge rank and fan rank
+    Rank-based aggregation: S^r = α·R^𝒥 + (1-α)·R^f
+    数学公式: 平均化评委排名和粉丝排名
     Lower combined rank = better (safer from elimination)
     """
     n = len(j_pct)
@@ -78,7 +85,8 @@ def combined_score_rank(j_pct, f_vote, alpha=0.5):
 
 def combined_score_percentage(j_pct, f_vote, alpha=0.5):
     """
-    Percentage-based aggregation: Weighted average of J% and F%
+    Percentage-based aggregation: S^p = α·𝒥 + (1-α)·F
+    数学公式: 加权平均评委百分比和粉丝百分比
     Higher combined score = better (safer from elimination)
     """
     # Normalize f_vote to percentage (0-100)
@@ -374,10 +382,10 @@ week_ci = df_estimates.groupby('week')['ci_width'].agg(['mean', 'std']).reset_in
 fig1, ax1 = plt.subplots(figsize=(8, 6))
 ax1.hist(df_estimates['ci_width'], bins=50, edgecolor='black', alpha=0.7, color='steelblue')
 ax1.axvline(df_estimates['ci_width'].mean(), color='red', linestyle='--', 
-            label=f'Mean={df_estimates["ci_width"].mean():.3f}')
-ax1.set_xlabel('95% Credible Interval Width')
+            label=f'Mean W={df_estimates["ci_width"].mean():.3f}')
+ax1.set_xlabel('95% Credible Interval Width W(i,t)')
 ax1.set_ylabel('Frequency')
-ax1.set_title('Distribution of Estimation Uncertainty')
+ax1.set_title('Distribution of W(i,t) = f$_U$ - f$_L$')
 ax1.legend()
 plt.tight_layout()
 plt.savefig(f'{img_dir}/ci_width_distribution.png', dpi=150, bbox_inches='tight')
@@ -387,9 +395,9 @@ plt.close()
 fig2, ax2 = plt.subplots(figsize=(8, 6))
 ax2.errorbar(week_ci['week'], week_ci['mean'], yerr=week_ci['std'], 
              fmt='o-', capsize=3, color='steelblue')
-ax2.set_xlabel('Week')
-ax2.set_ylabel('Mean CI Width')
-ax2.set_title('Estimation Uncertainty by Week\n(Later weeks have fewer contestants)')
+ax2.set_xlabel('Week (t)')
+ax2.set_ylabel('Mean W(i,t)')
+ax2.set_title('W(i,t) by Week\n(Later weeks have fewer contestants)')
 plt.tight_layout()
 plt.savefig(f'{img_dir}/ci_width_by_week.png', dpi=150, bbox_inches='tight')
 plt.close()
@@ -399,9 +407,9 @@ fig3, ax3 = plt.subplots(figsize=(8, 6))
 ax3.scatter(df_estimates['J_pct'], df_estimates['f_mean'], 
             c=df_estimates['was_eliminated'].astype(int), 
             cmap='coolwarm', alpha=0.5, s=20)
-ax3.set_xlabel('Judge Score (%)')
-ax3.set_ylabel('Estimated Fan Vote Share')
-ax3.set_title('Fan Vote Share vs Judge Score\n(Red=Eliminated, Blue=Survived)')
+ax3.set_xlabel(r'$\mathcal{J}$(i,t) (%)')
+ax3.set_ylabel('Estimated f(i,t)')
+ax3.set_title(r'f(i,t) vs $\mathcal{J}$(i,t)' + '\n' + r'(Red=$\in\mathcal{E}_t$, Blue=Survived)')
 z = np.polyfit(df_estimates['J_pct'], df_estimates['f_mean'], 1)
 p = np.poly1d(z)
 x_line = np.linspace(df_estimates['J_pct'].min(), df_estimates['J_pct'].max(), 100)
@@ -415,9 +423,9 @@ plt.close()
 fig4, ax4 = plt.subplots(figsize=(10, 6))
 ax4.bar(df_season_stats['season'], df_season_stats['avg_ci_width'], 
         color='steelblue', edgecolor='black', alpha=0.7)
-ax4.set_xlabel('Season')
-ax4.set_ylabel('Average CI Width')
-ax4.set_title('Estimation Uncertainty by Season')
+ax4.set_xlabel('Season (s)')
+ax4.set_ylabel('Average W(i,t)')
+ax4.set_title('Average W by Season')
 plt.tight_layout()
 plt.savefig(f'{img_dir}/uncertainty_by_season.png', dpi=150, bbox_inches='tight')
 plt.close()

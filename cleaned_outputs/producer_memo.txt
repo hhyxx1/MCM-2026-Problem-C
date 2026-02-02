@@ -28,8 +28,8 @@ KEY FINDINGS
    • Bristol Palin (S11) reached Top 3 despite consistently low dance scores
 
 2. METHOD COMPARISON:
-   • Rank-based method: More meritocratic (JFI = 0.7417)
-   • Percentage method: More fan-favoring (FFI = 0.7676)
+   • Rank-based method: More meritocratic (JFI = 0.6581)
+   • Percentage method: More fan-favoring (FFI = 0.7824)
    • Recommended: Rank-based with dynamic weighting
 
 3. MODEL ACCURACY:

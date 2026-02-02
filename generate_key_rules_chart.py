@@ -176,34 +176,44 @@ best_recommended = recommended.loc[recommended['Balance'].idxmax()]
 # =============================================================================
 # 生成单独的柱状图
 # =============================================================================
-fig, ax = plt.subplots(figsize=(10, 7))
+fig, ax = plt.subplots(figsize=(9, 6))
 
-labels = ['Current\n(Pct 50-50)', 'Rank 50-50', 'Dynamic+Log', 'Recommended\n(+Save)']
-j_vals = [current_rule['J'], rank_50['J'], best_dynamic['J'], best_recommended['J']]
-f_vals = [current_rule['F'], rank_50['F'], best_dynamic['F'], best_recommended['F']]
-balance_vals = [current_rule['Balance'], rank_50['Balance'], best_dynamic['Balance'], best_recommended['Balance']]
+# 三种规则：Percentage-Based, Rank-Based, Dynamic Log-Weighted
+# 更学术化的命名
+labels = ['Percentage-Based\n(50-50)', 'Rank-Based\n(50-50)', 'Dynamic\nLog-Weighted']
+j_vals = [current_rule['J'], rank_50['J'], best_dynamic['J']]
+f_vals = [current_rule['F'], rank_50['F'], best_dynamic['F']]
+balance_vals = [current_rule['Balance'], rank_50['Balance'], best_dynamic['Balance']]
 
 x = np.arange(len(labels))
 width = 0.25
 
-bars1 = ax.bar(x - width, j_vals, width, label='J (Meritocracy)', color='steelblue', alpha=0.8)
-bars2 = ax.bar(x, f_vals, width, label='F (Engagement)', color='coral', alpha=0.8)
-bars3 = ax.bar(x + width, balance_vals, width, label='Balance', color='forestgreen', alpha=0.8)
+# 使用更学术的图例描述
+bars1 = ax.bar(x - width, j_vals, width, 
+               label=r'$\rho_J$: Judge-Final Rank Correlation', 
+               color='steelblue', alpha=0.85)
+bars2 = ax.bar(x, f_vals, width, 
+               label=r'$\rho_F$: Fan-Final Rank Correlation', 
+               color='coral', alpha=0.85)
+bars3 = ax.bar(x + width, balance_vals, width, 
+               label=r'$H$: Harmonic Mean $\frac{2\rho_J \rho_F}{\rho_J + \rho_F}$', 
+               color='forestgreen', alpha=0.85)
 
-ax.set_ylabel('Score', fontsize=14, fontweight='bold')
-ax.set_title('Key Rules Comparison', fontsize=16, fontweight='bold')
+ax.set_ylabel('Spearman Correlation Coefficient', fontsize=12, fontweight='bold')
+ax.set_xlabel('Aggregation Rule', fontsize=12, fontweight='bold')
+ax.set_title('Comparison of Voting Rule Performance Metrics', fontsize=14, fontweight='bold')
 ax.set_xticks(x)
-ax.set_xticklabels(labels, fontsize=11)
-ax.legend(fontsize=12, loc='upper right')
-ax.set_ylim(0, 1.1)
+ax.set_xticklabels(labels, fontsize=10)
+ax.legend(fontsize=9, loc='upper right', framealpha=0.95)
+ax.set_ylim(0, 1.05)
 ax.grid(True, alpha=0.3, axis='y')
 
 # 添加数值标签
 for bars in [bars1, bars2, bars3]:
     for bar in bars:
         h = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2., h + 0.02,
-                f'{h:.2f}', ha='center', va='bottom', fontsize=10, fontweight='bold')
+        ax.text(bar.get_x() + bar.get_width()/2., h + 0.015,
+                f'{h:.2f}', ha='center', va='bottom', fontsize=9, fontweight='bold')
 
 plt.tight_layout()
 
@@ -217,22 +227,21 @@ plt.show()
 print("""
 【柱状图说明】
 
-X轴 - 四种评分规则:
-  1. Current (Pct 50-50): 当前规则，评委和粉丝各占50%，按百分比加权
-  2. Rank 50-50: 排名加权规则，按排名而非百分比加权
-  3. Dynamic+Log: 动态对数规则，权重随时间变化 + 对数变换压缩极端票数
-  4. Recommended (+Save): 推荐规则，动态对数 + 评委挽救机制
+X轴 - 三种评分聚合规则 (Aggregation Rule):
+  1. Percentage-Based (50-50): 百分比加权规则，Score = 0.5×J% + 0.5×F%
+  2. Rank-Based (50-50): 排名加权规则，Score = 0.5×R_J + 0.5×R_F
+  3. Dynamic Log-Weighted: 动态对数加权规则，权重随时间变化
 
-Y轴 - 三种指标（每个规则对应3根柱子）:
-  蓝色柱 J (Meritocracy): 实力导向得分
-    - 与评委评分排名的Spearman相关系数
+Y轴 - Spearman相关系数 (Spearman Correlation Coefficient):
+  蓝色柱 ρ_J (Judge-Final Rank Correlation): 
+    - 最终排名与评委排名的Spearman相关系数
     - 越高表示规则越尊重专业评分
 
-  橙色柱 F (Engagement): 观众参与度得分
-    - 与粉丝投票排名的Spearman相关系数
+  橙色柱 ρ_F (Fan-Final Rank Correlation): 
+    - 最终排名与粉丝排名的Spearman相关系数
     - 越高表示规则越尊重观众投票
 
-  绿色柱 Balance: 平衡指标
-    - 公式: 2*J*F/(J+F)，即调和平均数
-    - 越高说明在J和F之间权衡得越好
+  绿色柱 H (Harmonic Mean): 
+    - 调和平均数: H = 2×ρ_J×ρ_F/(ρ_J+ρ_F)
+    - 综合衡量规则在专业性和参与度之间的平衡能力
 """)

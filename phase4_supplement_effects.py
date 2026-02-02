@@ -3,9 +3,16 @@
 Phase 4 Supplement: Pro Dancer & Celebrity Effects Model
 =========================================================
 使用scipy/numpy量化Pro Dancer和Celebrity特征对结果的影响：
-1. Judge Score Model (Merit channel)
-2. Fan Vote Model (Popularity channel)
+1. Judge Score Model (Merit channel): 𝒥(i,t) = α + β·X + e
+2. Fan Vote Model (Popularity channel): logit(f(i,t)) = α' + β'·X + h·𝒥 + u
 3. 比较系数方向，回答"是否同向影响"
+
+数学符号对应 (Symbol Mapping):
+    J_pct -> 𝒥(i,t)    评委得分百分比
+    f_mean -> f(i,t)   粉丝投票份额
+    β -> β^𝒥          评委模型系数
+    β' -> β^f          粉丝模型系数
+    η -> h             技能溢出效应 (𝒥对f的影响)
 
 Author: MCM 2026 Team
 """
@@ -367,9 +374,9 @@ for _, row in pro_stats.nlargest(5, 'n_obs').iterrows():
                  (row['J_lift'], row['F_lift']), fontsize=8)
 ax1_ind.axhline(y=0, color='gray', linestyle='--', alpha=0.5)
 ax1_ind.axvline(x=0, color='gray', linestyle='--', alpha=0.5)
-ax1_ind.set_xlabel('J% Lift (vs average)')
-ax1_ind.set_ylabel('Fan Vote Lift (vs average)')
-ax1_ind.set_title(f'Pro Dancer Effects (Correlation: {pro_corr:.3f})')
+ax1_ind.set_xlabel(r'$\mathcal{J}$% Lift (vs average)')
+ax1_ind.set_ylabel('f(i,t) Lift (vs average)')
+ax1_ind.set_title(f'Pro Dancer Effects $u_p$ (Correlation: {pro_corr:.3f})')
 plt.tight_layout()
 plt.savefig(f'{img_dir}/pro_dancer_effects.png', dpi=150, bbox_inches='tight')
 plt.close()
@@ -379,9 +386,9 @@ print(f"    Saved: {img_dir}/pro_dancer_effects.png")
 fig2, ax2_ind = plt.subplots(figsize=(8, 6))
 ax2_ind.scatter(sample['J_pct'], sample['f_mean'] * 100, alpha=0.3, s=15)
 ax2_ind.plot(x_line, p(x_line), 'r-', linewidth=2, label=f'η={eta:.4f}')
-ax2_ind.set_xlabel('Judge Score (J%)')
-ax2_ind.set_ylabel('Fan Vote Share (%)')
-ax2_ind.set_title('J% → Fan Vote Relationship')
+ax2_ind.set_xlabel(r'$\mathcal{J}$(i,t) (%)')
+ax2_ind.set_ylabel('f(i,t) (%)')
+ax2_ind.set_title(r'$\mathcal{J}$ $\rightarrow$ f Relationship ($\eta$ = Elasticity)')
 ax2_ind.legend()
 plt.tight_layout()
 plt.savefig(f'{img_dir}/jpct_vs_fan_vote.png', dpi=150, bbox_inches='tight')
@@ -392,10 +399,10 @@ print(f"    Saved: {img_dir}/jpct_vs_fan_vote.png")
 fig3, ax3_ind = plt.subplots(figsize=(8, 6))
 x_var = np.arange(len(sources))
 width = 0.35
-bars1 = ax3_ind.bar(x_var - width/2, j_vars, width, label='Judge Score', color='steelblue')
-bars2 = ax3_ind.bar(x_var + width/2, f_vars, width, label='Fan Vote', color='coral')
+bars1 = ax3_ind.bar(x_var - width/2, j_vars, width, label=r'$\mathcal{J}$ (Judge Score)', color='steelblue')
+bars2 = ax3_ind.bar(x_var + width/2, f_vars, width, label='f (Fan Vote)', color='coral')
 ax3_ind.set_ylabel('Variance Explained (%)')
-ax3_ind.set_title('Variance Decomposition (ICC/Random Effects)')
+ax3_ind.set_title(r'Variance Decomposition: ICC($\mathcal{J}$) and ICC(f)')
 ax3_ind.set_xticks(x_var)
 ax3_ind.set_xticklabels(sources)
 ax3_ind.legend()
@@ -415,13 +422,13 @@ print(f"    Saved: {img_dir}/variance_decomposition.png")
 
 # 7.4 Season trends (Individual)
 fig4, ax4_ind = plt.subplots(figsize=(8, 6))
-ax4_ind.plot(season_means['season'], season_means['J_pct'], 'b-o', label='J%', markersize=4)
+ax4_ind.plot(season_means['season'], season_means['J_pct'], 'b-o', label=r'$\mathcal{J}$', markersize=4)
 ax4_twin_ind = ax4_ind.twinx()
-ax4_twin_ind.plot(season_means['season'], season_means['f_mean'], 'r-s', label='F%', markersize=4)
-ax4_ind.set_xlabel('Season')
-ax4_ind.set_ylabel('Judge Score (%)', color='blue')
-ax4_twin_ind.set_ylabel('Fan Vote Share (%)', color='red')
-ax4_ind.set_title('Season Trends')
+ax4_twin_ind.plot(season_means['season'], season_means['f_mean'], 'r-s', label='f', markersize=4)
+ax4_ind.set_xlabel('Season (s)')
+ax4_ind.set_ylabel(r'$\mathcal{J}$(i,t) (%)', color='blue')
+ax4_twin_ind.set_ylabel('f(i,t) (%)', color='red')
+ax4_ind.set_title(r'Season Trends: $\mathcal{J}$ and f')
 ax4_ind.legend(loc='upper left')
 ax4_twin_ind.legend(loc='upper right')
 plt.tight_layout()
@@ -441,27 +448,27 @@ for _, row in pro_stats.nlargest(5, 'n_obs').iterrows():
                  (row['J_lift'], row['F_lift']), fontsize=8)
 ax1.axhline(y=0, color='gray', linestyle='--', alpha=0.5)
 ax1.axvline(x=0, color='gray', linestyle='--', alpha=0.5)
-ax1.set_xlabel('J% Lift (vs average)')
-ax1.set_ylabel('Fan Vote Lift (vs average)')
-ax1.set_title(f'Pro Dancer Effects (Correlation: {pro_corr:.3f})')
+ax1.set_xlabel(r'$\mathcal{J}$% Lift (vs average)')
+ax1.set_ylabel('f(i,t) Lift (vs average)')
+ax1.set_title(r'Pro Dancer Effects $u_p$ (Correlation: ' + f'{pro_corr:.3f})')
 
 # 7.2 J% vs Fan Vote scatter
 ax2 = axes[0, 1]
 ax2.scatter(sample['J_pct'], sample['f_mean'] * 100, alpha=0.3, s=15)
-ax2.plot(x_line, p(x_line), 'r-', linewidth=2, label=f'η={eta:.4f}')
-ax2.set_xlabel('Judge Score (J%)')
-ax2.set_ylabel('Fan Vote Share (%)')
-ax2.set_title('J% → Fan Vote Relationship')
+ax2.plot(x_line, p(x_line), 'r-', linewidth=2, label=r'$\eta$=' + f'{eta:.4f}')
+ax2.set_xlabel(r'$\mathcal{J}$(i,t) (%)')
+ax2.set_ylabel('f(i,t) (%)')
+ax2.set_title(r'$\mathcal{J}$ $\rightarrow$ f Relationship ($\eta$ = Elasticity)')
 ax2.legend()
 
 # 7.3 Variance Decomposition
 ax3 = axes[1, 0]
 x = np.arange(len(sources))
 width = 0.35
-bars1 = ax3.bar(x - width/2, j_vars, width, label='Judge Score', color='steelblue')
-bars2 = ax3.bar(x + width/2, f_vars, width, label='Fan Vote', color='coral')
+bars1 = ax3.bar(x - width/2, j_vars, width, label=r'$\mathcal{J}$ (Judge Score)', color='steelblue')
+bars2 = ax3.bar(x + width/2, f_vars, width, label='f (Fan Vote)', color='coral')
 ax3.set_ylabel('Variance Explained (%)')
-ax3.set_title('Variance Decomposition (ICC/Random Effects)')
+ax3.set_title(r'Variance Decomposition: ICC($\mathcal{J}$) and ICC(f)')
 ax3.set_xticks(x)
 ax3.set_xticklabels(sources)
 ax3.legend()
@@ -477,13 +484,13 @@ for bar, val in zip(bars2, f_vars):
 
 # 7.4 Season trends
 ax4 = axes[1, 1]
-ax4.plot(season_means['season'], season_means['J_pct'], 'b-o', label='J%', markersize=4)
+ax4.plot(season_means['season'], season_means['J_pct'], 'b-o', label=r'$\mathcal{J}$', markersize=4)
 ax4_twin = ax4.twinx()
-ax4_twin.plot(season_means['season'], season_means['f_mean'], 'r-s', label='F%', markersize=4)
-ax4.set_xlabel('Season')
-ax4.set_ylabel('Judge Score (%)', color='blue')
-ax4_twin.set_ylabel('Fan Vote Share (%)', color='red')
-ax4.set_title('Season Trends')
+ax4_twin.plot(season_means['season'], season_means['f_mean'], 'r-s', label='f', markersize=4)
+ax4.set_xlabel('Season (s)')
+ax4.set_ylabel(r'$\mathcal{J}$(i,t) (%)', color='blue')
+ax4_twin.set_ylabel('f(i,t) (%)', color='red')
+ax4.set_title(r'Season Trends: $\mathcal{J}$ and f')
 ax4.legend(loc='upper left')
 ax4_twin.legend(loc='upper right')
 
