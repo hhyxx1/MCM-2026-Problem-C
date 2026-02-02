@@ -90,13 +90,9 @@ We recommend a Rank-based Sigmoid dynamic weighting scheme where judge weight in
 
 \subsection{Background}
 
-\textit{Dancing with the Stars} (DWTS) is a celebrity dance competition that has aired on ABC since 2005, spanning 34 seasons and featuring over 400 contestants. Each season pairs approximately 12 celebrities---drawn from diverse backgrounds including athletes, actors, musicians, and public figures---with professional ballroom dancers. Couples perform weekly routines judged by a panel of experts, while viewers cast votes to support their favorites. The contestant with the lowest combined score is eliminated each week until a champion emerges after approximately 10 weeks.
+\textit{Dancing with the Stars} (DWTS) is a celebrity dance competition airing on ABC since 2005, spanning 34 seasons with over 400 contestants. Each season pairs celebrities with professional dancers; couples perform weekly routines evaluated by a judge panel (3--4 judges, scoring out of 30 or 40 points) and audience votes. The contestant with the lowest combined score is eliminated weekly until a champion emerges.
 
-The show employs a hybrid evaluation system combining professional judgment and audience participation. A panel of 3--4 judges assigns technical scores (originally out of 30 points, later expanded to 40), while viewers vote through phone, text, and online platforms. These two inputs are aggregated to determine eliminations, though the exact combination formula and raw vote counts have never been publicly disclosed. This opacity has fueled recurring debates about whether the scoring mechanism appropriately balances competitive merit with entertainment appeal.
-
-Several seasons have produced controversial outcomes that sparked public criticism. In Season 27, radio personality Bobby Bones won the Mirror Ball Trophy despite receiving the lowest average judge scores among finalists---a result widely attributed to his dedicated fan base mobilizing votes. Season 11 saw Bristol Palin, daughter of politician Sarah Palin, advance to third place amid accusations of politically-motivated voting. Similar patterns appeared with Jerry Rice (Season 2) and Billy Ray Cyrus (Season 4), where fan popularity appeared to override technical assessment. These episodes raise fundamental questions about whether the current system serves the show's dual objectives of rewarding dance excellence and maintaining audience engagement.
-
-Two primary aggregation methods have been discussed for combining judge scores and fan votes: the Percentage-based system, which weights raw score proportions, and the Rank-based system, which weights ordinal positions. Additionally, the show introduced a ``Judges' Save'' mechanism allowing the panel to rescue one couple from the bottom two once per season. Understanding how these design choices affect outcomes---and whether they favor one evaluation channel over the other---is essential for optimizing the competition format.
+The show's hybrid evaluation system has produced controversial outcomes. In Season 27, Bobby Bones won despite the lowest finalist judge scores (66.3\%); in Season 11, Bristol Palin advanced to third amid politically-motivated voting accusations. Similar patterns with Jerry Rice (S2) and Billy Ray Cyrus (S4) raised questions about whether fan mobilization overrides technical merit. Two aggregation methods exist: Percentage-based (weighting raw proportions) and Rank-based (weighting ordinal positions), along with a Judges' Save mechanism allowing judges to rescue one bottom-two couple per season.
 
 \subsection{Problem Restatement}
 
@@ -116,19 +112,15 @@ The competition organizers seek a data-driven assessment of the DWTS voting mech
 
 \subsection{Our Work}
 
-To address these objectives, we develop a comprehensive analytical framework integrating data reconstruction, statistical inference, and multi-objective optimization. Our approach proceeds through five stages.
+Figure~\ref{fig:workflow} illustrates our analytical framework. We begin with raw DWTS data spanning 34 seasons and 2,777 observations, applying preprocessing to normalize judge scores to percentages and remove invalid entries. Feature engineering constructs the Popularity Bias Index ($\text{PBI} = R^J - R^*$) and divergence analysis computes season-level disagreement ($\mathcal{D}(s) = 1 - \rho(R^J, R^*)$).
 
-We first process raw competition data from 34 seasons, standardizing heterogeneous scoring systems and constructing a panel dataset of 2,777 weekly observations. A Popularity Bias Index (PBI) is defined to quantify the divergence between judge rankings and final placements.
+Since fan votes are undisclosed, we formulate constraints ($\sum f = 1$, $f \geq 0$) and develop a Hit-and-Run MCMC sampler to reconstruct latent vote shares $f(i,w)$ with 95\% credible intervals. These estimates enable dual-objective evaluation measuring Meritocracy ($J$) and Engagement ($F$).
 
-We then develop a Bayesian inverse inference model to estimate undisclosed fan vote shares. By treating votes as latent variables, we employ Hit-and-Run MCMC sampling to reconstruct posterior distributions consistent with observed elimination outcomes, achieving 95.2\% consistency on non-anomalous weeks.
+We propose a multi-phase evaluation framework that rewards stage-differentiated rule performance, then conduct grid search across 107 configurations. This identifies an optimal Sigmoid dynamic weighting rule where judge weight evolves from $w = 0.30$ (early) to $w = 0.75$ (late).
 
-We formulate voting rule design as a bi-objective optimization problem maximizing both Meritocracy (judge-final correlation) and Engagement (fan-final correlation). A multi-phase evaluation framework rewards rules that emphasize fan engagement early and judge expertise late, and grid search over 107 configurations identifies an optimal Sigmoid dynamic weighting scheme.
+Monte Carlo simulation compares Rank versus Percentage systems, revealing that Rank achieves 46.4\% higher Judge Favorability Index (JFI). Historical case studies confirm all four controversial outcomes would be corrected under the proposed system.
 
-We simulate competition outcomes under Rank and Percentage systems using inferred fan votes. Judge Favorability Index (JFI) and Fan Favorability Index (FFI) metrics quantify the bias of each method, and historical case studies validate that controversial outcomes would change under the alternative system.
-
-We finally construct mixed-effects regression models to decompose variance in judge scores and fan votes attributable to pro dancers, celebrity characteristics, and season context, revealing asymmetric effects across the two evaluation channels.
-
-Figure~\ref{fig:workflow} illustrates the overall workflow connecting these stages.
+Finally, covariate analysis shows pro dancers explain 28.6\% of judge score variance, and sensitivity analysis demonstrates 2.4$\times$ better cross-season stability for the Rank method. These findings support our final recommendation: a Sigmoid Rank-weighted system, detailed in the Policy Memo.
 
 \begin{figure}[H]
     \centering
