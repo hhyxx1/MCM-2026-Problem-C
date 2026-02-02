@@ -99,15 +99,15 @@ The show's hybrid evaluation system has produced controversial outcomes. In Seas
 The competition organizers seek a data-driven assessment of the DWTS voting mechanism. Specifically, this paper addresses the following objectives:
 
 \begin{enumerate}
-    \item \textbf{Method Comparison.} Compare the Rank-based and Percentage-based scoring systems across all 34 seasons. Determine whether one method systematically favors fan votes over judge scores, and quantify the magnitude of any such bias.
+    \item Compare the Rank-based and Percentage-based scoring systems across all 34 seasons. Determine whether one method systematically favors fan votes over judge scores, and quantify the magnitude of any such bias.
     
-    \item \textbf{Counterfactual Analysis.} Examine historically controversial outcomes and evaluate whether the alternative scoring method would have produced different results.
+    \item Examine historically controversial outcomes and evaluate whether the alternative scoring method would have produced different results.
     
-    \item \textbf{Mechanism Evaluation.} Assess the impact of the Judges' Save feature under both scoring systems, identifying whether it enhances or undermines competitive fairness.
+    \item Assess the impact of the Judges' Save feature under both scoring systems, identifying whether it enhances or undermines competitive fairness.
     
-    \item \textbf{Covariate Analysis.} Develop a model to analyze how professional dancer assignments and celebrity characteristics (age, industry, region) influence competition performance. Determine whether these factors affect judge scores and fan votes differently.
+    \item Develop a model to analyze how professional dancer assignments and celebrity characteristics (age, industry, region) influence competition performance. Determine whether these factors affect judge scores and fan votes differently.
     
-    \item \textbf{Policy Recommendation.} Based on quantitative findings, recommend a scoring system for future seasons and advise on whether to retain the Judges' Save mechanism.
+    \item Based on quantitative findings, recommend a scoring system for future seasons and advise on whether to retain the Judges' Save mechanism.
 \end{enumerate}
 
 \subsection{Our Work}
@@ -124,8 +124,8 @@ Finally, covariate analysis shows pro dancers explain 28.6\% of judge score vari
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\linewidth]{context/necessary/workflow_flowchart_v3.png}
-    \caption{The overall workflow of our analysis pipeline, showing the transition from data archaeology to policy recommendation.}
+    \includegraphics[width=0.65\linewidth]{figures/our_work_workflow_v5.png}
+    \caption{Overall workflow of the analysis pipeline.}
     \label{fig:workflow}
 \end{figure}
 
@@ -166,23 +166,19 @@ $t$ & Week number ($t = 1, 2, \ldots, T$) \\
 $s$ & Season number ($s = 1, 2, \ldots, 34$) \\
 $n_t$ & Number of contestants remaining in week $t$ \\
 $T$ & Total number of weeks in a season \\
-\midrule
 $J_{i,t}$ & Normalized judge score (\%) for contestant $i$ in week $t$ \\
 $f_{i,t}$ & Estimated fan vote share for contestant $i$ in week $t$ \\
 $R^J_i$ & Average judge ranking of contestant $i$ across all weeks \\
 $R^*_i$ & Final placement of contestant $i$ (1 = champion) \\
 $\mathcal{E}_t$ & Set of eliminated contestant(s) in week $t$ \\
-\midrule
 $\text{PBI}_i$ & Popularity Bias Index: $R^J_i - R^*_i$ \\
 $\mathcal{D}(s)$ & Judge-Audience Divergence score for season $s$ \\
 $\text{JFI}$ & Judge Favorability Index: Spearman($R^*$, $R^J$) \\
 $\text{FFI}$ & Fan Favorability Index: Spearman($R^*$, $R^f$) \\
-\midrule
 $w_J(t)$ & Judge weight at week $t$ in dynamic scoring rules \\
 $w_{min}$ & Minimum judge weight (early-stage) in Sigmoid rule \\
 $w_{max}$ & Maximum judge weight (late-stage) in Sigmoid rule \\
 $s$ & Steepness parameter in Sigmoid weighting function \\
-\midrule
 $\rho$ & Spearman rank correlation coefficient \\
 $\sigma^2$ & Variance component in mixed-effects models \\
 $\beta$ & Fixed effect coefficient in regression models \\
@@ -223,14 +219,14 @@ Era-level analysis showed that mean divergence increased from 0.61 in the Pre-So
     \centering
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{cleaned_outputs/global_scan/divergence_trend.png}
+        \includegraphics[width=\linewidth]{figures/divergence_trend.png}
     \end{minipage}
     \hfill
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{cleaned_outputs/global_scan/divergence_heatmap_detailed.png}
+        \includegraphics[width=\linewidth]{figures/divergence_heatmap_detailed.png}
     \end{minipage}
-    \caption{Judge-Audience Divergence Analysis. \textbf{Left:} Season-level divergence trend with social media era shading; the upward trend indicates increasing fan-judge disagreement. \textbf{Right:} Heatmap of weekly divergence $\mathcal{D}(s,w)$ across all seasons and weeks; red regions indicate high divergence, concentrated in later seasons.}
+    \caption{Judge-Audience Divergence Analysis. \textbf{Left:} Season-level trend. \textbf{Right:} Weekly divergence heatmap.}
     \label{fig:divergence}
 \end{figure}
 
@@ -345,8 +341,8 @@ Mean CI Width & 0.182 & 0.153 \\
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{cleaned_outputs/bayesian_inference/ci_width_distribution.png}
-    \caption{Distribution of 95\% Credible Interval Widths for Fan Vote Estimates. The narrow peak indicates high certainty for most observations.}
+    \includegraphics[width=0.65\linewidth]{figures/ci_width_distribution.png}
+    \caption{Distribution of 95\% Credible Interval Widths for Fan Vote Estimates.}
     \label{fig:ci_width}
 \end{figure}
 
@@ -354,8 +350,8 @@ Analysis of estimation certainty reveals that the average CI width of 0.182 indi
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{cleaned_outputs/patch3_certainty/ci_width_by_week.png}
-    \caption{CI Width Variation Across Competition Weeks. Early weeks (with more contestants) exhibit narrower confidence intervals, while later weeks show increased uncertainty due to weaker elimination constraints.}
+    \includegraphics[width=0.65\linewidth]{figures/ci_width_by_week.png}
+    \caption{CI Width Variation Across Competition Weeks.}
     \label{fig:ci_width_by_week}
 \end{figure}
 
@@ -367,8 +363,8 @@ In summary, our Bayesian inverse inference successfully reconstructs fan vote di
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{cleaned_outputs/bayesian_inference/fan_vote_vs_judge_score.png}
-    \caption{Estimated Fan Vote Share vs. Judge Score. Red points indicate eliminated contestants; blue points indicate survivors. The separation demonstrates that our Bayesian inference successfully recovers meaningful fan vote estimates that correlate with but remain distinct from judge assessments.}
+    \includegraphics[width=0.65\linewidth]{figures/fan_vote_vs_judge_score.png}
+    \caption{Estimated Fan Vote Share vs. Judge Score. Red: eliminated; blue: survivors.}
     \label{fig:fan_vs_judge}
 \end{figure}
 
@@ -407,8 +403,8 @@ Figure~\ref{fig:key_rules} compares three aggregation rules using traditional me
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{cleaned_outputs/phase4_pareto/key_rules_comparison.png}
-    \caption{Comparison of Three Aggregation Rules under Traditional Metrics. $\rho_J$: Judge-Final correlation (meritocracy); $\rho_F$: Fan-Final correlation (engagement); $H$: Harmonic mean balance. Note that Rank-Based achieves the highest Balance, but this metric ignores phase-specific requirements.}
+    \includegraphics[width=0.65\linewidth]{figures/key_rules_comparison.png}
+    \caption{Comparison of Three Aggregation Rules under Traditional Metrics.}
     \label{fig:key_rules}
 \end{figure}
 
@@ -505,8 +501,8 @@ Dynamic Pattern & $-0.028$ & \textbf{1.555} & $\star$ Dynamic \\
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{cleaned_outputs/phase5_recommendation/dynamic_weights.png}
-    \caption{Weight Evolution under Optimal Sigmoid Rule. Judge weight increases from 30\% (Week 1) to 75\% (finale), following an S-curve that ensures smooth transition.}
+    \includegraphics[width=0.65\linewidth]{figures/dynamic_weights.png}
+    \caption{Weight Evolution under Optimal Sigmoid Rule.}
     \label{fig:weight_evolution}
 \end{figure}
 
@@ -567,15 +563,15 @@ Simulation with $\pm 5\%$ vote perturbations reveals that the Percentage system 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{cleaned_outputs/patch4_elasticity/elasticity_comparison.png}
-    \caption{Fan-Elasticity Comparison: Rank vs. Percentage System. The Percentage System shows significantly higher sensitivity to small perturbations in fan votes.}
+    \includegraphics[width=0.65\linewidth]{figures/elasticity_comparison.png}
+    \caption{Fan-Elasticity Comparison: Rank vs. Percentage System.}
     \label{fig:elasticity}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{cleaned_outputs/phase3_simulator/jfi_comparison.png}
-    \caption{Judge Favorability Index (JFI) Comparison across 34 Seasons. The Rank method (blue) consistently achieves higher JFI than the Percentage method (orange), indicating better alignment with professional judgment.}
+    \includegraphics[width=0.65\linewidth]{figures/jfi_comparison.png}
+    \caption{Judge Favorability Index (JFI) Comparison across 34 Seasons.}
     \label{fig:jfi_comparison}
 \end{figure}
 
@@ -629,8 +625,8 @@ Under the Rank method, adding Judges' Save improves JFI by 1.3 percentage points
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{cleaned_outputs/phase3_simulator/ffi_jfi_tradeoff.png}
-    \caption{FFI-JFI Trade-off Analysis: Rank vs. Percentage Method. Each point represents a season. The Rank method (blue) achieves higher JFI with comparable FFI, dominating the Percentage method (orange) in the Pareto sense.}
+    \includegraphics[width=0.65\linewidth]{figures/ffi_jfi_tradeoff.png}
+    \caption{FFI-JFI Trade-off Analysis: Rank vs. Percentage Method.}
     \label{fig:tradeoff}
 \end{figure}
 
@@ -686,8 +682,8 @@ Tristan MacManus & $-9.43$ & $-1.90$ & 5 & Dual negative \\
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{cleaned_outputs/phase4_supplement/pro_dancer_effects.png}
-    \caption{Pro Dancer Effects on Judge Scores (J\_lift) and Fan Votes (F\_lift). Points in quadrants II and IV indicate dancers with opposite effects on J vs. F.}
+    \includegraphics[width=0.65\linewidth]{figures/pro_dancer_effects.png}
+    \caption{Pro Dancer Effects on Judge Scores and Fan Votes.}
     \label{fig:pro_dancer}
 \end{figure}
 
@@ -713,8 +709,8 @@ Model & $-2.27$ & 68.0 & 18 & Moderate J, lowest fan \\
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{cleaned_outputs/feature_engineering/pbi_by_industry.png}
-    \caption{Popularity Bias Index (PBI) by Industry Category. Positive PBI indicates fan-favored outcomes; negative PBI indicates judge-favored outcomes.}
+    \includegraphics[width=0.65\linewidth]{figures/pbi_by_industry.png}
+    \caption{Popularity Bias Index (PBI) by Industry Category.}
     \label{fig:pbi_industry}
 \end{figure}
 
@@ -722,8 +718,8 @@ Further analysis of age effects reveals a non-linear relationship. Young contest
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{cleaned_outputs/phase4_supplement/variance_decomposition.png}
-    \caption{Variance Decomposition Comparison: Judge Scores vs. Fan Votes. Celebrity identity explains more judge variance, while season context explains more fan variance.}
+    \includegraphics[width=0.65\linewidth]{figures/variance_decomposition.png}
+    \caption{Variance Decomposition: Judge Scores vs. Fan Votes.}
     \label{fig:variance}
 \end{figure}
 
@@ -743,8 +739,8 @@ Figure~\ref{fig:param_sensitivity}(b) shows that composite score increases monot
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.95\linewidth]{cleaned_outputs/phase3_pareto_analysis/parameter_sensitivity_analysis.png}
-    \caption{Parameter Sensitivity Analysis. (a) Composite score heatmap for $w_{min}$ vs. $w_{max}$ at steepness $s=6$; the star marks the optimal configuration. (b) Steepness sensitivity showing mean $\pm$ std and maximum scores; the dashed red line indicates the Static Rank 50-50 baseline.}
+    \includegraphics[width=0.95\linewidth]{figures/parameter_sensitivity_analysis.png}
+    \caption{Parameter Sensitivity Analysis. (a) Composite score heatmap. (b) Steepness sensitivity.}
     \label{fig:param_sensitivity}
 \end{figure}
 
@@ -764,8 +760,8 @@ Since the entire confidence interval lies above zero, we conclude that the dynam
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.95\linewidth]{cleaned_outputs/phase3_pareto_analysis/cross_season_stability.png}
-    \caption{Cross-Season Stability Analysis. (a) Boxplot comparing Rank vs. Pct methods across 34 seasons; Rank achieves lower variance. (b) Bootstrap distribution of score improvement (Dynamic $-$ Static); the 95\% CI excludes zero, confirming statistical significance.}
+    \includegraphics[width=0.95\linewidth]{figures/cross_season_stability.png}
+    \caption{Cross-Season Stability Analysis. (a) Rank vs. Pct variance. (b) Bootstrap distribution.}
     \label{fig:stability}
 \end{figure}
 
@@ -775,8 +771,8 @@ DWTS used different judge panels across eras: 3-judge system (Seasons 1--10, 13-
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.95\linewidth]{cleaned_outputs/phase3_pareto_analysis/robustness_analysis.png}
-    \caption{Robustness Analysis. (a) Performance improvement vs. fan vote variability ratio; the Rank method's advantage increases with higher variability. (b) Performance across 3-judge and 4-judge seasons; Rank consistently outperforms Pct under both systems.}
+    \includegraphics[width=0.95\linewidth]{figures/robustness_analysis.png}
+    \caption{Robustness Analysis. (a) Performance vs. variability. (b) Performance across judge systems.}
     \label{fig:robustness}
 \end{figure}
 
