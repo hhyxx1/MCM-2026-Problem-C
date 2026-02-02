@@ -116,17 +116,17 @@ The competition organizers seek a data-driven assessment of the DWTS voting mech
 
 \subsection{Our Work}
 
-To address these objectives, we develop a comprehensive analytical framework integrating data reconstruction, statistical inference, and multi-objective optimization. Our approach proceeds through five stages:
+To address these objectives, we develop a comprehensive analytical framework integrating data reconstruction, statistical inference, and multi-objective optimization. Our approach proceeds through five stages.
 
-\textbf{Stage 1: Data Archaeology.} We process raw competition data from 34 seasons, standardizing heterogeneous scoring systems and constructing a panel dataset of 2,777 weekly observations. A Popularity Bias Index (PBI) is defined to quantify the divergence between judge rankings and final placements.
+We first process raw competition data from 34 seasons, standardizing heterogeneous scoring systems and constructing a panel dataset of 2,777 weekly observations. A Popularity Bias Index (PBI) is defined to quantify the divergence between judge rankings and final placements.
 
-\textbf{Stage 2: Bayesian Inverse Inference.} Since fan vote shares are never disclosed, we treat them as latent variables and employ Hit-and-Run MCMC sampling to reconstruct posterior distributions consistent with observed elimination outcomes. This inference achieves 95.2\% consistency on non-anomalous weeks.
+We then develop a Bayesian inverse inference model to estimate undisclosed fan vote shares. By treating votes as latent variables, we employ Hit-and-Run MCMC sampling to reconstruct posterior distributions consistent with observed elimination outcomes, achieving 95.2\% consistency on non-anomalous weeks.
 
-\textbf{Stage 3: Pareto Optimization.} We formulate voting rule design as a bi-objective problem maximizing both Meritocracy (judge-final correlation) and Engagement (fan-final correlation). A multi-phase evaluation framework rewards rules that emphasize fan engagement early and judge expertise late. Grid search over 107 configurations identifies an optimal Sigmoid dynamic weighting scheme.
+We formulate voting rule design as a bi-objective optimization problem maximizing both Meritocracy (judge-final correlation) and Engagement (fan-final correlation). A multi-phase evaluation framework rewards rules that emphasize fan engagement early and judge expertise late, and grid search over 107 configurations identifies an optimal Sigmoid dynamic weighting scheme.
 
-\textbf{Stage 4: Mechanism Simulation.} Using inferred fan votes, we simulate competition outcomes under Rank and Percentage systems. Judge Favorability Index (JFI) and Fan Favorability Index (FFI) metrics quantify the bias of each method. Historical case studies validate that controversial outcomes would change under the alternative system.
+We simulate competition outcomes under Rank and Percentage systems using inferred fan votes. Judge Favorability Index (JFI) and Fan Favorability Index (FFI) metrics quantify the bias of each method, and historical case studies validate that controversial outcomes would change under the alternative system.
 
-\textbf{Stage 5: Covariate Modeling.} Mixed-effects regression decomposes variance in judge scores and fan votes attributable to pro dancers, celebrity characteristics, and season context. This analysis reveals asymmetric effects across the two evaluation channels.
+We finally construct mixed-effects regression models to decompose variance in judge scores and fan votes attributable to pro dancers, celebrity characteristics, and season context, revealing asymmetric effects across the two evaluation channels.
 
 Figure~\ref{fig:workflow} illustrates the overall workflow connecting these stages.
 
@@ -203,17 +203,17 @@ $u$ & Random effect term (e.g., pro dancer, celebrity) \\
 
 \subsection{Data Preprocessing}
 
-The raw dataset contains 421 contestants across 34 seasons, with judge scores recorded in a wide format (44 score columns for weeks 1--11 $\times$ 4 judges). We identified three major data quality issues requiring preprocessing. \textbf{First}, the scoring system varied across seasons: Seasons 1--10, 13--14, 16, 27, and 29 used a 3-judge system (maximum 30 points), while the remaining 20 seasons used a 4-judge system (maximum 40 points). To ensure comparability, we normalized all scores to a percentage scale $J\% = (\text{actual score} / \text{max possible}) \times 100$. \textbf{Second}, the dataset contained 8,316 \texttt{N/A} entries (judge 4 scores in 3-judge seasons) and 6,431 zero-score entries (post-elimination weeks where contestants no longer competed). We excluded these invalid observations to ensure accurate analysis. \textbf{Third}, we transformed the wide-format data into a long-format panel structure $(i, w)$, where each row represents one contestant in one week, yielding 2,777 valid observations. Additionally, we standardized 21 raw industry categories into 9 major groups (e.g., merging ``Actor/Actress'' into ``Actor'', ``Racing Driver'' into ``Athlete''), created a binary US/Non-US region indicator, and binned contestant ages into five intervals (18--25, 26--35, 36--45, 46--55, 55+). The cleaned dataset maintains complete coverage of all 34 seasons with a mean judge score of 74.8\% (SD = 11.2\%), ready for subsequent Bayesian inference and Pareto optimization modeling.
+The raw dataset contains 421 contestants across 34 seasons, with judge scores recorded in a wide format (44 score columns for weeks 1--11 $\times$ 4 judges). We identified three major data quality issues requiring preprocessing. The scoring system varied across seasons: Seasons 1--10, 13--14, 16, 27, and 29 used a 3-judge system (maximum 30 points), while the remaining 20 seasons used a 4-judge system (maximum 40 points); to ensure comparability, we normalized all scores to a percentage scale $J\% = (\text{actual score} / \text{max possible}) \times 100$. The dataset contained 8,316 \texttt{N/A} entries (judge 4 scores in 3-judge seasons) and 6,431 zero-score entries (post-elimination weeks where contestants no longer competed), which we excluded to ensure accurate analysis. We transformed the wide-format data into a long-format panel structure $(i, w)$, where each row represents one contestant in one week, yielding 2,777 valid observations. Additionally, we standardized 21 raw industry categories into 9 major groups (e.g., merging ``Actor/Actress'' into ``Actor'', ``Racing Driver'' into ``Athlete''), created a binary US/Non-US region indicator, and binned contestant ages into five intervals (18--25, 26--35, 36--45, 46--55, 55+). The cleaned dataset maintains complete coverage of all 34 seasons with a mean judge score of 74.8\% (SD = 11.2\%), ready for subsequent Bayesian inference and Pareto optimization modeling.
 
 \subsection{Feature Engineering}
 
-To quantify the divergence between professional evaluation and audience preference, we constructed the \textbf{Popularity Bias Index (PBI)} as the core feature. For each contestant $i$, we first computed their average weekly judge ranking $\bar{R}^J_i$ across all weeks they competed, then compared it with their final placement $R^*_i$:
+To quantify the divergence between professional evaluation and audience preference, we constructed the Popularity Bias Index (PBI) as the core feature. For each contestant $i$, we first computed their average weekly judge ranking $\bar{R}^J_i$ across all weeks they competed, then compared it with their final placement $R^*_i$:
 \begin{equation}
     \text{PBI}_i = \bar{R}^J_i - R^*_i
 \end{equation}
 A positive PBI indicates a ``fan favorite'' who placed better than judges predicted (e.g., Kelly Monaco in S1 with PBI = $+2.17$), while a negative PBI indicates a ``judge favorite'' who placed worse than their scores deserved (e.g., Rachel Hunter in S1 with PBI = $-2.50$). Across all 421 contestants, PBI ranged from $-8.5$ to $+6.0$ with a mean of $-0.88$ (SD = 2.14), suggesting a slight overall bias toward judge-preferred outcomes under the current rules.
 
-We also extracted covariates for subsequent modeling. \textbf{First}, we calculated partner-level statistics by aggregating PBI for each professional dancer across their career. Dancers with consistently positive average PBI (e.g., Daniella Karagach: $+1.71$, Lacey Schwimmer: $+0.61$) were identified as ``Star Makers'' who help boost celebrity popularity, while those with negative average PBI (e.g., Derek Hough: $-0.05$, Louis van Amstel: $-0.92$) tend to partner with judge favorites. \textbf{Second}, we prepared contestant-level features including age (continuous and binned), industry category (9 groups), and region (US/Non-US) for mixed-effects modeling. \textbf{Third}, we created season and week fixed effects (34 season dummies, 11 week dummies) to control for time-varying rule changes and competition structure.
+We also extracted covariates for subsequent modeling. Partner-level statistics were calculated by aggregating PBI for each professional dancer across their career; dancers with consistently positive average PBI (e.g., Daniella Karagach: $+1.71$, Lacey Schwimmer: $+0.61$) were identified as ``Star Makers'' who help boost celebrity popularity, while those with negative average PBI (e.g., Derek Hough: $-0.05$, Louis van Amstel: $-0.92$) tend to partner with judge favorites. Contestant-level features including age (continuous and binned), industry category (9 groups), and region (US/Non-US) were prepared for mixed-effects modeling. Season and week fixed effects (34 season dummies, 11 week dummies) were created to control for time-varying rule changes and competition structure.
 
 \subsection{Divergence Trend Analysis}
 
@@ -250,12 +250,12 @@ Since fan votes are never disclosed by the show, we face a critical missing vari
 
 Let $f_{i,t}$ denote the proportion of fan votes received by contestant $i$ in week $t$. The vector $\mathbf{f}_t = [f_{1,t}, \ldots, f_{n_t,t}]$ must satisfy two types of constraints:
 
-\textbf{Simplex Constraint:}
+The simplex constraint requires:
 \begin{equation}
     \sum_{i=1}^{n_t} f_{i,t} = 1, \quad f_{i,t} \geq 0 \quad \forall i
 \end{equation}
 
-\textbf{Elimination Constraint:} Let $S_t$ denote survivors and $E_t$ denote eliminated contestants in week $t$:
+The elimination constraint specifies that survivors must outscore eliminated contestants. Let $S_t$ denote survivors and $E_t$ denote eliminated contestants in week $t$:
 \begin{equation}
     \forall s \in S_t, e \in E_t: \text{Score}(s,t) > \text{Score}(e,t)
 \end{equation}
@@ -313,7 +313,7 @@ Withdrawals & Exclude from vote share denominator \\
 
 \subsection{Model Validation: Certainty and Consistency}
 
-We validate our inference model along two dimensions: \textbf{certainty} (how precise are the estimates?) and \textbf{consistency} (do estimates match observed eliminations?).
+We validate our inference model along two dimensions: certainty (precision of estimates) and consistency (agreement with observed eliminations).
 
 \begin{definition}[Credible Interval Width]
 The 95\% CI width measures estimation precision:
@@ -336,7 +336,7 @@ The proportion of weeks where the modal prediction exactly matches actual elimin
 \end{equation}
 \end{definition}
 
-\textbf{Validation Results:}
+Table 3 presents the validation results.
 \begin{table}[H]
 \centering
 \caption{Bayesian Inference Validation Metrics}
@@ -358,7 +358,7 @@ Mean CI Width & 0.182 & 0.153 \\
     \label{fig:ci_width}
 \end{figure}
 
-\textbf{Certainty Analysis:} The average CI width of 0.182 indicates high estimation precision. Figure~\ref{fig:ci_width} shows that most estimates cluster around narrow intervals, with only 12.7\% of observations exceeding 0.40. Certainty varies systematically: early weeks (more contestants) yield narrower CIs ($\approx$0.15), while later weeks (fewer contestants, weaker constraints) show wider CIs ($\approx$0.35). This pattern reflects the fundamental trade-off between constraint strength and estimation precision.
+Analysis of estimation certainty reveals that the average CI width of 0.182 indicates high precision. Figure~\ref{fig:ci_width} shows that most estimates cluster around narrow intervals, with only 12.7\% of observations exceeding 0.40. Certainty varies systematically: early weeks (more contestants) yield narrower CIs ($\approx$0.15), while later weeks (fewer contestants, weaker constraints) show wider CIs ($\approx$0.35). This pattern reflects the fundamental trade-off between constraint strength and estimation precision.
 
 \begin{figure}[H]
     \centering
@@ -367,11 +367,11 @@ Mean CI Width & 0.182 & 0.153 \\
     \label{fig:ci_width_by_week}
 \end{figure}
 
-\textbf{Consistency Analysis:} The posterior consistency of 89.2\% means that in nearly 9 out of 10 posterior samples, the actual eliminated contestants fall into the predicted Bottom-$k$. When excluding anomalous weeks (withdrawals, double eliminations, celebrity substitutions), consistency rises to 95.2\%. The 73.5\% exact match rate demonstrates that our model can correctly predict the \textit{exact} set of eliminated contestants in nearly three-quarters of all weeks---a strong result given that fan votes are completely unobserved.
+Analysis of prediction consistency shows that 89.2\% posterior consistency means that in nearly 9 out of 10 posterior samples, the actual eliminated contestants fall into the predicted Bottom-$k$. When excluding anomalous weeks (withdrawals, double eliminations, celebrity substitutions), consistency rises to 95.2\%. The 73.5\% exact match rate demonstrates that our model can correctly predict the exact set of eliminated contestants in nearly three-quarters of all weeks---a strong result given that fan votes are completely unobserved.
 
-\textbf{Interpretation of Non-Matches:} The 26.5\% of weeks with inexact matches are not model failures but rather indicate genuinely close competitions where multiple elimination outcomes were plausible given the constraints. These ``boundary cases'' are precisely the controversial weeks that motivate voting rule reform.
+The 26.5\% of weeks with inexact matches are not model failures but rather indicate genuinely close competitions where multiple elimination outcomes were plausible given the constraints. These ``boundary cases'' are precisely the controversial weeks that motivate voting rule reform.
 
-\textbf{Summary:} Our Bayesian inverse inference successfully reconstructs fan vote distributions with high certainty (mean CIW = 0.182) and consistency (89.2\%). The key insight is that elimination outcomes, though discrete, impose sufficient constraints to recover continuous vote shares with quantified uncertainty. This reliable inference establishes the \textbf{trust foundation} for all subsequent analyses: without credible fan vote estimates, we cannot meaningfully compare alternative voting rules or identify controversial outcomes.
+In summary, our Bayesian inverse inference successfully reconstructs fan vote distributions with high certainty (mean CIW = 0.182) and consistency (89.2\%). The key insight is that elimination outcomes, though discrete, impose sufficient constraints to recover continuous vote shares with quantified uncertainty. This reliable inference establishes the trust foundation for all subsequent analyses: without credible fan vote estimates, we cannot meaningfully compare alternative voting rules or identify controversial outcomes.
 
 \begin{figure}[H]
     \centering
@@ -384,7 +384,7 @@ Having established reliable fan vote estimates, we now proceed to design and eva
 
 \section{Pareto Optimization Model for Dynamic Weighting Rules}
 
-The core challenge in voting rule design is balancing two competing objectives: \textbf{Meritocracy} (rewarding technical excellence) and \textbf{Engagement} (maintaining audience participation). Rather than arbitrarily choosing weights, we formulate this as a multi-objective optimization problem and search for Pareto-optimal rules \cite{miettinen1999}.
+The core challenge in voting rule design is balancing two competing objectives: Meritocracy (rewarding technical excellence) and Engagement (maintaining audience participation). Rather than arbitrarily choosing weights, we formulate this as a multi-objective optimization problem and search for Pareto-optimal rules \cite{miettinen1999}.
 
 \subsection{Dual Objective Definition}
 
@@ -411,7 +411,7 @@ The traditional approach uses the harmonic mean as a balance metric:
     \text{Balance}_{trad} = \frac{2JF}{J + F}
 \end{equation}
 
-\textbf{Baseline Comparison under Traditional Metrics:} Figure~\ref{fig:key_rules} compares three aggregation rules using traditional metrics. Under the harmonic mean Balance, the Rank-Based rule slightly outperforms both Percentage-Based and Dynamic Log-Weighted rules. This suggests that \textit{under traditional evaluation, static rules appear optimal}---motivating our development of a phase-aware evaluation framework.
+Figure~\ref{fig:key_rules} compares three aggregation rules using traditional metrics. Under the harmonic mean Balance, the Rank-Based rule slightly outperforms both Percentage-Based and Dynamic Log-Weighted rules. This suggests that under traditional evaluation, static rules appear optimal---motivating our development of a phase-aware evaluation framework.
 
 \begin{figure}[H]
     \centering
@@ -424,13 +424,13 @@ However, this metric treats all weeks equally and fails to capture the \textit{p
 
 \subsection{Multi-Phase Evaluation Framework}
 
-\textbf{Key Insight:} Competition stages have different priorities. Early weeks should emphasize fan engagement (to build audience investment), while later weeks should emphasize meritocracy (to ensure credible champions).
+Competition stages have different priorities: early weeks should emphasize fan engagement (to build audience investment), while later weeks should emphasize meritocracy (to ensure credible champions).
 
-\textbf{Phase Division:} For a season with $N$ weeks (typically 8--11 across DWTS history), we divide the competition into three equal phases. This trichotomy balances phase differentiation with statistical stability, and reflects the natural progression from audience-building (early) to championship contention (late):
+For a season with $N$ weeks (typically 8--11 across DWTS history), we divide the competition into three equal phases. This trichotomy balances phase differentiation with statistical stability, and reflects the natural progression from audience-building (early) to championship contention (late):
 \begin{itemize}[noitemsep]
-    \item \textbf{Early Phase:} Weeks $1$ to $\lfloor N/3 \rfloor$ --- Fan engagement priority
-    \item \textbf{Middle Phase:} Weeks $\lfloor N/3 \rfloor + 1$ to $\lfloor 2N/3 \rfloor$ --- Balanced transition
-    \item \textbf{Late Phase:} Weeks $\lfloor 2N/3 \rfloor + 1$ to $N$ --- Meritocracy priority
+    \item Early Phase: Weeks $1$ to $\lfloor N/3 \rfloor$ --- Fan engagement priority
+    \item Middle Phase: Weeks $\lfloor N/3 \rfloor + 1$ to $\lfloor 2N/3 \rfloor$ --- Balanced transition
+    \item Late Phase: Weeks $\lfloor 2N/3 \rfloor + 1$ to $N$ --- Meritocracy priority
 \end{itemize}
 
 We compute phase-specific metrics $J_{early}, F_{early}, J_{late}, F_{late}$ by averaging correlations within each phase.
@@ -450,7 +450,7 @@ A weighted balance that emphasizes $F$ in early weeks and $J$ in late weeks:
 \end{equation}
 \end{definition}
 
-\textbf{Composite Score:} We combine multiple objectives into a single evaluation metric:
+We combine multiple objectives into a single composite score:
 \begin{equation}
     \text{Score} = 0.35 \cdot \text{Balance}_{trad} + 0.30 \cdot \text{Balance}_{phased} + 0.25 \cdot \max(0, 0.3 \cdot \text{DynPat}) + 0.10
 \end{equation}
@@ -459,18 +459,16 @@ A weighted balance that emphasizes $F$ in early weeks and $J$ in late weeks:
 
 We search over 107 rule configurations spanning static and dynamic weighting schemes.
 
-\textbf{Static Rules (Baseline):} Fixed judge weight throughout the season:
+Static rules use fixed judge weight throughout the season:
 \begin{equation}
     \text{Score}(i,t) = w_J \cdot J_{rank}(i) + (1-w_J) \cdot F_{rank}(i), \quad w_J \in [0.35, 0.65]
 \end{equation}
 
-\textbf{Sigmoid Dynamic Rules (Proposed):} Judge weight follows an S-curve:
+Our proposed Sigmoid dynamic rules allow judge weight to follow an S-curve:
 \begin{equation}
     w_J(t) = w_{min} + \frac{w_{max} - w_{min}}{1 + e^{-s(t/T - 0.5)}}
 \end{equation}
-where $w_{min}$ is the early-stage judge weight, $w_{max}$ is the late-stage judge weight, and $s$ controls transition steepness.
-
-\textbf{Parameter Ranges:}
+where $w_{min}$ is the early-stage judge weight, $w_{max}$ is the late-stage judge weight, and $s$ controls transition steepness. The parameter ranges are:
 \begin{table}[H]
 \centering
 \begin{tabular}{lcl}
@@ -488,9 +486,9 @@ $s$ (steepness) & $\{3, 4, 5, 6\}$ & Transition speed (higher = sharper mid-seas
 
 After evaluating all 107 configurations across 34 seasons, we identify the optimal dynamic rule.
 
-\textbf{Why Not Traditional Balance Alone?} The traditional harmonic mean Balance favors static rules because it averages performance across all weeks without distinguishing competition stages. However, the show's value proposition differs by phase: early weeks need audience investment (high $F$), while late weeks need credible champions (high $J$). A rule that achieves $J = F = 0.55$ uniformly is \textit{less desirable} than one achieving $F_{early} = 0.88$ and $J_{late} = 0.91$, even if their overall averages are similar. This motivates our multi-phase evaluation framework, which explicitly rewards phase-appropriate behavior.
+The traditional harmonic mean Balance favors static rules because it averages performance across all weeks without distinguishing competition stages. However, the show's value proposition differs by phase: early weeks need audience investment (high $F$), while late weeks need credible champions (high $J$). A rule that achieves $J = F = 0.55$ uniformly is less desirable than one achieving $F_{early} = 0.88$ and $J_{late} = 0.91$, even if their overall averages are similar. This motivates our multi-phase evaluation framework, which explicitly rewards phase-appropriate behavior.
 
-\textbf{Optimal Configuration:} $\boxed{\text{Sigmoid}(w_{min}=0.30, w_{max}=0.75, s=6)}$
+Grid search identifies the optimal configuration as $\text{Sigmoid}(w_{min}=0.30, w_{max}=0.75, s=6)$.
 
 \begin{table}[H]
 \centering
@@ -520,7 +518,7 @@ Dynamic Pattern & $-0.028$ & \textbf{1.555} & $\star$ Dynamic \\
     \label{fig:weight_evolution}
 \end{figure}
 
-\textbf{Interpretation:} The optimal rule embodies the principle: \textit{``The deeper into the competition, the more judges' opinions matter.''} Early weeks allow fan favorites to survive (building audience investment), while late weeks ensure technical excellence determines the champion.
+The optimal rule embodies the principle that the deeper into the competition, the more judges' opinions matter. Early weeks allow fan favorites to survive (building audience investment), while late weeks ensure technical excellence determines the champion.
 
 \section{Rule Simulation and Mechanism Comparison}
 
@@ -530,14 +528,14 @@ To address the central questions of Problem C, we construct a Monte Carlo simula
 
 The simulator implements both voting methods using identical fan-vote and judge-score inputs. For each week $t$ and contestant $i$:
 
-\textbf{Rank Method.} Contestants are ranked separately by fan votes and judge scores, then combined:
+Under the Rank method, contestants are ranked separately by fan votes and judge scores, then combined:
 $$
 R_i^{(t)} = w_J \cdot \text{rank}_J(i) + w_F \cdot \text{rank}_F(i)
 $$
 
 where $\text{rank}_J(i)$ and $\text{rank}_F(i)$ denote the ordinal positions (1 = best). The contestant with the highest combined rank is eliminated.
 
-\textbf{Percentage Method.} Raw scores are normalized and weighted:
+Under the Percentage method, raw scores are normalized and weighted:
 $$
 S_i^{(t)} = w_J \cdot \frac{J_i}{\max_j J_j} + w_F \cdot \frac{f_i}{\sum_j f_j}
 $$
@@ -550,30 +548,30 @@ We set $w_J = w_F = 0.5$ (equal weighting) as the baseline, consistent with the 
 
 Our comparison employs two primary indices and one sensitivity metric:
 
-\textbf{Judge Favorability Index (JFI).} Measures how well final rankings align with cumulative judge scores:
+The Judge Favorability Index (JFI) measures how well final rankings align with cumulative judge scores:
 $$
 \text{JFI} = \frac{1}{N} \sum_{i=1}^{N} \mathbf{1}\left[\text{FinalRank}(i) \leq \text{MedianRank}(\bar{J}_i)\right]
 $$
 
-\textbf{Fan Favorability Index (FFI).} Measures alignment with cumulative fan engagement:
+The Fan Favorability Index (FFI) measures alignment with cumulative fan engagement:
 $$
 \text{FFI} = \frac{1}{N} \sum_{i=1}^{N} \mathbf{1}\left[\text{FinalRank}(i) \leq \text{MedianRank}(\bar{f}_i)\right]
 $$
 
-\textbf{Key Results.} Across 34 seasons:
+Across 34 seasons, the key results are:
 \begin{itemize}
     \item Rank Method: $\text{JFI} = 0.665$, $\text{FFI} = 0.704$
     \item Percentage Method: $\text{JFI} = 0.454$, $\text{FFI} = 0.706$
 \end{itemize}
 
-The Percentage method yields JFI that is \textbf{46.4\% lower} than the Rank method while achieving nearly identical FFI. This indicates that the Percentage system disproportionately favors fan votes at the expense of judge expertise.
+The Percentage method yields JFI that is 46.4\% lower than the Rank method while achieving nearly identical FFI. This indicates that the Percentage system disproportionately favors fan votes at the expense of judge expertise.
 
-\textbf{Fan-Elasticity Analysis.} We define Fan-Elasticity as the sensitivity of elimination probability to small perturbations in fan votes:
+We define Fan-Elasticity as the sensitivity of elimination probability to small perturbations in fan votes:
 $$
 \mathcal{E}_F = \frac{\partial P(\text{elim}_i)}{\partial f_i} \cdot \frac{f_i}{P(\text{elim}_i)}
 $$
 
-Simulation with $\pm 5\%$ vote perturbations reveals that the Percentage system has elasticity $|\mathcal{E}_F| = 2.34$, compared to $|\mathcal{E}_F| = 0.87$ for the Rank system. The Percentage method is \textbf{2.7 times more sensitive} to fan-vote fluctuations, making it more susceptible to organized voting campaigns.
+Simulation with $\pm 5\%$ vote perturbations reveals that the Percentage system has elasticity $|\mathcal{E}_F| = 2.34$, compared to $|\mathcal{E}_F| = 0.87$ for the Rank system. The Percentage method is 2.7 times more sensitive to fan-vote fluctuations, making it more susceptible to organized voting campaigns.
 
 \begin{figure}[H]
     \centering
@@ -589,7 +587,7 @@ Simulation with $\pm 5\%$ vote perturbations reveals that the Percentage system 
     \label{fig:jfi_comparison}
 \end{figure}
 
-\textbf{Cross-Season Stability.} Analyzing temporal trends, we find the Rank method produces more consistent outcomes (coefficient of variation $\text{CV}_{\text{rank}} = 0.12$) compared to the Percentage method ($\text{CV}_{\text{pct}} = 0.23$). This stability is particularly valuable as the show's viewer demographics have shifted over 34 seasons.
+Analyzing cross-season stability, we find the Rank method produces more consistent outcomes (coefficient of variation $\text{CV}_{\text{rank}} = 0.12$) compared to the Percentage method ($\text{CV}_{\text{pct}} = 0.23$). This stability is particularly valuable as the show's viewer demographics have shifted over 34 seasons.
 
 \subsection{Historical Case Studies}
 
@@ -611,11 +609,11 @@ Bobby Bones & S27 & Winner & 4th Place & Yes \\
 \label{tab:cases}
 \end{table}
 
-\textbf{Bobby Bones (Season 27)} represents the most dramatic case. Despite having the lowest average judge score among finalists (22.4/30), he won the competition under the Percentage system. Our simulation shows he would have placed 4th under the Rank method---a result more consistent with his demonstrated dancing ability.
+The case of Bobby Bones (Season 27) represents the most dramatic example. Despite having the lowest average judge score among finalists (22.4/30), he won the competition under the Percentage system. Our simulation shows he would have placed 4th under the Rank method---a result more consistent with his demonstrated dancing ability.
 
-\textbf{Bristol Palin (Season 11)} reached the finals despite consistently low judge scores, generating significant controversy. Under the Rank method, she would have been eliminated in week 7, preventing the perceived ``voting scandal.''
+Bristol Palin (Season 11) reached the finals despite consistently low judge scores, generating significant controversy. Under the Rank method, she would have been eliminated in week 7, preventing the perceived ``voting scandal.''
 
-All four controversial outcomes would have been \textbf{corrected} under the Rank method, suggesting this system better balances entertainment value with competitive integrity.
+All four controversial outcomes would have been corrected under the Rank method, suggesting this system better balances entertainment value with competitive integrity.
 
 \subsection{Impact of Judges' Save Mechanism}
 
@@ -635,7 +633,7 @@ Pct + Save & $-0.009$ & $-0.016$ & Negative \\
 \label{tab:save}
 \end{table}
 
-Under the Rank method, adding Judges' Save \textbf{improves} JFI by 1.3 percentage points at a modest cost to FFI. However, under the Percentage method, the Save mechanism actually \textbf{decreases} JFI, suggesting it cannot compensate for the method's inherent bias toward fan votes.
+Under the Rank method, adding Judges' Save improves JFI by 1.3 percentage points at a modest cost to FFI. However, under the Percentage method, the Save mechanism actually decreases JFI, suggesting it cannot compensate for the method's inherent bias toward fan votes.
 
 \begin{figure}[H]
     \centering
@@ -657,7 +655,7 @@ where $\mathbf{X}_i$ includes Age, Industry, and Week as fixed effects. By fitti
 
 \subsection{Pro Dancer Effect}
 
-Through variance decomposition analysis, we partition the total variance of both judge scores and fan votes into four components: pro dancer, celebrity, season, and residual. Table~\ref{tab:variance} reveals a striking \textbf{asymmetry} in variance structure. Celebrity identity explains 52.6\% of judge score variance but only 42.2\% of fan vote variance, indicating that judges respond more strongly to the celebrity's intrinsic dancing ability. Conversely, season context explains 9.4\% of fan vote variance versus only 3.4\% for judges, reflecting the influence of social media trends and platform changes on audience behavior. Pro dancer contribution remains comparable across both metrics (28.6\% vs. 31.0\%).
+Through variance decomposition analysis, we partition the total variance of both judge scores and fan votes into four components: pro dancer, celebrity, season, and residual. Table~\ref{tab:variance} reveals a striking asymmetry in variance structure. Celebrity identity explains 52.6\% of judge score variance but only 42.2\% of fan vote variance, indicating that judges respond more strongly to the celebrity's intrinsic dancing ability. Conversely, season context explains 9.4\% of fan vote variance versus only 3.4\% for judges, reflecting the influence of social media trends and platform changes on audience behavior. Pro dancer contribution remains comparable across both metrics (28.6\% vs. 31.0\%).
 
 \begin{table}[H]
 \centering
@@ -737,7 +735,7 @@ Further analysis of age effects reveals a non-linear relationship. Young contest
     \label{fig:variance}
 \end{figure}
 
-These findings demonstrate that covariates exert \textbf{differential effects} on the two evaluation channels. Strategies to improve judge scores (technical training, experienced choreographers) differ fundamentally from strategies to boost fan votes (social media presence, relatable personality). This asymmetry has practical implications for casting decisions and partnership assignments, which we elaborate in the Memo to Producer.
+These findings demonstrate that covariates exert differential effects on the two evaluation channels. Strategies to improve judge scores (technical training, experienced choreographers) differ fundamentally from strategies to boost fan votes (social media presence, relatable personality). This asymmetry has practical implications for casting decisions and partnership assignments, which we elaborate in the Memo to Producer.
 
 \section{Sensitivity Analysis and Model Evaluation}
 
@@ -745,7 +743,7 @@ To ensure the robustness of our proposed dynamic weighting rule and validate mod
 
 \subsection{Sensitivity Analysis}
 
-\textbf{Parameter Sensitivity.} The optimal Sigmoid dynamic rule involves three key parameters: $w_{min}$ (early-stage judge weight), $w_{max}$ (late-stage judge weight), and steepness $s$. We evaluate the composite score across 107 parameter configurations to assess the stability of our recommendation.
+The optimal Sigmoid dynamic rule involves three key parameters: $w_{min}$ (early-stage judge weight), $w_{max}$ (late-stage judge weight), and steepness $s$. We evaluate the composite score across 107 parameter configurations to assess parameter sensitivity and the stability of our recommendation.
 
 Figure~\ref{fig:param_sensitivity}(a) presents a heatmap of composite scores for varying $(w_{min}, w_{max})$ combinations at fixed steepness $s=6$. The optimal configuration $(0.30, 0.75)$ lies within a stable ``high-score plateau'' (scores $>0.55$), indicating that small perturbations in weight boundaries do not significantly degrade performance. The score range across all 107 configurations spans $[0.462, 0.570]$, with our recommended setting achieving the maximum.
 
@@ -758,19 +756,19 @@ Figure~\ref{fig:param_sensitivity}(b) shows that composite score increases monot
     \label{fig:param_sensitivity}
 \end{figure}
 
-\textbf{Cross-Season Stability.} We assess method stability by computing the coefficient of variation (CV) of performance metrics across 34 seasons. As shown in Figure~\ref{fig:stability}(a), the Rank method exhibits substantially lower variability than the Percentage method:
+We assess cross-season stability by computing the coefficient of variation (CV) of performance metrics across 34 seasons. As shown in Figure~\ref{fig:stability}(a), the Rank method exhibits substantially lower variability than the Percentage method:
 \begin{itemize}[noitemsep]
     \item Rank method: $\text{CV}(J) = 0.477$
     \item Percentage method: $\text{CV}(J) = 1.148$
 \end{itemize}
-The Rank method is \textbf{2.4$\times$ more stable} across seasons, confirming its robustness to varying competition structures and audience demographics.
+The Rank method is 2.4$\times$ more stable across seasons, confirming its robustness to varying competition structures and audience demographics.
 
-\textbf{Bootstrap Validation.} To establish statistical significance, we conduct bootstrap resampling ($n=1000$) on the score improvement of the dynamic rule over the static baseline \cite{efron1979}. Figure~\ref{fig:stability}(b) presents the bootstrap distribution:
+To establish statistical significance, we conduct bootstrap resampling ($n=1000$) on the score improvement of the dynamic rule over the static baseline \cite{efron1979}. Figure~\ref{fig:stability}(b) presents the bootstrap distribution:
 \begin{itemize}[noitemsep]
     \item Mean improvement: $+0.101$ (21.6\% relative gain)
     \item 95\% CI: $[0.089, 0.113]$
 \end{itemize}
-Since the entire confidence interval lies above zero, we conclude that the dynamic rule's superiority is \textbf{statistically significant} at $\alpha = 0.05$.
+Since the entire confidence interval lies above zero, we conclude that the dynamic rule's superiority is statistically significant at $\alpha = 0.05$.
 
 \begin{figure}[H]
     \centering
@@ -779,7 +777,7 @@ Since the entire confidence interval lies above zero, we conclude that the dynam
     \label{fig:stability}
 \end{figure}
 
-\textbf{Robustness to Extreme Scenarios.} We examine whether method performance degrades when fan votes exhibit high variability (indicative of organized voting campaigns). Figure~\ref{fig:robustness}(a) plots performance improvement against the CV ratio (fan/judge variability). Regression analysis reveals a \textbf{positive correlation} ($r = 0.31$, $p < 0.10$): the Rank method's advantage over Pct \textit{increases} when fan votes are more variable. This confirms that Rank-based scoring provides natural protection against extreme voting patterns.
+We examine robustness to extreme scenarios by testing whether method performance degrades when fan votes exhibit high variability (indicative of organized voting campaigns). Figure~\ref{fig:robustness}(a) plots performance improvement against the CV ratio (fan/judge variability). Regression analysis reveals a positive correlation ($r = 0.31$, $p < 0.10$): the Rank method's advantage over Pct increases when fan votes are more variable. This confirms that Rank-based scoring provides natural protection against extreme voting patterns.
 
 DWTS used different judge panels across eras: 3-judge system (Seasons 1--10, 13--14, 16, 27, 29) and 4-judge system (remaining seasons). Figure~\ref{fig:robustness}(b) shows that both Rank and Pct methods maintain consistent relative performance across judge systems, with Rank consistently outperforming Pct regardless of the scoring scale.
 
@@ -792,38 +790,24 @@ DWTS used different judge panels across eras: 3-judge system (Seasons 1--10, 13-
 
 \subsection{Strengths and Weaknesses}
 
-\textbf{Strengths:}
-\begin{enumerate}[noitemsep]
-    \item \textbf{Reliable inference foundation:} Our Bayesian inverse model achieves 95.2\% posterior consistency on non-anomalous weeks, providing trustworthy fan vote estimates for counterfactual analysis.
-    \item \textbf{Innovative evaluation framework:} The multi-phase assessment captures dynamic rules' stage-differentiated advantages, revealing benefits invisible under traditional metrics.
-    \item \textbf{Historical validation:} All four controversial cases (Jerry Rice, Billy Ray Cyrus, Bristol Palin, Bobby Bones) would be corrected under the proposed rule.
-    \item \textbf{Inherent robustness:} Rank-based scoring exhibits 2.7$\times$ lower fan-elasticity than Percentage scoring, naturally suppressing extreme voting influence.
-    \item \textbf{Interpretability:} The principle ``the deeper into competition, the more judges matter'' is intuitive for audiences and producers alike.
-\end{enumerate}
+The model exhibits several strengths. Our Bayesian inverse model achieves 95.2\% posterior consistency on non-anomalous weeks, providing trustworthy fan vote estimates for counterfactual analysis. The multi-phase assessment framework captures dynamic rules' stage-differentiated advantages, revealing benefits invisible under traditional metrics. All four controversial cases (Jerry Rice, Billy Ray Cyrus, Bristol Palin, Bobby Bones) would be corrected under the proposed rule. Rank-based scoring exhibits 2.7$\times$ lower fan-elasticity than Percentage scoring, naturally suppressing extreme voting influence. The principle ``the deeper into competition, the more judges matter'' is intuitive for audiences and producers alike.
 
-\textbf{Weaknesses:}
-\begin{enumerate}[noitemsep]
-    \item \textbf{Inferred latent variables:} Fan vote shares remain estimates with irreducible uncertainty; actual vote data would strengthen conclusions.
-    \item \textbf{Rational voting assumption:} Our model assumes voters respond to contestant performance; emotional, retaliatory, or strategic voting behaviors are not explicitly modeled.
-    \item \textbf{Coarse temporal resolution:} Social media influence is captured via era-level fixed effects rather than fine-grained platform metrics (e.g., daily tweet counts).
-    \item \textbf{Retrospective validation only:} Conclusions are based on historical simulation; prospective experiments (e.g., A/B testing in a live season) would provide stronger causal evidence.
-    \item \textbf{Single-show generalization:} While our framework is generalizable, parameter optima may differ for other reality competition shows with different audience demographics.
-\end{enumerate}
+Several limitations should be acknowledged. Fan vote shares remain estimates with irreducible uncertainty; actual vote data would strengthen conclusions. Our model assumes voters respond to contestant performance; emotional, retaliatory, or strategic voting behaviors are not explicitly modeled. Social media influence is captured via era-level fixed effects rather than fine-grained platform metrics (e.g., daily tweet counts). Conclusions are based on historical simulation; prospective experiments (e.g., A/B testing in a live season) would provide stronger causal evidence. While our framework is generalizable, parameter optima may differ for other reality competition shows with different audience demographics.
 
 
 \section{Conclusion}
 
 This paper develops a comprehensive analytical framework to evaluate and optimize the DWTS voting mechanism, addressing the fundamental tension between professional judgment and audience engagement.
 
-\textbf{Key Findings.} Analysis of 34 seasons reveals systematic differences between scoring methods. The Rank-based system achieves a Judge Favorability Index (JFI) of 0.665 compared to 0.454 under Percentage scoring, representing a 46.5\% improvement in judge-final alignment. Simultaneously, both methods maintain comparable Fan Favorability Indices ($\text{FFI} \approx 0.70$), indicating that Rank scoring enhances meritocracy without sacrificing audience influence. The Rank method also exhibits 2.4$\times$ lower cross-season variability (CV = 0.477 vs. 1.148), demonstrating superior stability across diverse competition contexts.
+Analysis of 34 seasons reveals systematic differences between scoring methods. The Rank-based system achieves a Judge Favorability Index (JFI) of 0.665 compared to 0.454 under Percentage scoring, representing a 46.5\% improvement in judge-final alignment. Simultaneously, both methods maintain comparable Fan Favorability Indices ($\text{FFI} \approx 0.70$), indicating that Rank scoring enhances meritocracy without sacrificing audience influence. The Rank method also exhibits 2.4$\times$ lower cross-season variability (CV = 0.477 vs. 1.148), demonstrating superior stability across diverse competition contexts.
 
-\textbf{Mechanism Insights.} Bayesian inverse inference reconstructs latent fan vote distributions with 95.2\% posterior consistency, enabling rigorous counterfactual analysis. Simulation confirms that all four historically controversial outcomes---Jerry Rice (S2), Billy Ray Cyrus (S4), Bristol Palin (S11), and Bobby Bones (S27)---would have been altered under Rank-based scoring. The Judges' Save mechanism proves beneficial regardless of scoring method, with recommendation to retain this feature under the proposed system.
+Our Bayesian inverse inference reconstructs latent fan vote distributions with 95.2\% posterior consistency, enabling rigorous counterfactual analysis. Simulation confirms that all four historically controversial outcomes---Jerry Rice (S2), Billy Ray Cyrus (S4), Bristol Palin (S11), and Bobby Bones (S27)---would have been altered under Rank-based scoring. The Judges' Save mechanism proves beneficial regardless of scoring method, with recommendation to retain this feature under the proposed system.
 
-\textbf{Optimal Rule Design.} Pareto optimization across 107 configurations identifies a Sigmoid dynamic weighting scheme as optimal: $w_J(t) = 0.30 + \frac{0.45}{1 + e^{-6(t/T - 0.5)}}$, where judge weight increases from 30\% (early weeks) to 75\% (finals). This design achieves a composite score of 0.570, representing 21.6\% improvement over static 50-50 baselines. The underlying principle---emphasizing fan engagement early and judge expertise late---aligns naturally with audience expectations and competition logic.
+Pareto optimization across 107 configurations identifies a Sigmoid dynamic weighting scheme as optimal: $w_J(t) = 0.30 + \frac{0.45}{1 + e^{-6(t/T - 0.5)}}$, where judge weight increases from 30\% (early weeks) to 75\% (finals). This design achieves a composite score of 0.570, representing 21.6\% improvement over static 50-50 baselines. The underlying principle---emphasizing fan engagement early and judge expertise late---aligns naturally with audience expectations and competition logic.
 
-\textbf{Covariate Effects.} Mixed-effects modeling reveals that professional dancers explain 28.6\% of judge score variance but only 6.6\% of fan vote variance, while celebrity identity accounts for 52.6\% of judge variance versus 42.2\% of fan variance. This asymmetry implies that improving judge scores requires technical training and experienced choreographers, whereas boosting fan votes demands social media presence and relatable personalities. Industry effects further differentiate the two channels: athletes receive high judge scores (74.2\%) with moderate PBI ($-0.55$), while comedians achieve lower technical marks (60.7\%) but strong fan support (PBI = $+0.26$).
+Mixed-effects modeling reveals that professional dancers explain 28.6\% of judge score variance but only 6.6\% of fan vote variance, while celebrity identity accounts for 52.6\% of judge variance versus 42.2\% of fan variance. This asymmetry implies that improving judge scores requires technical training and experienced choreographers, whereas boosting fan votes demands social media presence and relatable personalities. Industry effects further differentiate the two channels: athletes receive high judge scores (74.2\%) with moderate PBI ($-0.55$), while comedians achieve lower technical marks (60.7\%) but strong fan support (PBI = $+0.26$).
 
-\textbf{Practical Implications.} Based on these findings, we recommend adopting the Rank-based Sigmoid dynamic weighting system for future seasons. This configuration (1) corrects historical anomalies where fan mobilization overrode technical merit, (2) maintains audience engagement through meaningful early-season voting, (3) ensures that finals outcomes reflect accumulated dance expertise, and (4) provides natural robustness against extreme voting patterns (fan-elasticity 0.87 vs. 2.34 under Percentage). The framework developed here generalizes to other reality competition formats requiring balanced stakeholder integration.
+Based on these findings, we recommend adopting the Rank-based Sigmoid dynamic weighting system for future seasons. This configuration (1) corrects historical anomalies where fan mobilization overrode technical merit, (2) maintains audience engagement through meaningful early-season voting, (3) ensures that finals outcomes reflect accumulated dance expertise, and (4) provides natural robustness against extreme voting patterns (fan-elasticity 0.87 vs. 2.34 under Percentage). The framework developed here generalizes to other reality competition formats requiring balanced stakeholder integration.
 
 \section{Memo to the Producer}
 
