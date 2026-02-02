@@ -75,7 +75,7 @@ Summary
 \subsection{Background}
 
 
-\subsection{Restatement of the Problem}
+\subsection{Problem Restatement}
 
 
 \subsection{Our Work}
@@ -87,19 +87,29 @@ Summary
     \label{fig:workflow}
 \end{figure}
 
-\section{Data Archaeology and Global Scan}
+\section{Assumptions and Notations}
 
-\subsection{Data Preprocessing and Feature Engineering}
-% 34 seasons, 421 contestants, 2777 weeks
-% Score standardization (30pt vs 40pt → J%)
-% Panel construction (i, w)
-% PBI = Rank_Judge - Rank_Final (Positive → fan-saved)
-% Covariates: Age, Industry, Pro Partner, Season/Week FE
+\subsection{Assumptions}
+
+
+\subsection{Notations}
+
+
+\section{Data Archaeology and Exploratory Analysis}
+
+\subsection{Data Preprocessing}
+% 数据标准化：30分制/40分制统一为百分比
+% 退赛处理：剔除N/A和0分数据
+% 缺失值和异常值处理
+
+\subsection{Feature Engineering}
+% PBI (人气偏差指数) = Rank_Judge - Rank_Final
+% 协变量提取：Age, Industry, Pro Partner, Season/Week
 
 \subsection{Divergence Trend Analysis}
-% Chronological heatmap showing Judge-Audience gap
-% Post-S15 divergence increase (social media era)
-% Justification for structural reform
+% 时序热力图：评委-粉丝分歧随时间变化
+% 社交媒体时代（S15后）分歧显著增加
+% 改革必要性论证
 
 \begin{figure}[H]
     \centering
@@ -108,19 +118,23 @@ Summary
     \label{fig:divergence}
 \end{figure}
 
-\section{Bayesian Inverse Inference and Validation}
+\section{Bayesian Inverse Inference Model for Fan Vote Estimation}
 
-\subsection{Problem Formulation and Algorithm}
-% Hidden variable: f(i,w) = fan vote share
-% Simplex constraint: sum f = 1, f >= 0
-% Elimination constraint: Score(survivor) > Score(eliminated)
-% Hit-and-Run MCMC: LP initialization, direction sampling, line search
-% Special handling: multi-elimination weeks, cumulative voting weeks
+\subsection{Problem Formulation}
+% 隐变量：f(i,w) = 粉丝票份额
+% 单纯形约束：sum f = 1, f >= 0
+% 淘汰约束：Score(survivor) > Score(eliminated)
 
-\subsection{Model Validation}
-% Certainty: 95% CI width, avg CIW = 0.288
-% Consistency: P(E in Bottom-k | posterior)
-% Global consistency = 65.1%, non-anomalous = 95.2%
+\subsection{Hit-and-Run MCMC Algorithm}
+% LP初始化
+% 方向采样
+% 线搜索
+% 特殊周次处理：多人淘汰周、累积投票周
+
+\subsection{Model Validation: Certainty and Consistency}
+% 确定性：95% CI宽度，avg CIW = 0.288
+% 一致性：P(E in Bottom-k | posterior)
+% 全局一致性 = 65.1%，非异常周 = 95.2%
 
 \begin{figure}[H]
     \centering
@@ -129,33 +143,40 @@ Summary
     \label{fig:ci_width}
 \end{figure}
 
-\section{Pareto Optimization and Dynamic Weighting}
+\section{Pareto Optimization Model for Dynamic Weighting Rules}
 
-\subsection{Dual Objective and Evaluation Framework}
-% J = Spearman(FinalRank, JudgeRank) - Meritocracy
-% F = Spearman(FinalRank, FanRank) - Engagement
-% Traditional: J_overall, F_overall, Balance = 2JF/(J+F)
-% Multi-Phase: Dynamic Pattern Score, Phased Balance, Composite Score
-% Advantage: rewards "high F early + high J late" designs
+\subsection{Dual Objective Definition}
+% J = Spearman(最终排名, 评委排名) - 精英选拔
+% F = Spearman(最终排名, 粉丝排名) - 粉丝参与
+% Balance = 2JF/(J+F) - 调和平均
 
-\subsection{Rule Space Search and Comparison}
-% Static: Rank vs Pct (Rank outperforms)
-% Legacy Dynamic: Linear + Log Smoothing (cannot beat Static Rank 50-50)
-% Proposed: Sigmoid + Rank (w_min=0.30, w_max=0.75, s=6)
-% Pareto result: Composite +21.6%, Sigmoid wins 5:3
+\subsection{Multi-Phase Evaluation Framework}
+% 阶段划分：早期/中期/后期
+% 动态模式得分：(F_early - F_late) + (J_late - J_early)
+% 阶段Balance：早期侧重F，后期侧重J
+% 综合得分：多维度加权
 
-\subsection{Covariate Effect Analysis}
-% Pro Dancer effect on J% and f
-% Celebrity industry effect
-% Variance decomposition
+\subsection{Rule Space Search}
+% 静态规则：Rank制 vs Pct制
+% 旧动态规则：线性 + 对数平滑
+% 新动态规则：Sigmoid + Rank制
 
-\section{Rule Simulation and Case Validation}
+\subsection{Optimal Rule Selection}
+% Pareto前沿分析
+% 最优配置：Sigmoid(0.30, 0.75, 6)
+% 综合得分 +21.6%，5:3胜出
 
-\subsection{Mechanism Comparison: Rank vs. Percentage}
-% Simulator: Legacy (Pct + Linear) vs New (Rank + Sigmoid)
-% Metrics: FFI, JFI, Fan-Elasticity, Weekly difference
-% Result: Pct more fan-biased, Rank more balanced
-% Quantitative: F_early +52.7%, J_late +67.5%, Composite +21.6%
+\section{Rule Simulation and Mechanism Comparison}
+
+\subsection{Simulator Architecture}
+% 旧架构：Pct + Linear
+% 新架构：Rank + Sigmoid
+% 权重计算公式
+
+\subsection{Rank vs. Percentage System Comparison}
+% 指标：FFI, JFI, Fan-Elasticity, 周次差异
+% 结果：Pct更偏向粉丝，Rank更平衡
+% 定量：F_early +52.7%, J_late +67.5%
 
 \begin{figure}[H]
     \centering
@@ -165,16 +186,49 @@ Summary
 \end{figure}
 
 \subsection{Historical Case Studies}
-% Jerry Rice (S2), Billy Ray Cyrus (S4), Bristol Palin (S11), Bobby Bones (S27)
-% New rule corrects all 4 controversial outcomes
+% Jerry Rice (S2): 评委低分但存活多周
+% Billy Ray Cyrus (S4): 粉丝票高但最终第5
+% Bristol Palin (S11): 争议性进入前3
+% Bobby Bones (S27): 冠军但评委分最低
+% 新规则可纠正所有4个争议结果
 
-\section{Final Recommendations}
+\section{Covariate Effect Analysis}
 
-\subsection{Recommended Scoring System}
-% Verdict: Rank > Pct (dampens extreme fan votes)
-% Formula: Score(t) = w_J(t) * J_rank + (1-w_J(t)) * F_rank
-% Sigmoid: w_J(t) = 0.30 + 0.45 / (1 + exp(-6(t/T - 0.5)))
-% Design: Early engagement (30%) → Late meritocracy (75%)
+\subsection{Pro Dancer Effect Model}
+% 评委分数模型：J% ~ Age + Industry + Pro_Partner + Week
+% 粉丝票模型：logit(f) ~ Age + Industry + Pro_Partner + J%
+% 方差分解：Pro Dancer随机效应解释的方差百分比
+
+\subsection{Celebrity Industry Effect}
+% 行业分类：运动员/演员/歌手/政客等
+% 名人效应对评委分和粉丝票的差异化影响
+
+\section{Model Evaluation and Sensitivity Analysis}
+
+\subsection{Sensitivity Analysis}
+% 参数敏感性：w_min, w_max, steepness
+% 鲁棒性检验
+
+\subsection{Strengths and Weaknesses}
+
+\textbf{Strengths:}
+
+
+\textbf{Weaknesses:}
+
+
+\section{Conclusion}
+
+
+\section{Memo to the Producer}
+
+\subsection{Problem Diagnosis}
+% 社交媒体时代刷票问题
+
+\subsection{Recommended Solution}
+% Sigmoid动态权重 + Rank制
+% 公式：Score(t) = w_J(t) * J_rank + (1-w_J(t)) * F_rank
+% 权重演化：30% → 75%
 
 \begin{figure}[H]
     \centering
@@ -183,24 +237,13 @@ Summary
     \label{fig:weights}
 \end{figure}
 
-\subsection{Advantages and Design Rationale}
-% S-curve: stable at endpoints, fast transition in middle
-% F_early +52.7%, J_late +67.5%, Composite +21.6%
-% Anti-extreme voting: Rank system natural compression
-% Optional: Judges' Save (Dance-Off for Bottom 2)
+\subsection{Expected Benefits}
+% 早期粉丝参与 +52.7%
+% 后期精英选拔 +67.5%
+% 综合得分 +21.6%
 
-\section{Sensitivity Analysis and Model Evaluation}
-
-\subsection{Sensitivity Analysis}
-
-\subsection{Strengths and Weaknesses}
-\textbf{Strengths:}
-
-\textbf{Weaknesses:}
-
-
-\section{Conclusion}
-
-\section{Memo to the Producer}
+\subsection{Optional Mechanism: Judges' Save}
+% 仅对Bottom 2生效
+% 评委可挑选一人进行保护
 
 \end{document}
