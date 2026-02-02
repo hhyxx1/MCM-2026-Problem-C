@@ -106,13 +106,18 @@ We recommend replacing the current Percentage-based system with a Sigmoid-weight
 \section{Data Archaeology and Exploratory Analysis}
 
 \subsection{Data Preprocessing}
-% 数据标准化：30分制/40分制统一为百分比
-% 退赛处理：剔除N/A和0分数据
-% 缺失值和异常值处理
+
+The raw dataset contains 421 contestants across 34 seasons, with judge scores recorded in a wide format (44 score columns for weeks 1--11 $\times$ 4 judges). We identified three major data quality issues requiring preprocessing. \textbf{First}, the scoring system varied across seasons: Seasons 1--10, 13--14, 16, 27, and 29 used a 3-judge system (maximum 30 points), while the remaining 20 seasons used a 4-judge system (maximum 40 points). To ensure comparability, we normalized all scores to a percentage scale $J\% = (\text{actual score} / \text{max possible}) \times 100$. \textbf{Second}, the dataset contained 8,316 \texttt{N/A} entries (judge 4 scores in 3-judge seasons) and 6,431 zero-score entries (post-elimination weeks where contestants no longer competed). We excluded these invalid observations to ensure accurate analysis. \textbf{Third}, we transformed the wide-format data into a long-format panel structure $(i, w)$, where each row represents one contestant in one week, yielding 2,777 valid observations. Additionally, we standardized 21 raw industry categories into 9 major groups (e.g., merging ``Actor/Actress'' into ``Actor'', ``Racing Driver'' into ``Athlete''), created a binary US/Non-US region indicator, and binned contestant ages into five intervals (18--25, 26--35, 36--45, 46--55, 55+). The cleaned dataset maintains complete coverage of all 34 seasons with a mean judge score of 74.8\% (SD = 11.2\%), ready for subsequent Bayesian inference and Pareto optimization modeling.
 
 \subsection{Feature Engineering}
-% PBI (人气偏差指数) = Rank_Judge - Rank_Final
-% 协变量提取：Age, Industry, Pro Partner, Season/Week
+
+To quantify the divergence between professional evaluation and audience preference, we constructed the \textbf{Popularity Bias Index (PBI)} as the core feature. For each contestant $i$, we first computed their average weekly judge ranking $\bar{R}^J_i$ across all weeks they competed, then compared it with their final placement $R^*_i$:
+\begin{equation}
+    \text{PBI}_i = \bar{R}^J_i - R^*_i
+\end{equation}
+A positive PBI indicates a ``fan favorite'' who placed better than judges predicted (e.g., Kelly Monaco in S1 with PBI = $+2.17$), while a negative PBI indicates a ``judge favorite'' who placed worse than their scores deserved (e.g., Rachel Hunter in S1 with PBI = $-2.50$). Across all 421 contestants, PBI ranged from $-8.5$ to $+6.0$ with a mean of $-0.88$ (SD = 2.14), suggesting a slight overall bias toward judge-preferred outcomes under the current rules.
+
+We also extracted covariates for subsequent modeling. \textbf{First}, we calculated partner-level statistics by aggregating PBI for each professional dancer across their career. Dancers with consistently positive average PBI (e.g., Daniella Karagach: $+1.71$, Lacey Schwimmer: $+0.61$) were identified as ``Star Makers'' who help boost celebrity popularity, while those with negative average PBI (e.g., Derek Hough: $-0.05$, Louis van Amstel: $-0.92$) tend to partner with judge favorites. \textbf{Second}, we prepared contestant-level features including age (continuous and binned), industry category (9 groups), and region (US/Non-US) for mixed-effects modeling. \textbf{Third}, we created season and week fixed effects (34 season dummies, 11 week dummies) to control for time-varying rule changes and competition structure.
 
 \subsection{Divergence Trend Analysis}
 % 时序热力图：评委-粉丝分歧随时间变化
