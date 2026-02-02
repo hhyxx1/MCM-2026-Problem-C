@@ -485,6 +485,13 @@ Simulation with $\pm 5\%$ vote perturbations reveals that the Percentage system 
     \label{fig:elasticity}
 \end{figure}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\linewidth]{cleaned_outputs/phase3_simulator/jfi_comparison.png}
+    \caption{Judge Favorability Index (JFI) Comparison across 34 Seasons. The Rank method (blue) consistently achieves higher JFI than the Percentage method (orange), indicating better alignment with professional judgment.}
+    \label{fig:jfi_comparison}
+\end{figure}
+
 \textbf{Cross-Season Stability.} Analyzing temporal trends, we find the Rank method produces more consistent outcomes (coefficient of variation $\text{CV}_{\text{rank}} = 0.12$) compared to the Percentage method ($\text{CV}_{\text{pct}} = 0.23$). This stability is particularly valuable as the show's viewer demographics have shifted over 34 seasons.
 
 \subsection{Historical Case Studies}
@@ -535,27 +542,22 @@ Under the Rank method, adding Judges' Save \textbf{improves} JFI by 1.3 percenta
 
 \subsection{Recommendation and Rationale}
 
-\begin{tcolorbox}[colback=blue!5!white, colframe=blue!75!black, title=\textbf{Final Recommendation}]
-\textbf{We recommend adopting the Rank-based method with the Judges' Save mechanism for future seasons.}
-\end{tcolorbox}
+Based on our comparative analysis, we summarize the answers to the MCM Problem C questions:
 
-\textbf{Rationale:}
+\textbf{Q1: Does one method favor fan votes more than the other?} Yes. The Percentage method yields JFI = 0.454, which is 46.4\% lower than the Rank method (JFI = 0.665), while both achieve similar FFI ($\approx$ 0.70). This indicates the Percentage system disproportionately favors fan preferences at the expense of judge expertise.
 
-\begin{enumerate}
-    \item \textbf{Superior Meritocracy.} The Rank method achieves JFI = 0.665, which is 46.4\% higher than the Percentage method (JFI = 0.454), while maintaining nearly identical fan engagement (FFI $\approx$ 0.70 for both).
-    
-    \item \textbf{Reduced Manipulation Vulnerability.} With Fan-Elasticity of 0.87 vs. 2.34, the Rank method is 2.7 times less susceptible to organized voting campaigns and strategic voting behavior.
-    
-    \item \textbf{Historical Correction.} All four documented controversial outcomes (Jerry Rice, Billy Ray Cyrus, Bristol Palin, Bobby Bones) would have been corrected under the Rank method.
-    
-    \item \textbf{Synergy with Judges' Save.} The Save mechanism provides an additional +1.3\% boost to JFI under the Rank method, but actually harms meritocracy under the Percentage method.
-    
-    \item \textbf{Cross-Season Stability.} The Rank method produces more consistent outcomes ($\text{CV} = 0.12$ vs. 0.23), important for maintaining competitive integrity as viewer demographics evolve.
-\end{enumerate}
+\textbf{Q2: Would controversial outcomes change under the alternative method?} Yes. All four documented controversial cases (Jerry Rice S2, Billy Ray Cyrus S4, Bristol Palin S11, Bobby Bones S27) would have different outcomes under the Rank method. Most notably, Bobby Bones---who won despite the lowest judge scores---would have placed 4th.
 
-\textbf{Should Judges' Save be included?} Yes. Under the Rank method, the Save provides a meaningful safety net for technically proficient dancers who experience a single poor week. The trade-off ratio (JFI gain per FFI loss) is 0.475, indicating efficient conversion of engagement into meritocracy.
+\textbf{Q3: What is the impact of Judges' Save?} Under the Rank method, adding Judges' Save improves JFI by +1.3\% at a modest FFI cost of $-2.7\%$, representing a favorable trade-off. Under the Percentage method, the Save actually decreases JFI by $-0.9\%$, failing to compensate for the system's inherent bias.
 
-In summary, the Rank + Save configuration optimally balances the show's dual objectives of competitive fairness and audience engagement, addressing the documented shortcomings of the current Percentage-based system.
+\textbf{Q4: Which method do we recommend?} We recommend the \textbf{Rank-based method with Judges' Save} for the following reasons: (1) superior meritocracy without sacrificing engagement; (2) 2.7$\times$ lower vulnerability to organized voting campaigns; (3) correction of all historical controversies; and (4) positive synergy with the Save mechanism. The detailed recommendation framework, including the proposed Sigmoid dynamic weighting scheme, will be presented in the Conclusion and Memo sections.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\linewidth]{cleaned_outputs/phase3_simulator/ffi_jfi_tradeoff.png}
+    \caption{FFI-JFI Trade-off Analysis: Rank vs. Percentage Method. Each point represents a season. The Rank method (blue) achieves higher JFI with comparable FFI, dominating the Percentage method (orange) in the Pareto sense.}
+    \label{fig:tradeoff}
+\end{figure}
 
 \section{Covariate Effect Analysis}
 
