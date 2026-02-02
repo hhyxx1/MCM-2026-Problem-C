@@ -95,7 +95,7 @@ We recommend replacing the current Percentage-based system with a Sigmoid-weight
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\linewidth]{cleaned_outputs/workflow_flowchart.png}
+    \includegraphics[width=0.9\linewidth]{context/necessary/workflow_flowchart_v3.png}
     \caption{The overall workflow of our analysis pipeline, showing the transition from data archaeology to policy recommendation.}
     \label{fig:workflow}
 \end{figure}
@@ -145,7 +145,7 @@ Era-level analysis showed that mean divergence increased from 0.61 in the Pre-So
     \hfill
     \begin{minipage}{0.48\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{cleaned_outputs/global_scan/divergence_heatmap.png}
+        \includegraphics[width=\linewidth]{cleaned_outputs/global_scan/divergence_heatmap_detailed.png}
     \end{minipage}
     \caption{Judge-Audience Divergence Analysis. \textbf{Left:} Season-level divergence trend with social media era shading; the upward trend indicates increasing fan-judge disagreement. \textbf{Right:} Heatmap of weekly divergence $\mathcal{D}(s,w)$ across all seasons and weeks; red regions indicate high divergence, concentrated in later seasons.}
     \label{fig:divergence}
@@ -262,18 +262,32 @@ Mean CI Width & 0.182 & 0.153 \\
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\linewidth]{cleaned_outputs/bayesian_inference/ci_width_distribution.png}
+    \includegraphics[width=0.65\linewidth]{cleaned_outputs/bayesian_inference/ci_width_distribution.png}
     \caption{Distribution of 95\% Credible Interval Widths for Fan Vote Estimates. The narrow peak indicates high certainty for most observations.}
     \label{fig:ci_width}
 \end{figure}
 
 \textbf{Certainty Analysis:} The average CI width of 0.182 indicates high estimation precision. Figure~\ref{fig:ci_width} shows that most estimates cluster around narrow intervals, with only 12.7\% of observations exceeding 0.40. Certainty varies systematically: early weeks (more contestants) yield narrower CIs ($\approx$0.15), while later weeks (fewer contestants, weaker constraints) show wider CIs ($\approx$0.35). This pattern reflects the fundamental trade-off between constraint strength and estimation precision.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\linewidth]{cleaned_outputs/patch3_certainty/ci_width_by_week.png}
+    \caption{CI Width Variation Across Competition Weeks. Early weeks (with more contestants) exhibit narrower confidence intervals, while later weeks show increased uncertainty due to weaker elimination constraints.}
+    \label{fig:ci_width_by_week}
+\end{figure}
+
 \textbf{Consistency Analysis:} The posterior consistency of 89.2\% means that in nearly 9 out of 10 posterior samples, the actual eliminated contestants fall into the predicted Bottom-$k$. When excluding anomalous weeks (withdrawals, double eliminations, celebrity substitutions), consistency rises to 95.2\%. The 73.5\% exact match rate demonstrates that our model can correctly predict the \textit{exact} set of eliminated contestants in nearly three-quarters of all weeks---a strong result given that fan votes are completely unobserved.
 
 \textbf{Interpretation of Non-Matches:} The 26.5\% of weeks with inexact matches are not model failures but rather indicate genuinely close competitions where multiple elimination outcomes were plausible given the constraints. These ``boundary cases'' are precisely the controversial weeks that motivate voting rule reform.
 
 \textbf{Summary:} Our Bayesian inverse inference successfully reconstructs fan vote distributions with high certainty (mean CIW = 0.182) and consistency (89.2\%). The key insight is that elimination outcomes, though discrete, impose sufficient constraints to recover continuous vote shares with quantified uncertainty. This reliable inference establishes the \textbf{trust foundation} for all subsequent analyses: without credible fan vote estimates, we cannot meaningfully compare alternative voting rules or identify controversial outcomes.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\linewidth]{cleaned_outputs/bayesian_inference/fan_vote_vs_judge_score.png}
+    \caption{Estimated Fan Vote Share vs. Judge Score. Red points indicate eliminated contestants; blue points indicate survivors. The separation demonstrates that our Bayesian inference successfully recovers meaningful fan vote estimates that correlate with but remain distinct from judge assessments.}
+    \label{fig:fan_vs_judge}
+\end{figure}
 
 Having established reliable fan vote estimates, we now proceed to design and evaluate alternative voting rules using Pareto optimization.
 
@@ -310,12 +324,12 @@ The traditional approach uses the harmonic mean as a balance metric:
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\linewidth]{cleaned_outputs/phase4_pareto/key_rules_comparison.png}
+    \includegraphics[width=0.65\linewidth]{cleaned_outputs/phase4_pareto/key_rules_comparison.png}
     \caption{Comparison of Three Aggregation Rules under Traditional Metrics. $\rho_J$: Judge-Final correlation (meritocracy); $\rho_F$: Fan-Final correlation (engagement); $H$: Harmonic mean balance. Note that Rank-Based achieves the highest Balance, but this metric ignores phase-specific requirements.}
     \label{fig:key_rules}
 \end{figure}
 
-However, this metric treats all weeks equally and fails to capture the \textit{phase-differentiated} value of dynamic rules.
+However, this metric treats all weeks equally and fails to capture the \textit{phase-differentiated} value of dynamic rules. This limitation motivates us to develop a new evaluation framework that explicitly accounts for the different priorities at different competition stages.
 
 \subsection{Multi-Phase Evaluation Framework}
 
@@ -408,17 +422,9 @@ Dynamic Pattern & $-0.028$ & \textbf{1.555} & $\star$ Dynamic \\
 \end{tabular}
 \end{table}
 
-\textbf{Key Findings:}
-\begin{enumerate}[noitemsep]
-    \item The Sigmoid rule achieves \textbf{+52.7\% improvement} in early fan engagement ($F_{early}$: 0.575 $\rightarrow$ 0.879).
-    \item The Sigmoid rule achieves \textbf{+67.5\% improvement} in late meritocracy ($J_{late}$: 0.545 $\rightarrow$ 0.913).
-    \item The composite score improves by \textbf{+21.6\%} (0.468 $\rightarrow$ 0.569).
-    \item Dynamic rules win on 5 of 8 evaluation dimensions.
-\end{enumerate}
-
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\linewidth]{cleaned_outputs/phase5_recommendation/dynamic_weights.png}
+    \includegraphics[width=0.65\linewidth]{cleaned_outputs/phase5_recommendation/dynamic_weights.png}
     \caption{Weight Evolution under Optimal Sigmoid Rule. Judge weight increases from 30\% (Week 1) to 75\% (finale), following an S-curve that ensures smooth transition.}
     \label{fig:weight_evolution}
 \end{figure}
@@ -480,14 +486,14 @@ Simulation with $\pm 5\%$ vote perturbations reveals that the Percentage system 
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\linewidth]{cleaned_outputs/patch4_elasticity/elasticity_comparison.png}
+    \includegraphics[width=0.65\linewidth]{cleaned_outputs/patch4_elasticity/elasticity_comparison.png}
     \caption{Fan-Elasticity Comparison: Rank vs. Percentage System. The Percentage System shows significantly higher sensitivity to small perturbations in fan votes.}
     \label{fig:elasticity}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\linewidth]{cleaned_outputs/phase3_simulator/jfi_comparison.png}
+    \includegraphics[width=0.65\linewidth]{cleaned_outputs/phase3_simulator/jfi_comparison.png}
     \caption{Judge Favorability Index (JFI) Comparison across 34 Seasons. The Rank method (blue) consistently achieves higher JFI than the Percentage method (orange), indicating better alignment with professional judgment.}
     \label{fig:jfi_comparison}
 \end{figure}
@@ -554,7 +560,7 @@ Based on our comparative analysis, we summarize the answers to the MCM Problem C
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\linewidth]{cleaned_outputs/phase3_simulator/ffi_jfi_tradeoff.png}
+    \includegraphics[width=0.65\linewidth]{cleaned_outputs/phase3_simulator/ffi_jfi_tradeoff.png}
     \caption{FFI-JFI Trade-off Analysis: Rank vs. Percentage Method. Each point represents a season. The Rank method (blue) achieves higher JFI with comparable FFI, dominating the Percentage method (orange) in the Pareto sense.}
     \label{fig:tradeoff}
 \end{figure}
@@ -588,12 +594,5 @@ Based on our comparative analysis, we summarize the answers to the MCM Problem C
 
 
 \section{Memo to the Producer}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\linewidth]{cleaned_outputs/phase5_recommendation/dynamic_weights.png}
-    \caption{Proposed Sigmoid Dynamic Weighting Scheme. The weight of Meritocracy increases smoothly from 30\% to 75\% as the season progresses.}
-    \label{fig:weights}
-\end{figure}
 
 \end{document}
