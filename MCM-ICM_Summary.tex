@@ -141,9 +141,63 @@ Figure~\ref{fig:workflow} illustrates the overall workflow connecting these stag
 
 \subsection{Assumptions}
 
+To ensure the tractability and validity of our analysis, we make the following assumptions:
+
+\begin{enumerate}[noitemsep]
+    \item \textbf{Score Additivity.} The combined score determining elimination is a weighted sum of judge scores and fan votes. This linear aggregation assumption is consistent with publicly stated DWTS rules and enables tractable optimization.
+    
+    \item \textbf{Rational Voting Behavior.} Audience members vote based on their genuine preferences for contestants, reflecting perceived dance quality, entertainment value, or personal affinity. Coordinated manipulation (e.g., bot voting) is assumed to be negligible at the aggregate level.
+    
+    \item \textbf{Elimination Determinism.} In each week, the contestant(s) with the lowest combined score are eliminated. Ties are resolved by mechanisms not affecting our aggregate analysis. This assumption enables Bayesian inference of latent fan votes from observed elimination outcomes.
+    
+    \item \textbf{Independence Across Weeks.} Fan voting behavior in week $t$ is conditionally independent of week $t-1$ given observable performance. While some momentum effects may exist, we treat each week's vote distribution as a fresh realization.
+    
+    \item \textbf{Score System Equivalence.} After percentage normalization, judge scores from 3-judge seasons (30-point scale) and 4-judge seasons (40-point scale) are directly comparable. This assumption is supported by similar score distributions across eras (mean: 74.8\%, SD: 11.2\%).
+    
+    \item \textbf{Representative Historical Data.} The 34 seasons (2005--2024) provide sufficient variation in contestant types, voting technologies, and social media environments to support generalizable conclusions about scoring mechanisms.
+\end{enumerate}
 
 \subsection{Notations}
 
+Table~\ref{tab:notation} summarizes the key symbols used throughout this paper.
+
+\begin{table}[H]
+\centering
+\caption{Summary of Notations}
+\label{tab:notation}
+\begin{tabular}{cl}
+\toprule
+\textbf{Symbol} & \textbf{Definition} \\
+\midrule
+$i$ & Contestant index within a season \\
+$t$ & Week number ($t = 1, 2, \ldots, T$) \\
+$s$ & Season number ($s = 1, 2, \ldots, 34$) \\
+$n_t$ & Number of contestants remaining in week $t$ \\
+$T$ & Total number of weeks in a season \\
+\midrule
+$J_{i,t}$ & Normalized judge score (\%) for contestant $i$ in week $t$ \\
+$f_{i,t}$ & Estimated fan vote share for contestant $i$ in week $t$ \\
+$R^J_i$ & Average judge ranking of contestant $i$ across all weeks \\
+$R^*_i$ & Final placement of contestant $i$ (1 = champion) \\
+$\mathcal{E}_t$ & Set of eliminated contestant(s) in week $t$ \\
+\midrule
+$\text{PBI}_i$ & Popularity Bias Index: $R^J_i - R^*_i$ \\
+$\mathcal{D}(s)$ & Judge-Audience Divergence score for season $s$ \\
+$\text{JFI}$ & Judge Favorability Index: Spearman($R^*$, $R^J$) \\
+$\text{FFI}$ & Fan Favorability Index: Spearman($R^*$, $R^f$) \\
+\midrule
+$w_J(t)$ & Judge weight at week $t$ in dynamic scoring rules \\
+$w_{min}$ & Minimum judge weight (early-stage) in Sigmoid rule \\
+$w_{max}$ & Maximum judge weight (late-stage) in Sigmoid rule \\
+$s$ & Steepness parameter in Sigmoid weighting function \\
+\midrule
+$\rho$ & Spearman rank correlation coefficient \\
+$\sigma^2$ & Variance component in mixed-effects models \\
+$\beta$ & Fixed effect coefficient in regression models \\
+$u$ & Random effect term (e.g., pro dancer, celebrity) \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Data Archaeology and Exploratory Analysis}
 
