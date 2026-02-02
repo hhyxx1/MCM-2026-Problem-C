@@ -136,17 +136,17 @@ Finally, covariate analysis shows pro dancers explain 28.6\% of judge score vari
 To ensure the tractability and validity of our analysis, we make the following assumptions:
 
 \begin{enumerate}[noitemsep]
-    \item \textbf{Score Additivity.} The combined score determining elimination is a weighted sum of judge scores and fan votes. This linear aggregation assumption is consistent with publicly stated DWTS rules and enables tractable optimization.
+    \item  The combined score determining elimination is a weighted sum of judge scores and fan votes. This linear aggregation assumption is consistent with publicly stated DWTS rules and enables tractable optimization.
     
-    \item \textbf{Rational Voting Behavior.} Audience members vote based on their genuine preferences for contestants, reflecting perceived dance quality, entertainment value, or personal affinity. Coordinated manipulation (e.g., bot voting) is assumed to be negligible at the aggregate level.
+    \item  Audience members vote based on their genuine preferences for contestants, reflecting perceived dance quality, entertainment value, or personal affinity. Coordinated manipulation (e.g., bot voting) is assumed to be negligible at the aggregate level.
     
-    \item \textbf{Elimination Determinism.} In each week, the contestant(s) with the lowest combined score are eliminated. Ties are resolved by mechanisms not affecting our aggregate analysis. This assumption enables Bayesian inference of latent fan votes from observed elimination outcomes.
+    \item  In each week, the contestant(s) with the lowest combined score are eliminated. Ties are resolved by mechanisms not affecting our aggregate analysis. This assumption enables Bayesian inference of latent fan votes from observed elimination outcomes.
     
-    \item \textbf{Independence Across Weeks.} Fan voting behavior in week $t$ is conditionally independent of week $t-1$ given observable performance. While some momentum effects may exist, we treat each week's vote distribution as a fresh realization.
+    \item  Fan voting behavior in week $t$ is conditionally independent of week $t-1$ given observable performance. While some momentum effects may exist, we treat each week's vote distribution as a fresh realization.
     
-    \item \textbf{Score System Equivalence.} After percentage normalization, judge scores from 3-judge seasons (30-point scale) and 4-judge seasons (40-point scale) are directly comparable. This assumption is supported by similar score distributions across eras (mean: 74.8\%, SD: 11.2\%).
+    \item  After percentage normalization, judge scores from 3-judge seasons (30-point scale) and 4-judge seasons (40-point scale) are directly comparable. This assumption is supported by similar score distributions across eras (mean: 74.8\%, SD: 11.2\%).
     
-    \item \textbf{Representative Historical Data.} The 34 seasons (2005--2024) provide sufficient variation in contestant types, voting technologies, and social media environments to support generalizable conclusions about scoring mechanisms.
+    \item  The 34 seasons (2005--2024) provide sufficient variation in contestant types, voting technologies, and social media environments to support generalizable conclusions about scoring mechanisms.
 \end{enumerate}
 
 \subsection{Notations}
@@ -265,22 +265,22 @@ These constraints define a convex polytope in the $(n_t-1)$-dimensional simplex,
 We employ the Hit-and-Run algorithm to sample from the constrained polytope \cite{lovaszvempala2006}:
 
 \begin{enumerate}
-    \item \textbf{Initialization:} Find the analytic center of the polytope using linear programming \cite{boyd2004}:
+    \item Initialization: Find the analytic center of the polytope using linear programming \cite{boyd2004}:
     \begin{equation}
         \mathbf{f}^{(0)} = \arg\max_{\mathbf{f}} \sum_j \log(b_j - \mathbf{a}_j^T \mathbf{f})
     \end{equation}
     
-    \item \textbf{Direction Sampling:} Generate random direction $\mathbf{d}$ uniformly from the unit hypersphere:
+    \item Direction Sampling: Generate random direction $\mathbf{d}$ uniformly from the unit hypersphere:
     \begin{equation}
         \mathbf{d} = \frac{\mathbf{z}}{\|\mathbf{z}\|}, \quad \mathbf{z} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})
     \end{equation}
     
-    \item \textbf{Line Search:} Determine the intersection of line $\mathbf{f}^{(k)} + \lambda\mathbf{d}$ with polytope boundaries:
+    \item Line Search: Determine the intersection of line $\mathbf{f}^{(k)} + \lambda\mathbf{d}$ with polytope boundaries:
     \begin{equation}
         \lambda_{\min} = \max_j \frac{b_j - \mathbf{a}_j^T \mathbf{f}^{(k)}}{-\mathbf{a}_j^T \mathbf{d}}, \quad \lambda_{\max} = \min_j \frac{b_j - \mathbf{a}_j^T \mathbf{f}^{(k)}}{\mathbf{a}_j^T \mathbf{d}}
     \end{equation}
     
-    \item \textbf{State Update:} Sample $\lambda^* \sim U[\lambda_{\min}, \lambda_{\max}]$ and set $\mathbf{f}^{(k+1)} = \mathbf{f}^{(k)} + \lambda^* \mathbf{d}$
+    \item State Update: Sample $\lambda^* \sim U[\lambda_{\min}, \lambda_{\max}]$ and set $\mathbf{f}^{(k+1)} = \mathbf{f}^{(k)} + \lambda^* \mathbf{d}$
 \end{enumerate}
 
 We use 5,000 posterior samples with 1,000 burn-in iterations per week. The Gelman-Rubin diagnostic confirms convergence ($\hat{R} < 1.05$) \cite{gelmanrubin1992}.
