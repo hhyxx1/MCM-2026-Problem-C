@@ -246,16 +246,20 @@ $$logit(f(i,w)) = \alpha' + \beta_{age}^F \cdot Age_i + \beta_{ind}^F \cdot Indu
 
 ### 4.1 模拟器架构
 
-#### 4.1.1 旧架构（线性动态）
+#### 4.1.1 旧架构（线性动态 + 对数平滑）
 ```python
 Simulator(
-    rule: "Rank" | "Pct" | "Dynamic_Linear",
+    rule: "Rank" | "Pct" | "Dynamic_Linear_Log",
+    scoring: "Pct",           # 旧方案使用百分比制
     judge_weight: 0.3 ~ 0.9,
     judges_save: True | False,
-    log_smoothing: True | False,
+    
     # 线性动态参数
-    base: 0.45,      # 初始评委权重
-    delta: 0.01      # 每周增量
+    base: 0.45,               # 初始评委权重
+    delta: 0.01,              # 每周增量
+    
+    # 对数平滑参数
+    log_alpha: 0.2            # 对数平滑强度 α ∈ [0.1, 0.3]
 )
 ```
 
@@ -286,22 +290,24 @@ Simulator(
 **静态规则：**
 $$w_J(t) = \text{judge\_weight} \quad (\text{常数})$$
 
-**线性动态（旧方案）：**
+**线性动态 + 对数平滑（旧方案）：**
 $$w_J(t) = \text{base} + \delta \cdot t$$
+其中 $\text{base} \in [0.45, 0.55]$，$\delta \in [0.01, 0.025]$
 
 **Sigmoid动态（新方案）：**
 $$w_J(t) = w_{min} + \frac{w_{max} - w_{min}}{1 + e^{-s(t/T - 0.5)}}$$
 
 #### 4.1.4 得分计算公式
 
-**Rank制（推荐）：**
+**Rank制（新方案推荐）：**
 $$Score(i,t) = w_J(t) \cdot J_{rank}(i) + (1-w_J(t)) \cdot F_{rank}(i)$$
 
-**Pct制（旧）：**
+**Pct制（静态基准）：**
 $$Score(i,t) = w_J(t) \cdot J\%(i) + (1-w_J(t)) \cdot F\%(i)$$
 
-**Pct制+对数平滑（旧方案动态）：**
+**线性动态 + 对数平滑（旧方案）：**
 $$Score(i,t) = w_J(t) \cdot J\%(i) + (1-w_J(t)) \cdot [\alpha \cdot \log(F\%) + (1-\alpha) \cdot F\%]$$
+其中 $\alpha \in [0.1, 0.3]$ 为对数平滑强度，用于抑制粉丝票的幂律分布
 
 ### 4.2 Rank vs Pct 跨赛季对比
 
@@ -409,14 +415,13 @@ $$w_J(t) = 0.30 + \frac{0.45}{1 + e^{-6(t/T - 0.5)}}$$
 - 综合得分提升 +21.6%（0.47 → 0.57）
 
 **机制设计：**
-* **Judges' Save（可选）：** 仅对Bottom 2生效
-* **触发条件：** 如果Bottom 2的评委分差距 > 10%，评委可挽救高分者
+* **Judges' Save（可选）：** 仅对Bottom 2生效，评委可挑选一人进行保护
 
 ### 5.3 规则优势总结
 
 #### 新方案 vs 旧方案 vs 静态规则
 
-| 维度 | 静态Rank 50-50 | 旧方案(线性+对数) | 新方案(Sigmoid+Rank) |
+| 维度 | Rank-Based (50-50) | 旧方案(线性+对数) | 新方案(Sigmoid+Rank) |
 |------|----------------|-------------------|---------------------|
 | 早期F | 0.58 | ~0.60 | **0.88** ★ |
 | 后期J | 0.55 | ~0.58 | **0.91** ★ |

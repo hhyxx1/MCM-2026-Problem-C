@@ -1,0 +1,85 @@
+```mermaid
+graph TD
+    %% Base Styles
+    classDef data fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef process fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,rounded;
+    classDef model fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    classDef decision fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,rhombus;
+    classDef output fill:#ffebee,stroke:#c62828,stroke-width:2px;
+
+    %% Phase 1: Data Prep
+    subgraph Phase1_Data_Exploration [Phase 1: 全局扫描与问题发现]
+        RawData[("2026_MCM_Problem_C_Data.csv")]:::data
+        CleanData[数据清洗 & 标准化]:::process
+        PBI[计算人气偏差指数 PBI]:::process
+        GlobalScan[全局扫描: 评委-粉丝分歧热力图]:::model
+        
+        RawData --> CleanData
+        CleanData --> PBI
+        PBI --> GlobalScan
+        GlobalScan --> ProblemDef[发现问题: 社交媒体时代分歧加剧]:::output
+    end
+
+    %% Phase 2: Bayesian Reverse Engineering
+    subgraph Phase2_Bayesian [Phase 2: 贝叶斯逆推粉丝票模型]
+        ProblemDef --> BayesModel[构建贝叶斯逆推模型]:::model
+        
+        BayesModel --> Constraints
+        subgraph Constraints [模型核心逻辑]
+            Constraint1[约束1: 总份额=1]
+            Constraint2[约束2: 淘汰者得分最低]
+            Constraint3[输入: 历史评委分 + 淘汰结果]
+        end
+        
+        Constraints --> MCMC[MCMC / Hit-and-Run 采样]:::process
+        MCMC --> FanEstimates[输出: 每周选手粉丝票估算 f_iw]:::output
+        
+        FanEstimates --> Validation{模型验证}:::decision
+        Validation --一致性检查--> Consistency[历史淘汰匹配率]:::output
+        Validation --确定性检查--> CI[95% CI 宽度分析]:::output
+    end
+
+    %% Phase 3 & 4: Analysis & Optimization
+    subgraph Phase3_4_Analysis [Phase 3-4: 机制对比与优化]
+        FanEstimates --> MethodCompare[Rank制 vs Percentage制 对比]:::process
+        FanEstimates --> CaseStudies[四大争议案例重演]:::process
+        FanEstimates --> CovariateModel[Pro Dancer/特征 影响分析]:::model
+        
+        subgraph Methods [投票机制]
+            RankMethod[Rank: 50/50 排名]
+            PctMethod[Pct: 50/50 得分占比]
+            JudgesSave[Judges' Save: 评委拯救底线]
+        end
+        
+        MethodCompare --> Methods
+        CaseStudies --> Methods
+        
+        Methods --> AnalysisResult[结论: Percentage制放大粉丝效应, Rank更稳健]:::output
+        CovariateModel --> DriverAnalysis[结论: 某些Pro Dancer自带光环]:::output
+    end
+
+    %% Phase 5: Solution Proposal
+    subgraph Phase5_Proposal [Phase 5: 最终方案 - 动态平衡系统]
+        AnalysisResult --> NewSystem[构建新系统: 动态权重模型]:::model
+        
+        NewSystem --> Sigmoid[Sigmoid 动态权重曲线 w_t]:::process
+        
+        Sigmoid --> EarlyStage[早期: 重粉丝 (娱乐性)]
+        Sigmoid --> MidStage[中期: 平稳过渡]
+        Sigmoid --> LateStage[后期: 重评委 (专业性/公平性)]
+        
+        LateStage --> ParetoCheck[Pareto 前沿面验证]:::process
+        ParetoCheck --> Optimality[证明: 平衡Fairness与Engagement的最优解]:::output
+    end
+
+    %% Final Outputs
+    subgraph Output_Deliverables [最终交付]
+        Optimality --> Memo[给制作人的备忘录]:::data
+        Optimality --> Report[25页分析报告]:::data
+        DriverAnalysis --> Report
+    end
+
+    %% Connections
+    Consistency -.-> NewSystem
+    CaseStudies -.-> Memo
+```

@@ -35,54 +35,53 @@ Phase 4 使用"平行宇宙"模拟方法，验证Phase 3提出的新规则效果
 
 ```python
 Simulator(
-    rule: "Static_Rank" | "Static_Pct" | "Dynamic_Sigmoid" | "Dynamic_Linear",
+    rule: "Static_Rank" | "Static_Pct" | "Dynamic_Sigmoid" | "Dynamic_Linear_Log",
     scoring: "Rank" | "Pct",
     judges_save: True | False,
     
     # 静态规则参数
     judge_weight: 0.3 ~ 0.7,
     
-    # Sigmoid动态参数
+    # Sigmoid动态参数（新方案）
     w_min: 0.30,
     w_max: 0.75,
     steepness: 6,
     
-    # 线性动态参数（旧方案）
-    base: 0.45,
-    delta: 0.01,
-    log_alpha: 0.2
+    # 线性动态 + 对数平滑参数（旧方案）
+    base: 0.45,           # 初始评委权重 ∈ [0.45, 0.55]
+    delta: 0.01,          # 每周增量 ∈ [0.01, 0.025]
+    log_alpha: 0.2        # 对数平滑强度 α ∈ [0.1, 0.3]
 )
 ```
 
-### 2.2 得分计算公式
-
-**Rank制（推荐）:**
-$$Score(i,t) = w_J(t) \cdot R^{\mathcal{J}}(i,t) + (1-w_J(t)) \cdot R^f(i,t)$$
-
-**Pct制:**
-$$Score(i,t) = w_J(t) \cdot \mathcal{J}(i,t) + (1-w_J(t)) \cdot F\%(i,t)$$
-
-**权重函数:**
+### 2.2 权重函数
 
 | 规则类型 | 公式 |
 |----------|------|
 | 静态 | $w_J(t) = w_J$ (常数) |
-| 线性动态 | $w_J(t) = base + \delta \cdot t$ |
-| Sigmoid动态 | $w_J(t) = w_{min} + \frac{w_{max} - w_{min}}{1 + e^{-s(t/T - 0.5)}}$ |
+| 线性动态 + 对数平滑（旧方案） | $w_J(t) = base + \delta \cdot t$，其中 $base \in [0.45, 0.55]$，$\delta \in [0.01, 0.025]$ |
+| Sigmoid动态（新方案） | $w_J(t) = w_{min} + \frac{w_{max} - w_{min}}{1 + e^{-s(t/T - 0.5)}}$ |
 
-### 2.3 Judges' Save机制
+### 2.3 得分计算公式
+
+**Rank制（新方案推荐）:**
+$$Score(i,t) = w_J(t) \cdot R^{\mathcal{J}}(i,t) + (1-w_J(t)) \cdot R^f(i,t)$$
+
+**Pct制（静态基准）:**
+$$Score(i,t) = w_J(t) \cdot \mathcal{J}(i,t) + (1-w_J(t)) \cdot F\%(i,t)$$
+
+**线性动态 + 对数平滑（旧方案）:**
+$$Score(i,t) = w_J(t) \cdot \mathcal{J}(i,t) + (1-w_J(t)) \cdot [\alpha \cdot \log(F\%) + (1-\alpha) \cdot F\%]$$
+其中 $\alpha \in [0.1, 0.3]$ 为对数平滑强度，用于抑制粉丝票的幂律分布
+
+### 2.4 Judges' Save机制
 
 **触发条件:**
 - 单人淘汰周 (k = 1)
-- Bottom 2 选手的 J% 差距 > 10%
+- Bottom 2 选手进入“Dance-Off”环节
 
 **机制:**
-```
-if J%(Bottom1) > J%(Bottom2):
-    保护 Bottom1，淘汰 Bottom2
-else:
-    正常淘汰 Bottom1
-```
+评委根据 Dance-Off 表现和整季进步程度，决定保护哪一位选手。
 
 ---
 

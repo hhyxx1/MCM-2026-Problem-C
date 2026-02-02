@@ -3,9 +3,16 @@
 
 目标：对齐 plan.md 的 Phase 1-5 逻辑，并生成更美观、可用于正文的流程图。
 
+核心逻辑链 (来自 plan.md):
+[Phase 1] 数据清洗 + 全局扫描 → 发现问题：社交媒体时代，评委-粉丝分歧加剧
+[Phase 2] 贝叶斯逆推粉丝票 → 估计隐变量 f(i,w)，验证模型可靠性
+[Phase 3] Pareto优化 + 动态加权规则 ← 核心方法论
+[Phase 4] 规则模拟与案例验证 → 用历史数据验证新规则效果
+[Phase 5] 最终建议与备忘录
+
 Output:
-  - cleaned_outputs/workflow_flowchart_v2.png
-  - cleaned_outputs/workflow_flowchart_v2.pdf
+  - cleaned_outputs/workflow_flowchart_v3.png
+  - cleaned_outputs/workflow_flowchart_v3.pdf
 """
 
 from __future__ import annotations
@@ -71,6 +78,15 @@ rec_save = bool(final_rec.get('include_judges_save', True))
 J_gain = (J_star - J_current) if (J_star and J_current) else 0.0
 J_gain_pct = (J_gain / J_current * 100.0) if J_current else 0.0
 
+# 新方案关键指标 (来自 plan.md Phase 3)
+F_early_static = 0.5754
+F_early_dynamic = 0.8785
+J_late_static = 0.5451
+J_late_dynamic = 0.9133
+dynamic_pattern_score = 1.5546
+composite_score_static = 0.4681
+composite_score_dynamic = 0.5693
+
 
 def _node(dot: Digraph, name: str, label: str, kind: str, **kwargs) -> None:
     palette = {
@@ -105,9 +121,9 @@ def _node(dot: Digraph, name: str, label: str, kind: str, **kwargs) -> None:
 dot = Digraph(comment='MCM 2026 Workflow Flowchart', format='png')
 dot.attr(
     rankdir='TB',
-    splines='ortho',
-    nodesep='0.12',
-    ranksep='0.18',
+    splines='spline',
+    nodesep='0.15',
+    ranksep='0.25',
 )
 dot.attr(
     'graph',
@@ -139,7 +155,7 @@ def _anchor(dot_: Digraph, name: str) -> None:
 # ----------------------------- Phase 1 -----------------------------
 with dot.subgraph(name='cluster_phase1') as c:
     c.attr(
-        label='PHASE 1  Data & Global Scan',
+        label='PHASE 1  数据考古与全局扫描',
         labelloc='t',
         labeljust='l',
         style='rounded,filled',
@@ -157,10 +173,10 @@ with dot.subgraph(name='cluster_phase1') as c:
         'input',
         shape='cylinder',
     )
-    _node(c, 'clean', 'Cleaning\nJ% std • withdrawals/N/A', 'process')
-    _node(c, 'feat', 'Features\nPBI + covariates', 'process')
+    _node(c, 'clean', 'Cleaning\nJ% 标准化 • 退赛处理', 'process')
+    _node(c, 'feat', 'Features\nPBI + Age/Industry/Pro', 'process')
     _node(c, 'panel', f'Panel (i,w)\n{total_obs:,} obs', 'output', shape='note')
-    _node(c, 'div', 'Global Scan\nDivergence trend', 'insight')
+    _node(c, 'div', 'Global Scan\n分歧趋势 +57%', 'insight')
 
     c.edge('a_p1', 'raw', style='invis')
 
@@ -174,7 +190,7 @@ with dot.subgraph(name='cluster_phase1') as c:
 # ----------------------------- Phase 2 -----------------------------
 with dot.subgraph(name='cluster_phase2') as c:
     c.attr(
-        label='PHASE 2  Bayesian Inference',
+        label='PHASE 2  贝叶斯逆推与验证',
         labelloc='t',
         labeljust='l',
         style='rounded,filled',
@@ -187,11 +203,11 @@ with dot.subgraph(name='cluster_phase2') as c:
 
     _node(c, 'constraints', 'Constraints\nBottom-k • Σf=1', 'process')
     _node(c, 'mcmc', f'MCMC (Hit-and-Run)\nAvg CI: {avg_ci_width:.3f}', 'core')
-    _node(c, 'post', f'Posterior f(i,w)\n{total_obs:,} + 95% CI', 'output', shape='note')
+    _node(c, 'post', f'Posterior f(i,w)\n{total_obs:,} estimates', 'output', shape='note')
     _node(
         c,
         'valid',
-        f'Validation\nCI {avg_ci_width:.3f} • CV {cv_mean:.3f} • Exact {exact_match*100:.1f}% • P̄ {p_bar:.3f}',
+        f'Validation\nCI {avg_ci_width:.3f} • Exact {exact_match*100:.1f}% • P̄ {p_bar:.3f}',
         'insight',
     )
 
@@ -202,10 +218,53 @@ with dot.subgraph(name='cluster_phase2') as c:
     c.edge('post', 'valid')
 
 
-# ----------------------------- Phase 3 -----------------------------
+# ----------------------------- Phase 3 (核心方法论) -----------------------------
 with dot.subgraph(name='cluster_phase3') as c:
     c.attr(
-        label='PHASE 3  Simulator & Evidence',
+        label='PHASE 3  Pareto优化与动态加权 ⭐核心',
+        labelloc='t',
+        labeljust='l',
+        style='rounded,filled',
+        color='#FFCC80',
+        fillcolor='#FFFDF7',
+        fontsize='10.5',
+    )
+
+    _anchor(c, 'a_p3')
+
+    _node(c, 'objectives', 'Bi-Objectives\nJ (Merit) • F (Engagement)', 'process')
+    _node(c, 'rule_space', 'Rule Space\nStatic vs Dynamic', 'process')
+    _node(c, 'pareto', 'Pareto Frontier\n51 configurations', 'core')
+    _node(c, 'multi_phase', 'Multi-Phase Eval\nEarly F • Late J', 'core', style='rounded,filled,bold')
+    _node(
+        c,
+        'sigmoid',
+        f'Sigmoid Dynamic ⭐\nw_min=0.30 • w_max=0.75 • s=6',
+        'decision',
+        shape='diamond',
+        style='filled',
+        penwidth='2.6',
+    )
+    _node(
+        c,
+        'advantage',
+        f'Advantage\nF_early +52.7% • J_late +67.5%\nComposite +21.6%',
+        'insight',
+    )
+
+    c.edge('a_p3', 'objectives', style='invis')
+
+    c.edge('objectives', 'rule_space')
+    c.edge('rule_space', 'pareto')
+    c.edge('pareto', 'multi_phase')
+    c.edge('multi_phase', 'sigmoid', penwidth='2.2', color='#E65100')
+    c.edge('sigmoid', 'advantage')
+
+
+# ----------------------------- Phase 4 -----------------------------
+with dot.subgraph(name='cluster_phase4') as c:
+    c.attr(
+        label='PHASE 4  规则模拟与案例验证',
         labelloc='t',
         labeljust='l',
         style='rounded,filled',
@@ -214,53 +273,26 @@ with dot.subgraph(name='cluster_phase3') as c:
         fontsize='10.5',
     )
 
-    _anchor(c, 'a_p3')
-
-    _node(c, 'sim', f'Simulator\nreplay {total_seasons} seasons', 'core')
-    _node(c, 'rank', f'Rank\nFFI {rank_ffi:.3f}', 'process')
-    _node(c, 'pct', f'Pct\nFFI {pct_ffi:.3f}', 'process')
-    _node(c, 'bias', f'Bias\nΔFFI {ffi_delta:+.3f}', 'insight')
-    _node(c, 'cases', '4 Cases\nRice • Cyrus • Palin • Bones', 'process')
-    _node(c, 'supp', 'Effects\nPro + covariates', 'process')
-
-    c.edge('a_p3', 'sim', style='invis')
-
-    c.edge('sim', 'rank')
-    c.edge('sim', 'pct')
-    c.edge('rank', 'bias')
-    c.edge('pct', 'bias')
-
-
-# ----------------------------- Phase 4 -----------------------------
-with dot.subgraph(name='cluster_phase4') as c:
-    c.attr(
-        label='PHASE 4  Pareto Optimization',
-        labelloc='t',
-        labeljust='l',
-        style='rounded,filled',
-        color='#81C784',
-        fillcolor='#F6FFF7',
-        fontsize='10.5',
-    )
-
     _anchor(c, 'a_p4')
 
-    _node(c, 'obj', f'Objectives\nJ {J_star:.3f} • F {F_star:.3f}', 'process')
-    _node(c, 'pareto', 'Frontier\n51 weights', 'core')
-    _node(c, 'knee', f'Knee\nR {rank_knee:.3f} • P {pct_knee:.3f}', 'decision', shape='diamond', style='filled', penwidth='2.6')
-    _node(c, 'save', "Save\n+J at modest F cost", 'insight')
+    _node(c, 'sim', f'Simulator\nReplay {total_seasons} seasons', 'core')
+    _node(c, 'rank_pct', f'Rank vs Pct\nFFI Δ{ffi_delta:+.3f}', 'process')
+    _node(c, 'cases', '4 Cases\nRice • Cyrus • Palin • Bones', 'process')
+    _node(c, 'effects', 'Effects Model\nPro Dancer + Covariates', 'process')
+    _node(c, 'evidence', 'Evidence\nRank更稳健 • Save有效', 'insight')
 
-    c.edge('a_p4', 'obj', style='invis')
+    c.edge('a_p4', 'sim', style='invis')
 
-    c.edge('obj', 'pareto')
-    c.edge('pareto', 'knee', penwidth='2.2', color='#C62828')
-    c.edge('knee', 'save')
+    c.edge('sim', 'rank_pct')
+    c.edge('sim', 'cases')
+    c.edge('rank_pct', 'evidence')
+    c.edge('cases', 'evidence')
 
 
 # ----------------------------- Phase 5 -----------------------------
 with dot.subgraph(name='cluster_phase5') as c:
     c.attr(
-        label='PHASE 5  Recommendation',
+        label='PHASE 5  最终建议与备忘录',
         labelloc='t',
         labeljust='l',
         style='rounded,filled',
@@ -274,7 +306,7 @@ with dot.subgraph(name='cluster_phase5') as c:
     _node(
         c,
         'rec',
-        f'RECOMMEND\n{rec_method} • {rec_weights} • Save {"Y" if rec_save else "N"}',
+        f'RECOMMEND\nSigmoid+Rank • Save {"Y" if rec_save else "N"}',
         'decision',
         style='rounded,filled,bold',
         penwidth='3.0',
@@ -282,10 +314,10 @@ with dot.subgraph(name='cluster_phase5') as c:
     _node(
         c,
         'compare',
-        f'Impact\nJ {J_current:.3f}→{J_star:.3f} ({J_gain_pct:+.0f}%) • F {F_current:.3f}→{F_star:.3f}',
+        f'Impact\n早期F 0.58→0.88 • 后期J 0.55→0.91',
         'insight',
     )
-    _node(c, 'memo', 'Memo\nimplementation + risks', 'output', shape='note')
+    _node(c, 'memo', 'Memo\n制片人建议 + 风险提示', 'output', shape='note')
 
     c.edge('a_p5', 'rec', style='invis')
 
@@ -294,24 +326,36 @@ with dot.subgraph(name='cluster_phase5') as c:
 
 
 # ----------------------------- Cross-phase links (narrative) -----------------------------
+# Phase 1 → Phase 2: Panel数据流入贝叶斯模型
 dot.edge('panel', 'mcmc', penwidth='2.0', color='#2E7D32')
-dot.edge('post', 'sim', penwidth='2.2', color='#2E7D32')
-dot.edge('feat', 'supp', style='dashed')
-dot.edge('post', 'supp', style='dashed')
-dot.edge('post', 'cases')
 
-dot.edge('div', 'obj', xlabel='reform rationale', style='bold', color='#1565C0', penwidth='2.2')
-dot.edge('bias', 'obj', xlabel='trade-off', style='dashed', color='#1565C0')
-dot.edge('save', 'rec', style='bold', color='#C62828', penwidth='2.2')
-dot.edge('cases', 'memo', style='dashed', color='#546E7A')
-dot.edge('supp', 'memo', style='dashed', color='#546E7A')
+# Phase 2 → Phase 3: 粉丝票估计流入Pareto优化
+dot.edge('post', 'objectives', penwidth='2.2', color='#2E7D32', xlabel='f(i,w)')
+
+# Phase 1 Divergence → Phase 3: 分歧趋势证明改革必要性
+dot.edge('div', 'objectives', xlabel='reform rationale', style='bold', color='#1565C0', penwidth='2.2')
+
+# Phase 3 → Phase 4: 最优规则进入模拟验证
+dot.edge('sigmoid', 'sim', penwidth='2.2', color='#E65100', xlabel='optimal rule')
+
+# Phase 2 → Phase 4: 粉丝票用于案例分析
+dot.edge('post', 'cases', style='dashed', color='#546E7A')
+dot.edge('feat', 'effects', style='dashed', color='#546E7A')
+dot.edge('post', 'effects', style='dashed', color='#546E7A')
+
+# Phase 3 Advantage → Phase 5: 优势论证流入最终建议
+dot.edge('advantage', 'rec', style='bold', color='#C62828', penwidth='2.2')
+
+# Phase 4 Evidence → Phase 5: 案例证据支持备忘录
+dot.edge('evidence', 'memo', style='dashed', color='#546E7A')
+dot.edge('effects', 'memo', style='dashed', color='#546E7A')
 
 
 # ----------------------------- Compact legend node -----------------------------
 _node(
     dot,
     'legend',
-    'Legend\nInput • Process • Core • Output • Decision • Finding',
+    'Legend\nInput • Process • Core • Decision • Finding',
     'output',
     shape='note',
     fontsize='8',
@@ -327,31 +371,31 @@ dot.edge('a_leg', 'legend', style='invis')
 with dot.subgraph() as r1:
     r1.attr(rank='same')
     r1.node('a_p1')
-    r1.node('a_p4')
+    r1.node('a_p3')
 
 with dot.subgraph() as r2:
     r2.attr(rank='same')
     r2.node('a_p2')
-    r2.node('a_p5')
+    r2.node('a_p4')
 
 with dot.subgraph() as r3:
     r3.attr(rank='same')
-    r3.node('a_p3')
+    r3.node('a_p5')
     r3.node('a_leg')
 
 # Column ordering (left -> right within a row)
-dot.edge('a_p1', 'a_p4', style='invis', weight='50')
-dot.edge('a_p2', 'a_p5', style='invis', weight='50')
-dot.edge('a_p3', 'a_leg', style='invis', weight='50')
+dot.edge('a_p1', 'a_p3', style='invis', weight='50')
+dot.edge('a_p2', 'a_p4', style='invis', weight='50')
+dot.edge('a_p5', 'a_leg', style='invis', weight='50')
 
 # Vertical ordering (top -> bottom within a column)
 dot.edge('a_p1', 'a_p2', style='invis', weight='50')
-dot.edge('a_p2', 'a_p3', style='invis', weight='50')
-dot.edge('a_p4', 'a_p5', style='invis', weight='50')
-dot.edge('a_p5', 'a_leg', style='invis', weight='50')
+dot.edge('a_p2', 'a_p5', style='invis', weight='50')
+dot.edge('a_p3', 'a_p4', style='invis', weight='50')
+dot.edge('a_p4', 'a_leg', style='invis', weight='50')
 
 
-out_base = ROOT / 'cleaned_outputs' / 'workflow_flowchart_v2'
+out_base = ROOT / 'cleaned_outputs' / 'workflow_flowchart_v3'
 dot.format = 'png'
 dot.render(str(out_base), cleanup=True)
 
@@ -359,8 +403,15 @@ dot.format = 'pdf'
 dot.render(str(out_base), cleanup=True)
 
 print('=' * 72)
-print('FLOWCHART GENERATED (v2)!')
+print('FLOWCHART GENERATED (v3 - Updated per plan.md)!')
 print('=' * 72)
 print(f'PNG: {out_base}.png')
 print(f'PDF: {out_base}.pdf')
+print('=' * 72)
+print('\nKey Changes from v2:')
+print('  - Phase 3 now: Pareto优化与动态加权 (核心方法论)')
+print('  - Phase 4 now: 规则模拟与案例验证')
+print('  - Highlighted: Sigmoid Dynamic Rule (w_min=0.30, w_max=0.75, s=6)')
+print('  - Multi-Phase Evaluation Framework emphasized')
+print('  - Impact metrics: F_early +52.7%, J_late +67.5%, Composite +21.6%')
 print('=' * 72)

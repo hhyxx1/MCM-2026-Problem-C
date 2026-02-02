@@ -55,14 +55,10 @@
 \end{tabular}}
 %%%%%%%%%%% Begin Summary %%%%%%%%%%%
 \begin{center}
-\textbf{\Large The Fairness-Engagement Equilibrium: A Bayesian Inverse Approach to Optimizing Competitive Judging Systems}
+\textbf{\Large Title}
 \end{center}
 
-Managing reality competitions requires balancing professional adjudication and audience participation. \textit{Dancing With The Stars} (DWTS) faces a crisis where social media allows fanbases to override professional scores. To address this, we propose a reform framework based on inverse inference. We first constructed a standardized dataset of 421 contestants across 34 seasons. We analyzed the "Popularity Bias Index" (PBI) and proved that the divergence between judges and audiences has widened over time. Since fan votes are hidden, we developed a **Bayesian Inverse Inference Model** to estimate them. Using Markov Chain Monte Carlo (MCMC) sampling, we reconstructed the fan support distribution for every contestant constrained by elimination history.
-
-Based on these estimated votes, we developed a **Simulation Model** to compare scoring rules. We introduced "Fan-Elasticity" to measure system sensitivity. Our analysis shows the current Percentage System is highly elastic and vulnerable to "vote swarming". Conversely, the Rank System acts as a stabilizer. We replayed history under different rules to test controversial cases. The results demonstrate that specific mechanism changes could correct past anomalies. We then formulated a Multi-Objective Optimization model. We maximized both Meritocracy (alignment with judges) and Engagement (alignment with fans) to find the efficient Pareto Frontier of voting systems.
-
-Our optimization identified a clear "Knee Point" on the Pareto Frontier. We recommend a hybrid logic for the new system. First, adopt the Rank System to dampen extreme fan outliers. Second, implement a "Judges' Save" for the bottom two couples. Third, apply a "Dynamic Log-Weighting" formula that treats technical skill more heavily in later weeks. Our model predicts these changes reduce ranking anomalies by 65\% while maintaining high audience engagement. This solution provides a mathematically robust path to restore competitive fairness without sacrificing entertainment value.
+Summary
 %%%%%%%%%%% End Summary %%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -77,29 +73,12 @@ Our optimization identified a clear "Knee Point" on the Pareto Frontier. We reco
 \section{Introduction}
 
 \subsection{Background}
-Reality television competitions operate on a delicate dual mandate: they must be legitimate meritocracies to retain prestige, yet they must be engaging "popularity contests" to drive viewership. \textit{Dancing With The Stars} (DWTS) epitomizes this tension. Since 2005, the show has employed a unique voting system combining professional judge scores with public audience votes. However, the rise of social media has dramatically altered this landscape. "Viral" contestants with massive pre-existing fanbases can now overwhelm the professional leaderboard, keeping mediocre dancers in the competition at the expense of skilled performers. Notable controversies, such as Bobby Bones winning Season 27 despite consistently low technical scores, highlight a structural flaw in the current aggregation logic.
+
 
 \subsection{Restatement of the Problem}
-We define the "DWTS Paradox" as a multi-objective optimization problem. The show producers must maximize two conflicting objectives:
-\begin{enumerate}
-    \item \textbf{Meritocracy ($J$)}: The degree to which the final ranking is determined by technical skill (Judge Scores).
-    \item \textbf{Engagement ($F$)}: The degree to which the final ranking reflects audience preference (Fan Votes).
-\end{enumerate}
-The core challenge is that the exact distribution of Fan Votes ($F$) is a "dark matter"—unknown and undisclosed. Our task is to:
-\begin{enumerate}
-    \item Reconstruct these hidden fan votes using inverse inference.
-    \item Quantify the bias introduced by different aggregation methods (Rank vs. Percentage).
-    \item Design a new scoring system that minimizes "Ranking Anomalies" (where $F$ completely overrides $J$) without alienating the audience.
-\end{enumerate}
+
 
 \subsection{Our Work}
-We propose a four-stage modeling framework:
-\begin{itemize}
-    \item \textbf{Data Archaeology:} We standardize 34 seasons of historical data and introduce the "Popularity Bias Index" (PBI) to identify trendlines.
-    \item \textbf{Model I (Bayesian Inverse Inference):} We use Markov Chain Monte Carlo (MCMC) methods to reconstruct the latent fan vote share for every contestant in every week.
-    \item \textbf{Model II (Parallel Universe Simulator):} We replay history under counterfactual rules (e.g., "What if the Rank System was used in Season 27?") to test structural robustness.
-    \item \textbf{Model III (Pareto Optimization):} We map the trade-off frontier between Meritocracy and Engagement to identify the optimal "Knee Point" for policy reform.
-\end{itemize}
 
 \begin{figure}[H]
     \centering
@@ -108,27 +87,19 @@ We propose a four-stage modeling framework:
     \label{fig:workflow}
 \end{figure}
 
-\section{Data Processing and Preliminary Analysis}
+\section{Data Archaeology and Global Scan}
 
-\subsection{Data Preprocessing}
-Our dataset covers all 34 seasons of the US version of DWTS, containing 421 contestants and 2,777 competitive weeks.
-\begin{itemize}
-    \item \textbf{Score Standardization:} Judge scores varied between 30-point and 40-point systems across seasons. We unified these into a percentage metric $J\% \in [0, 100]$.
-    \item \textbf{Panel Construction:} We structured the data as a panel $(i, w)$, where contestant $i$ in week $w$ has a judge score $J_{iw}$ and an elimination status $E_{iw}$. Withdrawals were excluded from the denominator of vote shares to maintain mathematical consistency.
-\end{itemize}
+\subsection{Data Preprocessing and Feature Engineering}
+% 34 seasons, 421 contestants, 2777 weeks
+% Score standardization (30pt vs 40pt → J%)
+% Panel construction (i, w)
+% PBI = Rank_Judge - Rank_Final (Positive → fan-saved)
+% Covariates: Age, Industry, Pro Partner, Season/Week FE
 
-\subsection{Feature Engineering}
-\begin{itemize}
-    \item \textbf{Popularity Bias Index (PBI):} To measure the "Popularity Gap," we defined:
-    \begin{equation}
-        PBI_i = Rank_{Judge}(i) - Rank_{Final}(i)
-    \end{equation}
-    A positive PBI indicates a contestant who performed poorly with judges but survived due to fans (e.g., Bobby Bones had a PBI $> 5$). The average PBI across all seasons is $-0.88$, reflecting a slight systematic tendency for judges to under-rank eventual finalists compared to the public.
-    \item \textbf{Covariates:} We extracted key features including Age, Industry (e.g., Athlete, Reality Star), and Pro Partner history to control for "Star Maker" effects in later regression models.
-\end{itemize}
-
-\subsection{Analysis of Divergence Trends}
-Our "Chronological Heatmap" analysis reveals a clear entropy increase. Early seasons showed high convergence between Judge Ranks and Final Ranks. However, post-Season 15 (correlating with the explosion of Instagram and TikTok), the variance of PBI has significantly widened. Extreme outliers (contestants surviving 5+ weeks beyond their expiration date) have become more frequent, confirming the necessity for structural reform.
+\subsection{Divergence Trend Analysis}
+% Chronological heatmap showing Judge-Audience gap
+% Post-S15 divergence increase (social media era)
+% Justification for structural reform
 
 \begin{figure}[H]
     \centering
@@ -137,34 +108,19 @@ Our "Chronological Heatmap" analysis reveals a clear entropy increase. Early sea
     \label{fig:divergence}
 \end{figure}
 
-\section{Model I: Bayesian Inverse Inference Model}
+\section{Bayesian Inverse Inference and Validation}
 
-\subsection{Mathematical Formulation}
-The show's voting mechanism aggregates Judge Scores ($J$) and Fan Votes ($F$) to determine eliminations. While $J$ is public, $F$ is hidden. Let $f_{iw}$ be the proportion of fan votes received by contestant $i$ in week $w$. The vector $\mathbf{f}_w = [f_{1w}, \dots, f_{nw}]$ must satisfy the simplex constraint $\sum f_{iw} = 1$ and $f_{iw} \ge 0$.
-
-For a given aggregation rule $G(J, F)$, a contestant $e$ is eliminated in week $w$ if their total score is in the bottom $k$ (where $k$ is the number of eliminations). This provides a set of linear inequality constraints. For every survivor $s \in S_w$ and eliminated contestant $e \in E_w$, we must have:
-\begin{equation}
-    Score(s, w) > Score(e, w)
-\end{equation}
-For the \textbf{Percentage Rule}: $Score = \frac{J\%}{2} + \frac{F\%}{2}$. The constraint becomes $F\%_s - F\%_e > J\%_e - J\%_s$.
-For the \textbf{Rank Rule}: $Score = Rank(J) + Rank(F)$. Even rankings provide bounds on the possible values of $F$.
-
-\subsection{Solution Algorithm: Hit-and-Run MCMC}
-Since the solution space is a convex polytope defined by these inequalities, we employ the \textbf{Hit-and-Run Markov Chain Monte Carlo (MCMC)} algorithm to sample from the posterior distribution of $\mathbf{f}_w$.
-\begin{enumerate}
-    \item \textbf{Initialization:} Find an analytic center of the polytope using linear programming (LP) as a starting point $\mathbf{x}_0$.
-    \item \textbf{Direction Sampling:} Generate a random direction vector $\mathbf{d}$ uniformly from the unit sphere.
-    \item \textbf{Line Search:} Determine the line segment defined by the polytope boundaries along $\mathbf{d}$.
-    \item \textbf{State Update:} Sample a new point $\mathbf{x}_{t+1}$ uniformly along this segment.
-\end{enumerate}
-This process yields a distribution of possible fan vote shares for every contestant, effectively reconstructing the "Dark Matter" of the competition.
+\subsection{Problem Formulation and Algorithm}
+% Hidden variable: f(i,w) = fan vote share
+% Simplex constraint: sum f = 1, f >= 0
+% Elimination constraint: Score(survivor) > Score(eliminated)
+% Hit-and-Run MCMC: LP initialization, direction sampling, line search
+% Special handling: multi-elimination weeks, cumulative voting weeks
 
 \subsection{Model Validation}
-We validate our inference model using two rigorous metrics:
-\begin{itemize}
-    \item \textbf{Certainty Check:} The average width of the 95\% Credible Interval (CI) for our vote estimates is \textbf{0.288} (on a scale of 0-1). This indicates that while we cannot pinpoint exact vote counts, we can narrow down a contestant's popularity significantly.
-    \item \textbf{Consistency Check:} We define "Posterior Consistency" $\bar{P}$ as the probability that the actual eliminated contestant falls into the estimated Bottom-2. Our model achieves a global consistency score of \textbf{65.1\%}, with prediction accuracy in non-anomalous weeks reaching \textbf{95.2\%}. This confirms that the estimated votes are not random noise but structurally consistent with historical outcomes.
-\end{itemize}
+% Certainty: 95% CI width, avg CIW = 0.288
+% Consistency: P(E in Bottom-k | posterior)
+% Global consistency = 65.1%, non-anomalous = 95.2%
 
 \begin{figure}[H]
     \centering
@@ -173,200 +129,78 @@ We validate our inference model using two rigorous metrics:
     \label{fig:ci_width}
 \end{figure}
 
-\section{Model II: Simulation and Mechanism Analysis}
+\section{Pareto Optimization and Dynamic Weighting}
+
+\subsection{Dual Objective and Evaluation Framework}
+% J = Spearman(FinalRank, JudgeRank) - Meritocracy
+% F = Spearman(FinalRank, FanRank) - Engagement
+% Traditional: J_overall, F_overall, Balance = 2JF/(J+F)
+% Multi-Phase: Dynamic Pattern Score, Phased Balance, Composite Score
+% Advantage: rewards "high F early + high J late" designs
+
+\subsection{Rule Space Search and Comparison}
+% Static: Rank vs Pct (Rank outperforms)
+% Legacy Dynamic: Linear + Log Smoothing (cannot beat Static Rank 50-50)
+% Proposed: Sigmoid + Rank (w_min=0.30, w_max=0.75, s=6)
+% Pareto result: Composite +21.6%, Sigmoid wins 5:3
+
+\subsection{Covariate Effect Analysis}
+% Pro Dancer effect on J% and f
+% Celebrity industry effect
+% Variance decomposition
+
+\section{Rule Simulation and Case Validation}
 
 \subsection{Mechanism Comparison: Rank vs. Percentage}
-Using the reconstructed fan votes, we simulated every season under both Rank and Percentage aggregation rules.
-\begin{itemize}
-    \item \textbf{Fan-Favor Index (FFI):} Defined as the Spearman correlation between Final Rank and Fan Rank. The Percentage method yields an FFI of \textbf{0.768}, while the Rank method yields \textbf{0.719}.
-    \item \textbf{Fan-Elasticity:} We measured how easily a small surplus in fan votes can reverse a deficit in judge scores. The Percentage method exhibits significantly higher elasticity.
-    \item \textbf{Conclusion:} The \textbf{Percentage System} structurally favors "Fan Vote Swarms." Since fan vote variance (often huge) is added directly to judge score variance (restricted to 0-100), a viral star can mathematically "break" the percentage formula. The \textbf{Rank System}, by capping the benefit of being 1st place in votes (e.g., getting 1 point vs 1,000,000 votes), acts as a necessary dampener.
-\end{itemize}
+% Simulator: Legacy (Pct + Linear) vs New (Rank + Sigmoid)
+% Metrics: FFI, JFI, Fan-Elasticity, Weekly difference
+% Result: Pct more fan-biased, Rank more balanced
+% Quantitative: F_early +52.7%, J_late +67.5%, Composite +21.6%
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{cleaned_outputs/patch4_elasticity/elasticity_comparison.png}
-    \caption{Fan-Elasticity Comparison: Rank vs. Percentage System. The Percentage System (Right) shows significantly higher sensitivity to small perturbations in fan votes.}
+    \caption{Fan-Elasticity Comparison: Rank vs. Percentage System. The Percentage System shows significantly higher sensitivity to small perturbations in fan votes.}
     \label{fig:elasticity}
 \end{figure}
 
-\subsection{Covariate Analysis}
-We employed a mixed-effects regression model to disentangle the drivers of success using our estimated data.
-\begin{table}[H]
-\centering
-\caption{Impact of Factors on Scores (Normalized Coefficients)}
-\begin{tabular}{lcc}
-\toprule
-\textbf{Factor} & \textbf{Judge Score Effect} & \textbf{Fan Vote Effect} \\
-\midrule
-Week Number (Skill Growth) & +4.57*** & +0.005 (small) \\
-Judge Score ($J\%$) & N/A & +0.0008 (positive, weak) \\
-Season Trend & -0.07 & -0.01 \\
-\bottomrule
-\end{tabular}
-\end{table}
-\textbf{Interpretation:} Judges heavily reward technical growth (Week coefficient +4.57), while fans are relatively insensitive to skill growth or high judge scores $(\eta \approx 0.0008)$. This quantitative disconnect proves that "Meritocracy" and "Engagement" are indeed orthogonal objectives, necessitating a structural intervention rather than just "better casting."
-
 \subsection{Historical Case Studies}
-We re-ran the simulation for the four most controversial cases:
-\begin{enumerate}
-    \item \textbf{Jerry Rice (Season 2):} Under the current rule, he survived until the finale. Our simulation shows that a \textbf{Judges' Save} mechanism would have eliminated him 4 weeks earlier.
-    \item \textbf{Billy Ray Cyrus (Season 4):} A switch to the \textbf{Rank System} would have reduced the weight of his massive fanbase, potentially eliminating him 2 weeks earlier.
-    \item \textbf{Bristol Palin (Season 11):} Her run to 3rd place was driven by political voting blocks. The Rank System dampens this block voting effect.
-    \item \textbf{Bobby Bones (Season 27):} The most egregious outlier (Winner with lowest judge scores). Our "Parallel Universe" simulation confirms that under the \textbf{Rank System + Judges' Save}, he would have been eliminated in Week 6, preventing the crisis of integrity that followed his victory.
-\end{enumerate}
+% Jerry Rice (S2), Billy Ray Cyrus (S4), Bristol Palin (S11), Bobby Bones (S27)
+% New rule corrects all 4 controversial outcomes
 
-\section{Model III: Multi-Objective Optimization Model}
+\section{Final Recommendations}
 
-\subsection{Objective Functions}
-We seek a scoring system $S$ that maximizes the correlation with both ideal rankings:
-\begin{align}
-    \max O_J(S) &= \text{SpearmanCorr}(\text{FinalRank}(S), \text{JudgeRank}) \\
-    \max O_F(S) &= \text{SpearmanCorr}(\text{FinalRank}(S), \text{FanRank})
-\end{align}
-Comparing the two major systems across 34 seasons:
-\begin{itemize}
-    \item \textbf{Rank System:} $O_J \approx 0.74$, $O_F \approx 0.72$
-    \item \textbf{Percentage System:} $O_J \approx 0.38$, $O_F \approx 0.77$
-\end{itemize}
-The Percentage system achieves a slight gain in Engagement (+0.05) at a catastrophic cost to Meritocracy (-0.36), explaining why "robberies" feel so egregious under this system.
-
-\subsection{Pareto Frontier Analysis}
-We computed the Pareto Frontier by varying the weight $\lambda \in [0, 1]$ in a hybrid score $Score = \lambda \cdot J + (1-\lambda) \cdot F$.
-Our analysis identifies distinct "Knee Points"—points of diminishing returns—on these curves:
-\begin{itemize}
-    \item The **Percentage Frontier** is nearly linear, offering poor trade-offs (Distance to Knee Point = 0.06).
-    \item The **Rank Frontier** is convex, with a clear Knee Point at $\lambda \approx 0.5$ (Distance = 0.22). This implies that the Rank system is inherently more efficient at balancing the two objectives.
-\end{itemize}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.85\linewidth]{cleaned_outputs/phase4_pareto/pareto_frontier.png}
-    \caption{Pareto Frontier of Meritocracy ($J$) vs. Engagement ($F$). The Rank System (Blue) dominates the Percentage System (Orange), with a clear Knee Point offering the optimal trade-off.}
-    \label{fig:pareto}
-\end{figure}
-
-\subsection{Optimal Solution Selection}
-Based on the Knee Point analysis, the global optimum is achieved by the **Rank System with equal weights (50-50)**, providing the most robust balance ($J \approx 0.66, F \approx 0.70$).
-
-\section{Policy Recommendations}
-
-\subsection{Proposed Scoring System: Dynamic Log-Weighting}
-To further refine the balance, we propose a "Dynamic Log-Weighting" formula:
-\begin{equation}
-    Score_w = \alpha(w) \cdot Rank(J\%) + (1 - \alpha(w)) \cdot \log(1 + Rank(F\%))
-\end{equation}
-where $\alpha(w)$ scales linearly from $0.5$ in Week 1 to $0.7$ in the Finale.
-\begin{itemize}
-    \item **Logarithmic Smoothing:** The $\log$ function dampens the "power law" distribution of viral fan votes.
-    \item **Dynamic Shift:** Early weeks prioritize engagement (50-50) to build fanbase; later weeks prioritize merit (70-30) to ensure a worthy champion.
-\end{itemize}
+\subsection{Recommended Scoring System}
+% Verdict: Rank > Pct (dampens extreme fan votes)
+% Formula: Score(t) = w_J(t) * J_rank + (1-w_J(t)) * F_rank
+% Sigmoid: w_J(t) = 0.30 + 0.45 / (1 + exp(-6(t/T - 0.5)))
+% Design: Early engagement (30%) → Late meritocracy (75%)
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{cleaned_outputs/phase5_recommendation/dynamic_weights.png}
-    \caption{Proposed Dynamic Weighting Scheme. The weight of Meritocracy ($\alpha$) increases linearly as the season progresses towards the finale.}
+    \caption{Proposed Sigmoid Dynamic Weighting Scheme. The weight of Meritocracy increases smoothly from 30\% to 75\% as the season progresses.}
     \label{fig:weights}
 \end{figure}
 
-\subsection{The Safety Mechanism: Judges' Save}
-We strongly recommend implementing a **"Judges' Save"** for the bottom two couples.
-\begin{itemize}
-    \item **Function:** Instead of automatic elimination, the bottom two face a "Dance-Off," and judges decide who stays.
-    \item **Impact:** In our simulations, this mechanism alone prevented 60\% of "Controversial Eliminations" (extreme PBI outliers), acting as a "circuit breaker" for populism without affecting the general voting flow.
-\end{itemize}
-
-\subsection{Transition Strategy}
-\begin{enumerate}
-    \item **Pilot Phase:** Introduce the "Judges' Save" first (marketed as "The Judges' Verdict") as it adds drama and fairness immediately.
-    \item **System Switch:** Transition to Rank System in the next full season.
-    \item **Transparency:** Publish the "Judge-Fan Divergence" heatmap post-season to show fans that their votes still counted, but extreme biases were corrected.
-\end{enumerate}
+\subsection{Advantages and Design Rationale}
+% S-curve: stable at endpoints, fast transition in middle
+% F_early +52.7%, J_late +67.5%, Composite +21.6%
+% Anti-extreme voting: Rank system natural compression
+% Optional: Judges' Save (Dance-Off for Bottom 2)
 
 \section{Sensitivity Analysis and Model Evaluation}
 
 \subsection{Sensitivity Analysis}
-We tested our model robustness by varying the PBI threshold for "Controversial Outcomes" and the priors for the Bayesian inference. The relative superiority of the Rank System remained stable across all meaningful parameter ranges. The Knee Point shift was negligible ($\Delta < 0.02$).
 
 \subsection{Strengths and Weaknesses}
 \textbf{Strengths:}
-\begin{itemize}
-    \item **Data-Driven:** Uses a complete reconstruction of 34 seasons rather than just theoretical assumptions.
-    \item **Actionable:** Provides specific formulas and policy changes (Save, Rank System) ready for implementation.
-    \item **Balanced:** Explicitly optimizes for both fairness and fun, respecting the show's commercial reality.
-\end{itemize}
+
 \textbf{Weaknesses:}
-\begin{itemize}
-    \item **Independence Assumption:** Our model assumes fan votes are independent weekly. In reality, fanbases are sticky. However, the random walk component in our estimation partially accounts for this momentum.
-    \item **Hidden Dynamics:** We cannot model "strategic voting" (fans voting against a rival) without survey data.
-\end{itemize}
+
 
 \section{Conclusion}
-The "Popularity Gap" in DWTS is a structural artifact of using linear percentage aggregation in an era of exponential social media growth. Our research proves that the Percentage System is mathematically ill-suited for the modern landscape. By switching to a Rank System and implementing a Judges' Save, DWTS can reduce outcome anomalies by ~65\% while retaining the audience engagement that makes the show a cultural phenomenon. The "Fairness-Engagement Equilibrium" is achievable, but it requires these specific structural reforms.
 
 \section{Memo to the Producer}
-
-\begin{center}
-\textbf{MEMORANDUM}
-\end{center}
-
-\noindent \textbf{TO:} Producers, Dancing With The Stars \\
-\textbf{FROM:} Data Analytics Team \\
-\textbf{DATE:} February 1, 2026 \\
-\textbf{SUBJECT:} Restoring Competitive Integrity: A Data-Driven Reform Plan
-
-\subsection*{Executive Summary}
-After a comprehensive "forensic analysis" of 34 seasons (2,777 performances), we have quantified a growing structural risk: the \textbf{"Popularity Gap."} Our analysis proves that the current scoring system is increasingly vulnerable to "vote swarming" from social media fanbases, leading to outcomes (like the Season 27 victory of Bobby Bones) that damage the show's meritocratic brand without significantly boosting long-term engagement.
-
-We propose a \textbf{Revenue-Neutral, Fairness-Positive} reform plan that realigns the incentives of the show.
-
-\subsection*{Key Findings}
-\begin{itemize}
-    \item \textbf{The Percentage Trap:} The current system of adding raw percentages ($J\% + F\%$) is structurally flawed. Fan votes follow a "Power Law" (extreme spikes), while Judge scores are linear. This allows a single viral star to mathematically render the judges irrelevant.
-    \item \textbf{Historical Misses:} Our "Parallel Universe" simulations reveal that simple changes could have prevented major controversies:
-    \begin{itemize}
-        \item \textbf{Bobby Bones (S27 Winner):} Under our proposed Rank System + Save, he is eliminated in Week 6.
-        \item \textbf{Bristol Palin (S11 3rd Place):} Under the new rules, she exits before the Finale.
-    \end{itemize}
-    \item \textbf{The Trade-off Myth:} You do NOT need to sacrifice fan engagement to have fairness. Our Pareto Optimization shows that switching to a Rank System retains 93\% of the audience signal while boosting meritocratic alignment by 74\%.
-\end{itemize}
-
-\subsection*{Recommendations for Future Seasons}
-
-\subsubsection*{1. Structural Fix: Switch to "Rank Rules"}
-\textbf{Action:} Abandon the percentage aggregation. Convert both Judges' Scores and Fan Votes to a simple Rank (1st, 2nd, ... Last) and sum the ranks.
-\textbf{Why:} This acts as a "circuit breaker." It caps the advantage of a viral star (being 1st is just 1 point better than 2nd, not 10 million votes better), forcing them to rely at least partially on dancing skill to survive.
-
-\subsubsection*{2. The "Merit Safety Net": Judges' Save}
-\textbf{Action:} Grant judges the power to save one of the \textbf{Bottom Two} couples from elimination.
-\textbf{Why:} This completely eliminates "accidental" departures of skilled dancers due to a bad voting week. In our simulations, this mechanism alone prevented 60\% of the most egregious ranking anomalies.
-
-\subsubsection*{3. Dynamic Weighting (The "Season Arc")}
-\textbf{Action:} Use a dynamic formula where the judges' weight increases slightly as the season progresses (from 50\% in Week 1 to 70\% in the Finale).
-\textbf{Why:} Early weeks are for fun and discovery (high fan weight); the Finale should be about crowning the best dancer (high merit weight).
-
-\subsection*{Conclusion}
-The data is clear: the current system is not just "unlucky" with results; it is mathematically biased against skill in the age of social media. By adopting these low-cost structural changes, DWTS can protect its reputation as a serious dance competition while remaining the people's choice.
-
-\newpage
-\appendix
-\section{Technical Details of MCMC}
-To reconstruct the hidden fan votes $\mathbf{f}_w$, we sample from the polytope defined by $A\mathbf{f}_w \le \mathbf{b}$, where $A$ encodes the pairwise inequalities $Score(s) > Score(e)$ and the simplex constraint $\sum f_i = 1$.
-The Hit-and-Run algorithm iteratively generates points:
-\begin{enumerate}
-    \item Choose a random direction $\mathbf{d}$ from the unit hypersphere.
-    \item Find the intersection of the line $\mathbf{x}_t + \lambda \mathbf{d}$ with the polytope boundaries $[\lambda_{min}, \lambda_{max}]$.
-    \item Sample $\lambda^* \sim U[\lambda_{min}, \lambda_{max}]$ and update $\mathbf{x}_{t+1} = \mathbf{x}_t + \lambda^* \mathbf{d}$.
-\end{enumerate}
-This ensures uniform sampling from the feasible region of possible fan votes.
-
-\section{AI Use Report}
-
-\begin{itemize}
-    \item \textbf{Ideation:} Large Language Models (LLM) were used to brainstorm the multi-objective optimization framework (Meritocracy vs. Engagement) and to suggest the structure of the "Parallel Universe" simulator.
-    \item \textbf{Coding Support:} LLMs assisted in generating Python code snippets for the Hit-and-Run MCMC algorithm, the mixed-effects regression models (using `statsmodels`), and the data standardization scripts (using `pandas`).
-    \item \textbf{Refinement:} LLMs were used to review the logical flow of the arguments, suggest improvements for the "Executive Memo" clarity, and check for consistency in terminology (e.g., standardizing "Fan-Elasticity").
-\end{itemize}
-\textbf{Verification:} All mathematical derivations, code execution, data analysis, and final conclusions were verified and are the sole responsibility of the human team members. No AI-generated text was included without human review and editing.
 
 \end{document}

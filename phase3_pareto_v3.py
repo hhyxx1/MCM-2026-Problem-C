@@ -331,6 +331,13 @@ print(f"    Saved: {output_dir}/weight_evolution_final.png")
 # 图2: Pareto前沿
 fig, ax = plt.subplots(figsize=(10, 8))
 
+# 学术化图例映射
+legend_labels = {
+    'static': r'Static ($\alpha_J = const.$)',
+    'dynamic_sigmoid': r'Sigmoid Dynamic ($\alpha_J(t) = \sigma(t)$)',
+    'dynamic_linear': r'Linear Dynamic ($\alpha_J(t) \propto t$)',
+}
+
 for rule_type, color, marker in [
     ('static', '#ef4444', 'o'),
     ('dynamic_sigmoid', '#3b82f6', 's'),
@@ -340,19 +347,19 @@ for rule_type, color, marker in [
     if len(subset) > 0:
         ax.scatter(subset['Balance_traditional'], subset['dynamic_pattern'],
                   c=color, marker=marker, s=80, alpha=0.6, 
-                  label=rule_type.replace('_', ' ').title())
+                  label=legend_labels.get(rule_type, rule_type))
 
 ax.scatter([best_static['Balance_traditional']], [best_static['dynamic_pattern']],
           c='red', marker='*', s=300, edgecolors='black', linewidth=2, 
-          label='Best Static', zorder=10)
+          label=r'Optimal Static ($\mathcal{B}^*_{static}$)', zorder=10)
 ax.scatter([best_dynamic['Balance_traditional']], [best_dynamic['dynamic_pattern']],
           c='blue', marker='*', s=300, edgecolors='black', linewidth=2, 
-          label='Best Dynamic', zorder=10)
+          label=r'Optimal Dynamic ($\mathcal{B}^*_{dynamic}$)', zorder=10)
 
-ax.set_xlabel('Traditional Balance', fontsize=12, fontweight='bold')
-ax.set_ylabel('Dynamic Pattern Score', fontsize=12, fontweight='bold')
-ax.set_title('Pareto Frontier: Balance vs Dynamic Advantage', fontsize=14, fontweight='bold')
-ax.legend(loc='best')
+ax.set_xlabel(r'Traditional Balance $\mathcal{B}$', fontsize=12, fontweight='bold')
+ax.set_ylabel(r'Dynamic Pattern Score $\mathcal{P}$', fontsize=12, fontweight='bold')
+ax.set_title(r'Pareto Frontier: $\mathcal{B}$ vs Dynamic Advantage $\mathcal{P}$', fontsize=14, fontweight='bold')
+ax.legend(loc='upper left', fontsize=10, framealpha=0.9)
 ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
