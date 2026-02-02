@@ -555,20 +555,18 @@ Under the Rank method, adding Judges' Save \textbf{improves} JFI by 1.3 percenta
 
 \section{Covariate Effect Analysis}
 
-Beyond voting mechanisms, we investigate how contestant and partner characteristics influence competition outcomes. Specifically, we ask: \textit{How much do pro dancers and celebrity attributes (age, industry, region) impact performance? Do these factors affect judge scores and fan votes in the same way?}
-
-We employ linear mixed-effects models to decompose variance in both judge scores and fan vote shares:
+To quantify how professional dancers and celebrity characteristics influence competition outcomes, we construct linear mixed-effects models with random effects for pro dancer, celebrity, and season. The model specifications are:
 $$
 J\%_{i,t} = \beta_0 + \boldsymbol{\beta}^T \mathbf{X}_i + u_{\text{pro}(i)} + v_{\text{celeb}(i)} + w_s + \epsilon_{i,t}
 $$
 $$
 \text{logit}(\hat{f}_{i,t}) = \alpha_0 + \boldsymbol{\alpha}^T \mathbf{X}_i + u'_{\text{pro}(i)} + v'_{\text{celeb}(i)} + w'_s + \eta_{i,t}
 $$
-where $\mathbf{X}_i$ includes Age, Industry, and Week; $u, v, w$ represent random effects for professional dancer, celebrity, and season respectively.
+where $\mathbf{X}_i$ includes Age, Industry, and Week as fixed effects. By fitting separate models for judge scores and fan votes, we can compare the variance structure and identify asymmetric influences.
 
 \subsection{Pro Dancer Effect}
 
-\textbf{Variance Decomposition.} Table~\ref{tab:variance} presents the percentage of total variance explained by each source. The decomposition reveals \textbf{asymmetric} influences: celebrity effect is stronger for judges (52.6\% vs. 42.2\%), while season effect is stronger for fans (9.4\% vs. 3.4\%). Pro dancer effect is similar for both (28.6\% vs. 31.0\%).
+Through variance decomposition analysis, we partition the total variance of both judge scores and fan votes into four components: pro dancer, celebrity, season, and residual. Table~\ref{tab:variance} reveals a striking \textbf{asymmetry} in variance structure. Celebrity identity explains 52.6\% of judge score variance but only 42.2\% of fan vote variance, indicating that judges respond more strongly to the celebrity's intrinsic dancing ability. Conversely, season context explains 9.4\% of fan vote variance versus only 3.4\% for judges, reflecting the influence of social media trends and platform changes on audience behavior. Pro dancer contribution remains comparable across both metrics (28.6\% vs. 31.0\%).
 
 \begin{table}[H]
 \centering
@@ -586,7 +584,7 @@ Residual & 15.4 & 17.3 \\
 \label{tab:variance}
 \end{table}
 
-\textbf{Individual Pro Dancer Effects.} We compute the ``lift'' for each professional dancer---the deviation from the grand mean after controlling for celebrity and season effects. Table~\ref{tab:pro_dancer} shows selected dancers with contrasting patterns:
+To isolate individual pro dancer effects, we compute the ``lift'' metric---the deviation from the grand mean after controlling for celebrity and season. As shown in Table~\ref{tab:pro_dancer}, professional dancers cluster into distinct archetypes. Derek Hough and Mark Ballas emerge as ``Judge Boosters'' with J\_lift exceeding $+5.0$, indicating their choreography emphasizes technical excellence. In contrast, Lacey Schwimmer exhibits J\_lift = $-6.85$ but F\_lift = $+1.44$, a ``Fan Specialist'' pattern suggesting her routines prioritize entertainment over technical difficulty. Figure~\ref{fig:pro_dancer} visualizes this heterogeneity: points in quadrants II and IV represent dancers whose effects on judge scores and fan votes move in opposite directions.
 
 \begin{table}[H]
 \centering
@@ -605,8 +603,6 @@ Tristan MacManus & $-9.43$ & $-1.90$ & 5 & Dual negative \\
 \label{tab:pro_dancer}
 \end{table}
 
-Some dancers exhibit \textbf{opposite effects} on judge scores versus fan votes. Lacey Schwimmer shows J\_lift = $-6.85$ but F\_lift = $+1.44$, indicating she boosts fan appeal while potentially sacrificing technical polish---a divergence suggesting different choreographic strategies.
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.65\linewidth]{cleaned_outputs/phase4_supplement/pro_dancer_effects.png}
@@ -616,11 +612,11 @@ Some dancers exhibit \textbf{opposite effects} on judge scores versus fan votes.
 
 \subsection{Celebrity Characteristics Effect}
 
-\textbf{Industry Effect.} We analyze how celebrity industry category affects the Popularity Bias Index (PBI = $\bar{R}^J - R^*$):
+By grouping contestants according to their pre-show industry, we observe systematic differences in how professional background influences judge scores versus fan support. Table~\ref{tab:industry} presents the average PBI and judge score by industry category. Musicians achieve the highest average judge scores (74.9\%) yet exhibit the most negative PBI ($-1.42$), indicating that their technical proficiency---likely from performance experience---translates to judge approval but fails to generate proportional fan engagement. Comedians display the inverse pattern: the lowest judge scores (60.7\%) combined with the only positive PBI ($+0.26$), suggesting their entertainment persona resonates more with audiences than with professional evaluators. Athletes occupy a middle position with high judge scores (74.2\%) and moderate PBI ($-0.55$), reflecting their physical coordination and competitive discipline.
 
 \begin{table}[H]
 \centering
-\caption{Industry and Age Effects on Competition Outcomes}
+\caption{Industry Effect on Competition Outcomes}
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Industry} & \textbf{avg PBI} & \textbf{avg J\%} & \textbf{n} & \textbf{Pattern} \\
@@ -634,8 +630,6 @@ Model & $-2.27$ & 68.0 & 18 & Moderate J, lowest fan \\
 \label{tab:industry}
 \end{table}
 
-Musicians achieve the highest judge scores (74.9\%) but the most negative PBI ($-1.42$), while Comedians show the opposite: lowest J (60.7\%) but positive PBI ($+0.26$). This confirms that industry impacts J and F \textbf{differently}.
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.65\linewidth]{cleaned_outputs/feature_engineering/pbi_by_industry.png}
@@ -643,9 +637,7 @@ Musicians achieve the highest judge scores (74.9\%) but the most negative PBI ($
     \label{fig:pbi_industry}
 \end{figure}
 
-\textbf{Age Effect.} Young contestants (18--25) achieve the highest judge scores (80.7\%) due to physical agility, while older contestants (55+) receive lower scores (60.2\%) but enjoy relatively strong fan support (PBI = $-0.36$), possibly due to ``underdog'' appeal.
-
-\textbf{Summary.} To answer the MCM question directly: \textbf{No, these factors do NOT impact judge scores and fan votes in the same way.} Pro dancers can boost J while hurting F (or vice versa); Musicians excel with judges but struggle with fans; age shows non-linear effects with young contestants dominating J but older contestants receiving compensating fan support.
+Further analysis of age effects reveals a non-linear relationship. Young contestants (18--25) achieve the highest judge scores (80.7\%) due to physical agility, while older contestants (55+) receive lower technical scores (60.2\%) but enjoy relatively strong fan support (PBI = $-0.36$). This ``underdog effect'' suggests that audiences value effort and narrative appeal beyond pure dance quality.
 
 \begin{figure}[H]
     \centering
@@ -653,6 +645,8 @@ Musicians achieve the highest judge scores (74.9\%) but the most negative PBI ($
     \caption{Variance Decomposition Comparison: Judge Scores vs. Fan Votes. Celebrity identity explains more judge variance, while season context explains more fan variance.}
     \label{fig:variance}
 \end{figure}
+
+These findings demonstrate that covariates exert \textbf{differential effects} on the two evaluation channels. Strategies to improve judge scores (technical training, experienced choreographers) differ fundamentally from strategies to boost fan votes (social media presence, relatable personality). This asymmetry has practical implications for casting decisions and partnership assignments, which we elaborate in the Memo to Producer.
 
 \section{Sensitivity Analysis and Model Evaluation}
 
