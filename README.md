@@ -27,7 +27,7 @@
 
 ### Certificate 预览
 
-<embed src="2627699.pdf" type="application/pdf" width="100%" height="700px" />
+![alt text](2627699.png)
 
 
 ---
@@ -58,5 +58,5 @@ This project is a complete modeling and analysis workflow for 2026 MCM/ICM Probl
 
 ### Certificate Preview
 
-<embed src="2627699.pdf" type="application/pdf" width="100%" height="700px" />
+![alt text](2627699.png)
 
